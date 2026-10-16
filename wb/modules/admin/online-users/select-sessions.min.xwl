@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Select online sessions","serverScript":"Wb.checkDemo();function main(){let e=Wb.getInt(\"_from\"),t=Wb.getInt(\"_to\");Wb.send(Wb.UserUtil.getSessions(Params.userid,e,t))}main();"},"_icon":"module"}

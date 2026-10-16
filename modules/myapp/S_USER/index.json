@@ -1,0 +1,9 @@
+{
+  "title": "测试模块生成器",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "select.xwl"
+  ]
+}

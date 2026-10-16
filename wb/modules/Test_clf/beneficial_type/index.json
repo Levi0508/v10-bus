@@ -1,0 +1,13 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "items": [
+    "beneficial_type_add.xwl",
+    "beneficial_type_delete.xwl",
+    "beneficial_type_edit.xwl",
+    "beneficial_type_query.xwl"
+  ]
+}

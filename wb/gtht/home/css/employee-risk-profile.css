@@ -1,0 +1,265 @@
+.flag {
+  border-radius: 10px;
+}
+
+.titleIcon {
+  font-size: 18px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.cardStyle {
+  margin: 0px 100px 20px 100px;
+  border: 1px solid #e1e0e0;
+  border-radius: 1em;
+}
+
+.titleContainer {
+  background: #f8fafc;
+  padding: 13px;
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+}
+
+.commonStyle {
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
+}
+
+.mainContainer {
+  background: #fff;
+}
+
+.siteInforBox {
+  border-radius: 15px;
+  background: #f8fafc !important;
+  border: 1px solid rgb(219, 219, 219);
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  width: 100%;
+}
+
+.process {
+  width: 100px;
+  height: 26px;
+  background: #eff6ff;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #2563eb;
+  display: inline-block;
+  line-height: 26px;
+  text-align: center;
+  margin-left: 15px;
+}
+
+.abnormal {
+  color: #dc2626;
+  background: #fee2e2;
+  font-size: 12px;
+  height: 25px;
+  width: 60px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.normal {
+  color: #15803d;
+  background: #dcfce7;
+  font-size: 12px;
+  height: 25px;
+  width: 60px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.special {
+  color: #b45309;
+  background: #fef3c7;
+  font-size: 12px;
+  height: 25px;
+  width: 60px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.unique {
+  color: #4338ca;
+  background: #e0e7ff;
+  font-size: 12px;
+  height: 25px;
+  width: 60px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.greyStyle {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  height: 25px;
+  width: 60px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.blueStyle {
+  color: #1d4ed8;
+  background: #eff6ff;
+  font-size: 12px;
+  height: 25px;
+  width: 120px;
+  padding: 4px 12px;
+  text-align: center;
+}
+
+.common {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.tableStyle {
+  margin: 0px 20px;
+  border: none;
+  border-radius: 10px;
+  padding-top: 20px;
+}
+
+.tableStyle .w-grid-vline >.w-header-table > tbody > tr > td {
+  border-right: none;
+}
+
+.tableStyle .w-grid-header td {
+  background: #f7f7f7;
+}
+
+.tableStyle .w-grid-vline > .w-content-table > tbody > tr > td {
+  border-right: none;
+}
+
+.tableStyle .w-striple-rows > tbody > tr:nth-child(even) {
+  background: #fff;
+}
+
+.tableStyle .w-toolbar {
+  display: none;
+}
+
+.tableStyle .w-grid-header {
+  color: #333333;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.tableStyle .w-grid-content {
+  color: #333333;
+  font-size: 14px;
+}
+
+.allBox {
+  display: flex;
+  justify-content: space-between;
+  margin: 15px 25px 0px 25px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 15px;
+}
+
+.lookBtn {
+  background: #2563eb;
+  font-size: 14px;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  margin-left: 20px;
+}
+
+.trip {
+  border: 1px solid #d7d7d7;
+  margin: 15px 25px 0px 25px;
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.contentBox {
+  margin: 15px 20px 0px 20px;
+  padding: 10px;
+  height: 130px;
+}
+
+.tabStyle {
+  padding: 20px;
+  border: none;
+}
+
+.tabStyle .w-toolbar {
+  background: #f1f5f9;
+  width: 35%;
+  height: 45px;
+  border-radius: 10px;
+}
+
+.tabStyle .w-toolbar .w-sc-body {
+  display: flex;
+  justify-content: space-around;
+}
+
+.tabStyle .w-tabbar > .w-sc-body > .w-btn {
+  background: rgba(255, 255, 255, 0);
+  color: #475569;
+  font-size: 14px;
+  width: 100px;
+  border: none;
+}
+
+.tabStyle .w-tabbar > .w-sc-body > .w-btn-active {
+  border-radius: 10px;
+  border-bottom: none !important;
+  color: #2563eb !important;
+  font-size: 14px;
+  margin: 5px 0px;
+}
+
+.tabStyle .w-trans-close.w-btn-active > .w-close-btn {
+  display: none;
+}
+
+.number {
+  width: 100px;
+  background: #f1f5f9;
+  color: #64748b;
+  text-align: center;
+  height: 30px;
+  line-height: 30px;
+}
+
+.complaint {
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 16px;
+  margin-left: 15px;
+  height: 30px;
+  line-height: 30px;
+}
+
+.reason {
+  color: #475569;
+  font-size: 14px;
+  height: 40px;
+  margin: 10px 0px 20px 0px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding-left: 15px;
+  line-height: 40px;
+}

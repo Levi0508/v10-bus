@@ -1,0 +1,12 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "items": [
+    "maintainer_change.xwl",
+    "maintainer_query.xwl",
+    "maintainer_users.xwl"
+  ]
+}

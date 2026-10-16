@@ -1,0 +1,14 @@
+{
+  "title": "保存清单审核记录",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let paramsTable = Wb.decode(Wb.get('paramsTable'));\nlet user_name = Wb.get('sys.username');\n\nlet rs = {};\nlet msg = '';\n\nif (!paramsTable) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = \"没有获取到参数\";\n} else if (paramsTable && paramsTable.length == 0) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = \"获取到的参数为空\";\n} else if (!paramsTable[0].piid) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = \"流程号为空\";\n} else if (!paramsTable[0].projid) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = \"项目编号为空\";\n} else {\n  let conn = Wb.getConn();\n\n  try {\n    let sql1 = `INSERT INTO thjs.tb_projlist_inout_comment(PROCESS_ID, PROJ_ID, BATCH_ID, INOUT_ID, CHECK_ID, CHECK_RESULT, CHECK_RECORD,\n      REMARK, CREATE_USER, CREATE_TIME, UPDATE_USER, UPDATE_TIME, FILEPATH, INOUT_TYPE, INOUT_DIRECT,PK_ID\n      ) VALUES (\n      {?PROCESS_ID?}, {?PROJ_ID?}, {?BATCH_ID?}, {?INOUT_ID?}, {?CHECK_ID?}, {?CHECK_RESULT?}, {?CHECK_RECORD?},\n      {?REMARK?}, {?CREATE_USER?}, sysdate, {?UPDATE_USER?}, sysdate, {?FILEPATH?}, {?INOUT_TYPE?}, {?INOUT_DIRECT?},{?PK_ID?})`;\n\n    for (let i = 0; i < paramsTable.length; i++) {\n      Wb.sql({\n        sql: sql1,\n        contextParams: false,\n        params: {\n          PROCESS_ID: paramsTable[i].piid,\n          PROJ_ID: paramsTable[i].projid,\n          BATCH_ID:paramsTable[i].batch_id,\n          INOUT_ID: paramsTable[i].inout_id,\n          CHECK_ID: paramsTable[i].check_id,\n          CHECK_RESULT: paramsTable[i].check_result,\n          CHECK_RECORD: paramsTable[i].check_record,\n          REMARK: paramsTable[i].remark,\n          CREATE_USER: user_name,\n          UPDATE_USER: user_name,\n          FILEPATH: paramsTable[i].filepath,\n          INOUT_TYPE: paramsTable[i].inout_type,\n          INOUT_DIRECT: paramsTable[i].inout_direct,\n          PK_ID: paramsTable[i].pk_id\n        },\n        trans: true,\n        commit: false\n      })\n    }\n    conn.commit();\n    rs.O_RETURN_CODE = 0;\n    rs.O_RETURN_MSG = \"执行成功\"\n  } catch (e) {\n    rs.O_RETURN_CODE = -1;\n    rs.O_RETURN_MSG = \"保存失败：\" + e;\n    conn.rollback();\n  } finally {\n    conn.close();\n  }\n}\n\nWb.send(Wb.encode(rs));"
+  },
+  "_icon": "module"
+}

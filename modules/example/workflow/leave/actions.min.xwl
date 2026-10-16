@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"true","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let actions={selectLeave(){let e=Wb.getRow(\"select * from wb_leave where flow_id={?flowId?}\");e.flowTitle=new Wb.Workflow({flowId:Params.flowId}).title;Wb.send(e)}};actions[Params.xaction]();"},"_icon":"module"}

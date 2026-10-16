@@ -1,0 +1,9 @@
+{
+  "title": "功能",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "select_candidates_hg.xwl"
+  ]
+}

@@ -1,0 +1,1 @@
+{"text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.checkDemo();\nfunction main() {\n  SysUtil.reloadSystem(true);\n}\nmain();","remark":"Reload all system resources"},"_icon":"module","title":""}

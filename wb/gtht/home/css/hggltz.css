@@ -1,0 +1,27 @@
+
+.hggltz .toptext {
+  color: #000;
+  font-weight: 600;
+}
+.hggltz-list .w-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1em .5em;
+  border-bottom: 1px solid rgb(231, 231, 231);
+  font-size: .9em;
+}
+.hggltz-list .w-item:hover {
+  background: #f1f8ff;
+}
+.hggltz-list .w-item:hover .text {
+  color: #3b9aff;
+}
+.hggltz-list .w-item:hover .time {
+  color: #3b9aff;
+}
+.hggltz-list .w-item .text {
+  color: #333;
+}
+.hggltz-list .w-item .time{
+  color: #888;
+}

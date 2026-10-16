@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Remove sessions","serverScript":"Wb.checkDemo();function main(){let e=Wb.getObject(\"del\");e.forEach((e=>Sessions.invalidate(e.$userid)))}main();"},"_icon":"module"}

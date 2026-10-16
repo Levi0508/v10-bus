@@ -1,0 +1,15 @@
+{
+  "title": "反洗钱客户审核类型设置",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "items": [
+    "audit_type_add.xwl",
+    "audit_type_delete.xwl",
+    "audit_type_edit.xwl",
+    "audit_type_err_types.xwl",
+    "audit_type_exists.xwl",
+    "audit_type_query.xwl"
+  ]
+}

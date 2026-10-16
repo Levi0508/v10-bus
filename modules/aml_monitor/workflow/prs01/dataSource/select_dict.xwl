@@ -1,0 +1,1 @@
+{"title":"查询字典表","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`select a.subentry as k,a.comments as v from thjs.t_dict_subentry a where a.entry_no = {?I_ENTRY_NO?}`);"},"_icon":"module"}

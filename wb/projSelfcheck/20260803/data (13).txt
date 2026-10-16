@@ -1,0 +1,350 @@
+TEXT
+procedure      p_fxq_cust_controller_s(i_cust_id     in varchar2, --客户id
+
+                                                         i_type        in varchar2, --实际控制人类型：0-法人 1-自然人
+
+                                                         i_name        in varchar2, --姓名
+
+                                                         i_birth       in varchar2, --出生年月
+
+                                                         i_certtype    in varchar2, --证件类型
+
+                                                         i_certno      in varchar2, --证件号码
+
+                                                         i_certstart   in varchar2, --证照有效起始
+
+                                                         i_certend     in varchar2, --证照有效截止
+
+                                                         i_submit_flag in varchar2, --提交标识：0-草稿 1-提交 v101+
+
+                                                         i_order       in varchar2, --用于区分数据展示顺序 v101+
+
+                                                         o_return_msg  out varchar2,
+
+                                                         o_return_code out integer) is
+
+  ----------------------------------------------------------------------------------
+
+  --版    权：GTJA
+
+  --版    本：1.0.0
+
+  --v101 YLT@GTJA 20191031 反洗钱客户填报逻辑优化，加上保存草稿处理
+
+
+
+  --开发人员：CZC@GTJA
+
+  --创建日期：20190603
+
+  --模块编号：
+
+  --模块名称：投行反洗钱 - 客户基本信息（融资端）实际控制人填报增删改
+
+  --功能名称：
+
+  ----------------------------------------------------------------------------------
+
+  --==============================================================================
+
+  --固定变量
+
+  v_userexp exception; -- 用户定义错
+
+  v_tradedate    varchar2(8); -- 任务执行时间(业务日期)
+
+  v_exec_func_id integer default '0'; -- 任务id
+
+  v_func_own     varchar2(20) default 'thjs'; -- 任务归属用户（schema）
+
+  v_func_name    varchar2(2000) default 'p_fxq_cust_controller_s'; -- 任务名称(存储过程的名字)
+
+  v_sqlerrm      varchar2(4000); -- 错误提示信息
+
+  v_sqlcode      number; -- 错误代码
+
+  v_sqlerrl      varchar2(4000); -- 错误行号
+
+  --==============================================================================
+
+  ---------------------------------------------------------------------------------------
+
+  --业务变量
+
+  --=============================================================
+
+  -- 业务处理过程
+
+  --=============================================================
+
+
+
+begin
+
+
+
+  v_tradedate := to_char(sysdate, 'yyyyMMdd');
+
+
+
+  /* insert into thjs.tb_test
+
+    (id, text)
+
+  values
+
+    (96,
+
+     'cust_id:' || i_cust_id || ',type:' || i_type || ',name:' || i_name ||
+
+     ',birth:' || i_birth || ',certtype:' || i_certtype || ',certno:' ||
+
+     i_certno || ',certstart:' || i_certstart || ',certend:' || i_certend ||
+
+     ',submit_flag:' || i_submit_flag || ',order:' || i_order);
+
+  commit;*/
+
+  insert into thjs.tb_exec_log
+
+    (log_id, proc_name, proc_param, exec_time)
+
+  values
+
+    (thjs.tb_exec_log_id_seq.nextval,
+
+     'p_fxq_cust_controller_s',
+
+     'cust_id:' || i_cust_id || ',type:' || i_type || ',name:' || i_name ||
+
+     ',birth:' || i_birth || ',certtype:' || i_certtype || ',certno:' ||
+
+     i_certno || ',certstart:' || i_certstart || ',certend:' || i_certend ||
+
+     ',submit_flag:' || i_submit_flag || ',order:' || i_order,
+
+     sysdate);
+
+  commit;
+
+
+
+  --如果是保存草稿操作
+
+  if i_submit_flag = '0' then
+
+    insert into thjs.tb_fxq_cust_controller_draft
+
+      (busi_date,
+
+       cust_id,
+
+       type,
+
+       name,
+
+       birth,
+
+       certtype,
+
+       certno,
+
+       certstart,
+
+       certend,
+
+       data_order)
+
+    values
+
+      (v_tradedate,
+
+       i_cust_id,
+
+       i_type,
+
+       i_name,
+
+       to_char(to_date(replace(i_birth, '/', '-'), 'YYYY-MM-DD'),
+
+               'YYYY-MM-DD'),
+
+       i_certtype,
+
+       i_certno,
+
+       to_char(to_date(replace(i_certstart, '/', '-'), 'YYYY-MM-DD'),
+
+               'YYYY-MM-DD'),
+
+       to_char(to_date(replace(i_certend, '/', '-'), 'YYYY-MM-DD'),
+
+               'YYYY-MM-DD'),
+
+       i_order);
+
+  end if;
+
+  --点击‘正式提交’操作时
+
+  if i_submit_flag = '1' then
+
+    insert into thjs.tb_fxq_cust_controller
+
+      (busi_date,
+
+       cust_id,
+
+       type,
+
+       name,
+
+       birth,
+
+       certtype,
+
+       certno,
+
+       certstart,
+
+       certend,
+
+       data_order)
+
+    values
+
+      (v_tradedate,
+
+       i_cust_id,
+
+       i_type,
+
+       i_name,
+
+       to_char(to_date(replace(i_birth, '/', '-'), 'YYYY-MM-DD'),
+
+               'YYYY-MM-DD'),
+
+       i_certtype,
+
+       i_certno,
+
+       to_char(to_date(replace(i_certstart, '/', '-'), 'YYYY-MM-DD'),
+
+               'YYYY-MM-DD'),
+
+       to_char(to_date(replace(i_certend, '/', '-'), 'YYYY-MM-DD'),
+
+               'YYYY-MM-DD'),
+
+       i_order);
+
+    commit;
+
+  
+
+    --KEY:CUST_ID, CATEGORY, CUST_NAME, CERT_TYPE, CERT_NO
+
+    thjs.p_fxq_cust_rsk_zhlc_s(i_cust_id     => i_cust_id,
+
+                               i_name        => i_name,
+
+                               i_submit_flag => i_submit_flag,
+
+                               i_category    => '实际控制人',
+
+                               o_return_msg  => o_return_msg,
+
+                               o_return_code => o_return_code);
+
+  
+
+  end if;
+
+  commit;
+
+
+
+  o_return_msg  := '执行成功';
+
+  o_return_code := 0;
+
+
+
+exception
+
+  -- 非预定义异常处理
+
+  when v_userexp then
+
+    rollback;
+
+  
+
+    v_sqlerrm := 'cust_id:' || i_cust_id || ',name:' || i_name || ',' ||
+
+                 sqlerrm;
+
+    v_sqlcode := sqlcode;
+
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+
+  
+
+    hgman.p_write_error_log(i_tradedate    => v_tradedate,
+
+                            i_exec_func_id => v_exec_func_id,
+
+                            i_func_own     => v_func_own,
+
+                            i_func_name    => v_func_name,
+
+                            i_occur_time   => sysdate,
+
+                            i_sqlerrm      => v_sqlerrm,
+
+                            i_sqlcode      => v_sqlcode,
+
+                            i_sqlerrl      => v_sqlerrl);
+
+    commit;
+
+    raise;
+
+    -- 预定义异常处理
+
+  when others then
+
+    rollback;
+
+  
+
+    v_sqlerrm := sqlerrm;
+
+    v_sqlcode := sqlcode;
+
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+
+  
+
+    hgman.p_write_error_log(i_tradedate    => v_tradedate,
+
+                            i_exec_func_id => v_exec_func_id,
+
+                            i_func_own     => v_func_own,
+
+                            i_func_name    => v_func_name,
+
+                            i_occur_time   => sysdate,
+
+                            i_sqlerrm      => v_sqlerrm,
+
+                            i_sqlcode      => v_sqlcode,
+
+                            i_sqlerrl      => v_sqlerrl);
+
+    commit;
+
+    raise;
+
+end;

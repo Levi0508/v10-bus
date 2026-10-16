@@ -1,0 +1,24 @@
+{
+  "title": "",
+  "icon": "chart-area",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "CeShi",
+    "CeShi.xwl",
+    "TestModuleGenTable.xwl",
+    "TestModuleGenTable",
+    "TableTestCRUD",
+    "userNew.xwl",
+    "userNew",
+    "TestSearchLog.xwl",
+    "TestSearchLog",
+    "S_USER.xwl",
+    "S_USER",
+    "requirements-management.xwl",
+    "requirements-management",
+    "test.xwl",
+    "user.xwl",
+    "test-select"
+  ]
+}

@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module"},"_icon":"module","_expanded":true,"events":{"initialize":"Wb.make(app,{cname:\"viewport\",layout:\"fit\",cid:\"viewport1\",items:[{cname:\"grid\",url:xpath+\"/../select-staff\",cid:\"grid1\"}]});"}}

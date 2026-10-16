@@ -1,0 +1,1 @@
+{"title":"清单关联上市公司信息查询","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`{call THJS.p_projlist_multistk_q({*cursor|return*},{?i_projid?},{?i_usercode?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`)"},"_icon":"module"}

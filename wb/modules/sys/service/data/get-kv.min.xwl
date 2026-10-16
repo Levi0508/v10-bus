@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"function main(){switch(Params.type){case\"list\":Wb.send(Wb.ServerDict.getKVList(Params.name));break;case\"names\":Wb.send(Wb.ServerDict.getKeyNames());break}}main();","remark":"Get key value list"},"_icon":"module"}

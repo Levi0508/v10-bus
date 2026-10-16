@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Get starting form","serverScript":"function main() {\n  const Util = Wb.load('./util.mjs');\n  let flow = new Wb.Workflow({ file: Params.file });\n  Wb.send({ form: Util.getForm(flow, 'start') });\n}\nmain();"},"_icon":"module"}

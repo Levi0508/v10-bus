@@ -1,0 +1,32 @@
+{
+  "items": [
+    "ide.xwl",
+    "ide",
+    "controls.xwl",
+    "controls",
+    "dict.xwl",
+    "dict",
+    "kve.xwl",
+    "kve",
+    "version.xwl",
+    "version",
+    "docs.xwl",
+    "welcome.xwl",
+    "ProjectManage.xwl",
+    "ProjectManage",
+    "ProcedureManage.xwl",
+    "ProcedureManage",
+    "ColumnManage.xwl",
+    "ColumnManage",
+    "DictMapManage.xwl",
+    "DictMapManage",
+    "TableETLManage.xwl",
+    "TableETLManage",
+    "EmailManage.xwl",
+    "EmailManage"
+  ],
+  "title": "@devSuite",
+  "icon": "codepen",
+  "img": "",
+  "hideInMenu": "true"
+}

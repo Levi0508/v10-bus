@@ -1,0 +1,1 @@
+{"title":"反馈结果问题描述详情","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({\n  sql: `{call thjs.p_fxq_cust_rz_fkd_q({*cursor|result*},{?I_CLIENT_ID?},{?I_USER_ID?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`\n});"},"_icon":"module"}

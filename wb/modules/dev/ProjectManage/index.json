@@ -1,0 +1,12 @@
+{
+  "title": "模块管理包",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "actions.xwl",
+    "export.xwl",
+    "import.xwl",
+    "util.mjs"
+  ]
+}

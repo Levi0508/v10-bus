@@ -1,0 +1,11 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "items": [
+    "my_client_audit_info.xwl",
+    "my_client_query.xwl"
+  ]
+}

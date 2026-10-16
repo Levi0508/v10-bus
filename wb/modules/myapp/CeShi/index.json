@@ -1,0 +1,11 @@
+{
+  "title": "测试",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "select-roles.xwl",
+    "add.xwl",
+    "select.xwl"
+  ]
+}

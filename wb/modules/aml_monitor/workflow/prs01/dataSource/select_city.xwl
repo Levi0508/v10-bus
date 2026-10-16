@@ -1,0 +1,1 @@
+{"title":"查询市","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({\n  sql: `select * from thjs.t_dict_area_code_v2 t where t.pro_code != t.area_code and t.area_code like '%00' and t.pro_code = {?I_PRO_CODE?}`,\n  paging: false\n});"},"_icon":"module"}

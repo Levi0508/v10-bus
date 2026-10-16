@@ -1,0 +1,59 @@
+.cyywxt .item {
+  display: flex;
+  align-items: center;
+}
+.cyywxt .leftbox {
+  width: 3em;
+  height: 3em;
+  margin-right: 1em;
+}
+.cyywxt .leftbox .img {
+  width: 100%;
+}
+
+.cyywxt .title {
+  font-weight: 600;
+}
+.cyywxt .text {
+  font-size: .8em;
+}
+
+.cyywxt-list .w-item {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  align-items: center;
+}
+
+.cyywxt-list .w-item.item-box {
+  padding: 1em .5em;
+  background: #ffffff !important;
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cyywxt-list .w-item.item-box:hover {
+  box-shadow: 
+    0 .5em 2em rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-3px);
+}
+
+.cyywxt-list .w-item .icon-box {
+  width: 1.5em;
+  height: 1.5em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1.5em;
+  opacity: 0;
+}
+.cyywxt-list .w-item:hover > .icon-box {
+  opacity: 1;
+  transition: opacity 1s;
+}
+.cyywxt-list .w-item .icon-box:hover {
+  background-color: #eee;
+}

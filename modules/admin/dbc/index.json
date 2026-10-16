@@ -1,0 +1,11 @@
+{
+  "title": "@dbc",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "config.xwl",
+    "set-default.xwl",
+    "set-perm.xwl"
+  ]
+}

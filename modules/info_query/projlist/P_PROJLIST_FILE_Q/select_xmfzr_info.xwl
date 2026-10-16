@@ -1,0 +1,14 @@
+{
+  "title": "查询项目负责人信息",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx({\n  sql: `SELECT i.deptname as deptname,\n  i.deptmananame as deptmananame,\n  i.deptmanacode as dept_user_id,\n  u.staff_id as staff_id\nFROM thjs.tb_ib_cust_info i\nleft join basic_thjs.wb_user u\non u.user_id = i.deptmanacode\nwhere i.projid = {?i_projid?}`});"
+  },
+  "_icon": "module"
+}

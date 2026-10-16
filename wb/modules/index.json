@@ -1,0 +1,22 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "dev",
+    "admin",
+    "my",
+    "sys",
+    "example",
+    "recycleBin",
+    "info_query",
+    "info_query_old",
+    "th_projlist",
+    "th_projlist_old",
+    "aml_monitor",
+    "common",
+    "Test_clf",
+    "Test_clf2"
+  ]
+}

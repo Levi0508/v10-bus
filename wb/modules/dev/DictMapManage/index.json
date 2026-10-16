@@ -1,0 +1,9 @@
+{
+  "title": "转换字典管理包",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "actions.xwl"
+  ]
+}

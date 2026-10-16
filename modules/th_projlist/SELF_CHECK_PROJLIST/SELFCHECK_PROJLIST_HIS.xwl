@@ -1,0 +1,370 @@
+{
+  "title": "清单自查历史",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1"
+      },
+      "_expanded": true,
+      "events": {
+        "keydown": "// if (e.keyCode == '13') {\n//   app.seekBtn.fireClick()\n// }"
+      },
+      "items": [
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "border": "false",
+            "layout": "grid4",
+            "visible": "false"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "text",
+              "text": "PROJID",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "PROJID",
+                "text": "项目编号",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "CUSTNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "CUSTNAME",
+                "text": "公司全称",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "STKCODE",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "STKCODE",
+                "text": "证券代码",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "STKNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "STKNAME",
+                "text": "股票简称",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "combo",
+              "text": "PROJTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "PROJTYPE",
+                "text": "业务类型",
+                "url": "@xpath + '/../ADMIN_PROJLIST/operation/p_projlist_projtype_q'",
+                "valueField": "projtype",
+                "textField": "projtype_desc"
+              },
+              "hasDupCid": 0,
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "DIRECTOR",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "DIRECTOR",
+                "text": "项目负责人"
+              },
+              "_expanded": true,
+              "events": {
+                "click": "app.selectUserWin.show();"
+              }
+            },
+            {
+              "_icon": "text",
+              "text": "DEPTNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "DEPTNAME",
+                "text": "部门名称",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0,
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "LISTTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "LISTTYPE",
+                "text": "清单类别",
+                "data": "[\n  [\n    '所有', '0',\n  ],\n  [\n    '观察清单', '1'\n  ],\n  [\n    '限制清单', '2'\n  ],\n  [\n    '静默期', '3'\n  ]\n]"
+              }
+            },
+            {
+              "_icon": "combo",
+              "text": "INOUTTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "INOUTTYPE",
+                "text": "出入单类型",
+                "data": "[\n  [\n    '全部', '0'\n  ],\n  [\n    '入单', '1'\n  ],\n  [\n    '出单', '2'\n  ]\n]"
+              },
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "DATETYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "DATETYPE",
+                "text": "日期类型",
+                "data": "[\n  [\n    '全部', '0'\n  ],\n  [\n    '发生日期', '1'\n  ],\n  [\n    '填报日期', '2'\n  ]\n]"
+              },
+              "_expanded": true
+            },
+            {
+              "_icon": "calendar",
+              "text": "BEGINDATE",
+              "cls": "Wb.Date",
+              "properties": {
+                "cid": "BEGINDATE",
+                "text": "起始日期",
+                "format": "y-MM-dd"
+              }
+            },
+            {
+              "_icon": "calendar",
+              "text": "ENDDATE",
+              "cls": "Wb.Date",
+              "properties": {
+                "cid": "ENDDATE",
+                "text": "截止日期",
+                "format": "y-MM-dd"
+              }
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid1",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid1",
+            "pagingBar": "pageNums",
+            "pageSize": "100",
+            "full": "true",
+            "border": "false",
+            "url": "@xpath + '/selfcheck_history_q'",
+            "emptyHint": "true",
+            "multiSelect": "true",
+            "textSelectable": "true"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "events": {
+            "click": "let link = e.target.closest('.viewBtn');\nif (link) {\n  let row = this.findItemByEl(link);\n  Wb.tip('查看通知详情');\n  Wb.open({\n    url: xpath + '/../SELEFCHECK_PROJLIST_DETAIL',\n    params: {\n      title: row.data.title,\n      content: row.data.content,\n      check_batch_id: row.data.check_batch_id\n    }\n  })\n}\n\nlet correctLink = e.target.closest('.correctBtn');\nif (correctLink) {\n  let row = this.findItemByEl(correctLink);\n  Wb.open({\n    url: xpath + '/../SELFCHECK_PROJLIST_QUERY',\n    params: {\n      title: row.data.title,\n      check_batch_id: row.data.check_batch_id,\n      check_result: '0',\n    },\n    title: '已完成自查列表'\n  })\n}\n\nlet editedLink = e.target.closest('.editedBtn');\nif (editedLink) {\n  let row = this.findItemByEl(editedLink);\n  Wb.open({\n    url: xpath + '/../SELFCHECK_PROJLIST_QUERY',\n    params: {\n      title: row.data.title,\n      check_batch_id: row.data.check_batch_id,\n      check_result: '1',\n    },\n    title: '已完成自查列表'\n  })\n}\n\nlet undoLink = e.target.closest('.undodBtn');\nif (undoLink) {\n  let row = this.findItemByEl(undoLink);\n  Wb.open({\n    url: xpath + '/../SELFCHECK_PROJLIST_QUERY',\n    params: {\n      title: row.data.title,\n      check_batch_id: row.data.check_batch_id,\n      check_result: '-1',\n    },\n    title: '未完成自查列表'\n  })\n}\n\n// 批量下发催办\nlet remindLink = e.target.closest('.remindBtn');\nif (remindLink) {\n  let row = this.findItemByEl(remindLink);\n  let undo_cnt = row.data.undo_cnt;\n\n  if (undo_cnt == '0') {\n    Wb.tipError(\"该批次所有项目已完成自查，无需发送催办！\");\n    return;\n  }\n  \n  let check_batch_id = row.data.check_batch_id;\n\n  Wb.confirm(\"该操作会对所有本批次下发且未完成自查的项目对应的项目负责人下发催办，请问是否下发催办？\", () => {\n    // 1.查询出该批次未完成自查的项目列表\n    Wb.ajax({\n      url: xpath + '/../operation/start_selfcheck_mail',\n      params: {\n        CHECK_BATCH_ID: check_batch_id,\n      },\n      success(resp) {\n        let res = Wb.decode(resp);\n        if (res.O_RETURN_CODE === 0) {\n          Wb.tipSucc(\"催办邮件发送成功！\")\n        } else {\n          Wb.tipError(\"催办邮件发送失败：\" + res.O_RETURN_MSG)\n        }\n      }\n    });\n  });\n}",
+            "itemdblclick": "console.log(\"item\", item);\nWb.open({\n  url: xpath + '/../SELEFCHECK_PROJLIST_DETAIL',\n  params: {\n    title: item.data.title,\n    check_batch_id: item.data.check_batch_id\n  }\n});"
+          },
+          "items": [
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "OP_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "OP_Col",
+                    "render": "let a = el.addEl('viewBtn', 'a');\nel.cls = 'w-ta-center';\na.textContent = '查看通知详情';",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "rownum1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum1_Col",
+                    "rowNum": "true",
+                    "width": "80",
+                    "text": "序号"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "BATCH_MONTH_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "BATCH_MONTH_col",
+                    "text": "自查批次",
+                    "fieldName": "batch_month"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "TITLE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "TITLE_col",
+                    "text": "批次标题",
+                    "fieldName": "title",
+                    "draggable": "false",
+                    "width": "500"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "START_TIME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "START_TIME_Col",
+                    "text": "流程下发日期",
+                    "fieldName": "sys_create_time",
+                    "width": "200"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJ_CNT_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJ_CNT_col",
+                    "text": "涉及项目数",
+                    "fieldName": "proj_cnt"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "DONE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DONE_Col",
+                    "text": "已完成自查数"
+                  },
+                  "_expanded": false,
+                  "hasDupCid": 0,
+                  "items": [
+                    {
+                      "_icon": "column",
+                      "text": "CORRECT_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "CORRECT_Col",
+                        "text": "准确",
+                        "fieldName": "correct_cnt",
+                        "width": "80",
+                        "render": "let a = el.addEl('correctBtn', 'a');\nel.cls = 'w-ta-center';\na.textContent = value;"
+                      },
+                      "hasDupCid": 0,
+                      "_expanded": true
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "EDITED_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "EDITED_Col",
+                        "text": "已更正",
+                        "fieldName": "edit_cnt",
+                        "width": "80",
+                        "render": "let a = el.addEl('editedBtn', 'a');\nel.cls = 'w-ta-center';\na.textContent = value;"
+                      },
+                      "_expanded": true
+                    }
+                  ]
+                },
+                {
+                  "_icon": "column",
+                  "text": "UNDO_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "UNDO_Col",
+                    "text": "未完成自查数",
+                    "fieldName": "undo_cnt",
+                    "render": "let a = el.addEl('undodBtn', 'a');\nel.cls = 'w-ta-center';\na.textContent = value;"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "REMIND_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "REMIND_col",
+                    "render": "let a = el.addEl('remindBtn', 'a');\nel.cls = 'w-ta-center';\na.textContent = '催办';",
+                    "width": "80"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "CHECK_BATCH_ID_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CHECK_BATCH_ID_col",
+                    "fieldName": "check_batch_id",
+                    "minWidth": "300",
+                    "visible": "true",
+                    "html": "流程批次唯一编号<br>(实际上线后会隐藏)"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CREATE_USER_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CREATE_USER_Col",
+                    "fieldName": "sys_create_user",
+                    "width": "200",
+                    "html": "流程下发人<br>(实际上线后会隐藏)"
+                  },
+                  "_expanded": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

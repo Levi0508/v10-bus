@@ -1,0 +1,27 @@
+/* item class */
+.d-tag > .w-body > .w-item {
+  color: #000;
+  border: thin solid #888;
+  border-radius: 0.5em;
+  background: #ddd;
+}
+/* item hover */
+.d-tag > .w-body > .w-item:hover {
+  color: #000;
+  background: #aaa;
+}
+/* item selected */
+.w-x .d-tag > .w-body > .w-item-sel {
+  /* color: #fff; */
+  background: #cce8ff
+}
+/* item selected focused */
+/* .d-tag.w-view:focus-within .w-item-sel {
+  color: #fff;
+  background: #37e;
+} */
+/* we chat tab icon & label */
+.d-we-chat > .w-tabbar > .w-sc-body > .w-btn-active > .w-icon,
+.d-we-chat > .w-tabbar > .w-sc-body > .w-btn-active > .w-label {
+  color: #22b428;
+}

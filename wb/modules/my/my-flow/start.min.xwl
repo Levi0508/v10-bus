@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Start a new workflow","serverScript":"function main(){const n=Wb.load(\"./util.mjs\");n.doAction(\"start\")}main();"},"_icon":"module"}

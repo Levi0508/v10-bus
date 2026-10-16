@@ -1,0 +1,14 @@
+{
+  "title": "KYC01070/select",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx(`select a.subentry as beneficial_type_no,a.comments as beneficial_type_name,a.remark\n          from thjs.t_dict_subentry a \n         where a.entry_no = 'BENEFICIAL_TYPE' \n           and ((instr(a.subentry, {?BENEFICIAL_TYPE_NAME?}) > 0 or {?BENEFICIAL_TYPE_NAME?} is null) \n           or (instr(a.comments, {?BENEFICIAL_TYPE_NAME?}) > 0 or {?BENEFICIAL_TYPE_NAME?} is null)) `+Wb.getOrderSql());"
+  },
+  "_icon": "module"
+}

@@ -1,0 +1,13 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "items": [
+    "country_add.xwl",
+    "country_delete.xwl",
+    "country_edit.xwl",
+    "country_query.xwl"
+  ]
+}

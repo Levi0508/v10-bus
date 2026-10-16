@@ -1,0 +1,42 @@
+{
+  "title": "清单自查历史（vue 废弃）",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "links": "[\"wb/custom-made/vue/vue.js\",\"wb/custom-made/vue/element.js\",\"wb/custom-made/vue/element.css\",\"wb/custom-made/css/self_check.css\"]"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1",
+        "layout": "fit"
+      },
+      "_expanded": true,
+      "items": [
+        {
+          "_icon": "container",
+          "text": "mainContainer",
+          "cls": "Wb.Container",
+          "properties": {
+            "cid": "mainContainer",
+            "full": "true",
+            "layout": "fit"
+          },
+          "events": {
+            "ready": "let comp = this;\n\n// 确保 ElementUI 组件已注册\nif (typeof Vue !== 'undefined' && typeof ElementUI !== 'undefined') {\n  Vue.use(ElementUI);\n}\n\ncomp.vue = new Vue({\n  el: comp.el.addEl(),\n  template: `\n<div>\n  <div style=\"padding:20px 20px 20px 40px;height:100%\">\n    <!-- 表格数据 -->\n  <el-table :data=\"tableData\" border style=\"width: 100%;flex:1\" height=\"100%\">\n    <el-table-column width=\"120\" align=\"center\">\n      <template slot-scope=\"scope\">\n        <div class=\"operation-buttons\">\n          <el-tooltip content=\"查看详情\">\n            <el-button type=\"text\" @click=\"viewDetail(scope.row)\">查看通知详情</el-button>\n          </el-tooltip>\n        </div>\n      </template>\n    </el-table-column>\n    <el-table-column type=\"index\" label=\"序号\" width=\"60\" align=\"center\"></el-table-column>\n    <el-table-column prop=\"batch_month\" label=\"自查批次\" width=\"150\" align=\"center\" :formatter=\"formatYearMonth\"></el-table-column>\n    <el-table-column prop=\"title\" label=\"批次标题\" min-width=\"200\" align=\"left\"></el-table-column>\n  </el-table>\n   \n  <!-- 通知详情弹窗 -->\n  <el-dialog title=\"通知详情\" :visible.sync=\"dialogVisible\" width=\"1000px\" :close-on-click-modal=\"false\" append-to-body>\n    <div v-if=\"selectedItem\" class=\"dialog-content\">\n      <div class=\"detail-row\">\n        <span style=\"font-size:18px;font-weight:bold;\">{{ selectedItem.title }}</span>\n      </div>\n      <div class=\"detail-row\">\n        <span v-html=\"selectedItem.content\"></span>\n      </div>\n      <div style=\"font-size:18px;font-weight:bold;padding-bottom:10px;\">项目列表</div>\n      <el-table :data=\"batchTableData\" border style=\"max-height:500px;overflow-y:auto;\">\n        <el-table-column prop=\"\" label=\"\" width=\"120\" align=\"center\">\n          <template slot-scope=\"scope\">\n            <div class=\"operation-buttons\">\n              <el-tooltip content=\"查看详情\">\n                <el-button type=\"text\" @click=\"gotoProjForm(scope.row)\">查看清单详情</el-button>\n              </el-tooltip>\n            </div>\n          </template>\n        </el-table-column>\n        <el-table-column prop=\"projcode\" label=\"项目编号\" width=\"120\"></el-table-column>\n        <el-table-column prop=\"khname\" label=\"公司全称\" min-width=\"150\"></el-table-column>\n        <el-table-column prop=\"deptmanacode\" label=\"项目负责人工号\" min-width=\"150\"></el-table-column>\n        <el-table-column prop=\"dept_name\" label=\"部门名称\" width=\"250\"></el-table-column>\n      </el-table>\n    </div>\n  </el-dialog>\n</div>\n`,\n  data() {\n    return {\n      // 历史记录列表\n      historyList: [],\n      // 弹窗可见性\n      dialogVisible: false,\n      // 当前选中的记录\n      selectedItem: null,\n      tableData: [],\n      batchTableData: []\n    };\n  },\n  computed: {\n  },\n  methods: {\n    formatYearMonth(row, column) {\n      // 确保输入是字符串\n      const input = String(row.batch_month);\n      // 截取年份（前4位）和月份（后2位）\n      const year = input.substring(0, 4);\n      // 使用 parseInt 去除月份前的 \"0\" (例如将 \"06\" 转换为 6)\n      const month = parseInt(input.substring(4, 6), 10);\n      return `${year}年${month}月`;\n    },\n    // 查询历史记录\n    queryHistory() {\n      const that = this;\n      Wb.ajax({\n        url: xpath + '/selfcheck_history_q',\n        params: {\n          // 可以根据需要添加查询参数\n        },\n        success(resp) {\n          resp = Wb.decode(resp);\n          if (resp && resp.items) {\n            that.tableData = resp.items;\n          }\n        },\n        failure(resp) {\n          that.$message.error('查询历史记录失败');\n        }\n      });\n    },\n    queryBatchTableData(id) {\n      let that = this;\n      Wb.ajax({\n        url: xpath + '/select_selfchek_details',\n        params: {\n          check_batch_id: id\n        },\n        success(resp) {\n          let res = Wb.decode(resp).items;\n          that.batchTableData = res;\n        }\n      })\n    },\n    // 查看详情\n    viewDetail(item) {\n      console.log(\"viewDetail\");\n      this.selectedItem = item;\n      // this.dialogVisible = true;\n      this.queryBatchTableData(item.check_batch_id);\n      Wb.open({\n        url: xpath + '/../SELEFCHECK_PROJLIST_DETAIL',\n        params: {\n          title: item.title,\n          content: item.content,\n          check_batch_id: item.check_batch_id\n        },\n        success() {\n\n        }\n      })\n    },\n    gotoProjForm(row) {\n      console.log(\"row\", row);\n      let that = this;\n      Wb.ajax({\n        url: 'm?xwl=info_query/projlist_data/inout_q',\n        params: {\n          i_projid: row.projid,\n          i_usercode: '_$sys.username$_'\n        },\n        success(resp) {\n          var scope = Wb.decode(resp).items[0];\n          var card, encodedParams = scope.projid;\n          scope.state = 'info';\n          if (window.destTabPanel) {\n            window.destTabPanel.items.each(function (item) {\n              if (item.detailParams == encodedParams) {\n                card = item;\n                return false;\n              }\n            });\n            if (card) {\n              destTabPanel.setActiveTab(card);\n              return;\n            }\n          }\n          card = Wb.open({\n            url: 'm?xwl=info_query/projlist/projlist_form_container',//yufang\n            params: scope,\n            title: '清单查看 - ' + scope.custname,\n            success(scope) {\n              that.dialogVisible = false;\n              console.log(\"11111\")\n            }\n          });\n          if (card) {\n            card.detailParams = encodedParams;\n            window.destTabPanel = card.ownerCt;\n          }\n        }\n      });\n    }\n  },\n  created: function () {\n    // 页面加载时查询历史记录\n    this.queryHistory();\n  },\n  beforeDestroy: function () {\n    // 清理工作\n  }\n});"
+          }
+        }
+      ]
+    }
+  ]
+}

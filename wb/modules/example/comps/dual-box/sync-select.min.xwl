@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let update=[],user_id;user_id=Wb.getBool(\"include\")?\"admin\":\"default\";Wb.getObject(\"items\").forEach((e=>{update.push({$sid:e.sid,user_id:user_id})}));Wb.sync({tableName:\"wb_staff\",update:update});"},"_icon":"module"}

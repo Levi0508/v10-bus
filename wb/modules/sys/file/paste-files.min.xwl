@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let fs=Wb.load(\"./fs.mjs\");Wb.send(fs.pasteFiles(Wb.getObject(\"source\"),Params.dest,Params.relName,Wb.getBool(\"isCut\"),Params.mode));","remark":"Paste or move files in any path"},"_icon":"module"}

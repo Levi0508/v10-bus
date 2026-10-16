@@ -1,0 +1,27 @@
+{
+  "title": "反洗钱",
+  "icon": "grid",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "KYC01010.xwl",
+    "KYC01010",
+    "KYC01020.xwl",
+    "KYC01020_test.xwl",
+    "KYC01020",
+    "KYC01030.xwl",
+    "KYC01030",
+    "KYC01040.xwl",
+    "KYC01040",
+    "KYC01050.xwl",
+    "KYC01050",
+    "KYC01060.xwl",
+    "KYC01060",
+    "KYC01070.xwl",
+    "KYC01070",
+    "KYC01080.xwl",
+    "KYC01080",
+    "workflow",
+    "aml_interface"
+  ]
+}

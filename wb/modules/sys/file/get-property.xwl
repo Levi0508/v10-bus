@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let fs = Wb.load('./fs.mjs');\nWb.send(fs.getFileProperty(Params.path));","remark":"Get file property in any path"},"_icon":"module"}

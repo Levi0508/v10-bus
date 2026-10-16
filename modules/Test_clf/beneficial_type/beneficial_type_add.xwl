@@ -1,0 +1,14 @@
+{
+  "title": "KYC01070/add",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRows(`insert into thjs.t_dict_subentry (entry_no, subentry, comments,remark, create_user, create_time) \n        select 'BENEFICIAL_TYPE',{?BENEFICIAL_TYPE_CODE?},{?BENEFICIAL_TYPE_NAME?},{?REMARK?},{?sys.userid?},sysdate \n          from dual`);\n"
+  },
+  "_icon": "module"
+}

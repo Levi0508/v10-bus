@@ -1,0 +1,1 @@
+{"title":"合规人员只查正式表关联人数据","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`select a.* from thjs.t_th_relat_info a \nwhere a.client_id = {?CLIENT_ID?} \nand a.related_type = {?RELATED_TYPE?}\nand (a.data_status = {?DATA_TYPE?} OR {?DATA_TYPE?} IS NULL)\n`);"},"_icon":"module"}

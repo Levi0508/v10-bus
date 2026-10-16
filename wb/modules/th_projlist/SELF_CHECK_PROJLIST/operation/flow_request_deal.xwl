@@ -1,0 +1,14 @@
+{
+  "title": "清单自查流程下发（已弃用 改为java任务批量下方）",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "// 清单自查流程下发\n\nlet HttpUtil = Packages.cn.hutool.http.HttpUtil;\nlet Method = Packages.cn.hutool.http.Method;\nconst url = \"http://10.116.131.13:8094/auto/submit\";\n\nlet formDatas = Wb.decode(Wb.get('formDatas')) || [];\n\nfor (let i = 0; i < formDatas.length; i++) {\n  let formData = {\n    \"BUSIDATE\": formDatas[i].BUSIDATE,\n    \"PROJID\": formDatas[i].PROJID,\n    \"PROJLIST_STATUS\": formDatas[i].PROJLIST_STATUS,\n    \"DEPTMANANAME\": formDatas[i].DEPTMANANAME,\n    \"STAFF_ID\": formDatas[i].STAFF_ID,\n    \"START_USER\": formDatas[i].START_USER,\n    \"CHECK_BATCH\": formDatas[i].CHECK_BATCH,\n    \"CHECK_BATCH_ID\": formDatas[i].CHECK_BATCH_ID,\n    \"TITLE\": Wb.get('title'),\n    \"CONTENT\": Wb.get('content'),\n    \"PROJNAME\": formDatas[i].PROJNAME\n  }\n  let obj = {\n    \"todoTitle\": '清单自查 - 【' + formDatas[i].PROJNAME + '】',\n    \"sysGuid\": 'IBCM',\n    \"flowCode\": 'IBCM002',\n    \"formData\": JSON.stringify(formData),\n    \"templateName\": '清单自查 - 【' + formDatas[i].PROJNAME + '】',\n    \"flowVer\": '1',\n    \"nodeCode\": 'draft',\n    \"applyTable\": 'T_PROJ_SELFCHECK_FLOW',\n    \"candidates\": '038622'\n  };\n  let data = JSON.stringify(obj);\n\n  let resp = Packages.cn.hutool.http.HttpUtil\n    .createPost(url)\n    .header(\"Content-Type\", \"application/json;charset=utf-8\")\n    .header(\"x-flow-systemId\", Wb.get('x-flow-systemId'))\n    .header(\"x-userId\", Wb.get('x-userId'))\n    .header(\"x-userName\", Wb.get('x-userName'))\n    .body(Packages.cn.hutool.json.JSONUtil.toJsonStr(data))\n    .execute()\n    .body();\n\n  const res = Wb.decode(resp);\n\n  // 若中途下发失败 返回错误信息到前台\n  if (res.code != 0) {\n    Wb.send(res);\n  }\n\n  // 若下发到最后一条流程结束 返回成功信息到前台\n  if (i == formDatas.length - 1) {\n    Wb.send(res);\n  }\n}\n"
+  },
+  "_icon": "module"
+}

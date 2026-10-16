@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({\n  sql: `{call thjs.p_fxq_op_log_s(i_op_type => {?i_op_type?},i_cust_id => {?i_cust_id?},i_usercode => {?i_usercode?},o_return_msg => {*O_RETURN_MSG*},o_return_code => {*O_RETURN_CODE*})}`\n});"},"_icon":"module"}

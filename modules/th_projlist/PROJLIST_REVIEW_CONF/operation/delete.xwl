@@ -1,0 +1,1 @@
+{"title":"删除","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({sql:`delete from thjs.tb_projlist_review_conf where pk_id = {?I_PK_ID?}`});"},"_icon":"module"}

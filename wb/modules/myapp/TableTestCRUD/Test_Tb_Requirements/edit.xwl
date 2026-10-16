@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","_expanded":true,"properties":{"cid":"module","serverScript":"Wb.sync({ tableName: 'TEST_TB_REQUIREMENTS', update: Params });"},"_icon":"module"}

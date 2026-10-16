@@ -1,0 +1,14 @@
+{
+  "title": "列表查询",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let order = Wb.getOrderSql();\nWb.set('checked',0);\nWb.sendRowx({\n  sql: `{call thjs.p_fxq_cust_rz_qry({*cursor|return*},{?CLIENT_NAME?},{?CLIENT_BELONG?},{?IS_RSK?},{?IF_RISK_LIST?},{?sys.username?},{?GRADE_VALUE?},{?CLIENT_STATUS?},{?MAINTAINER?},{?bigint|_from?},{?bigint|_size?},'${order}',{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n  kv: {\n    organ_flag: 'organ_flag',\n    client_status: 'client_status',\n    grade_value: 'grade_value',\n    data_type: 'data_type',\n    id_type: 'id_type',\n    id_type1: 'id_type',\n    id_type21: 'id_type',\n    id_type22: 'id_type',\n    id_type31: 'id_type',\n    id_type32: 'id_type',\n    id_type4: 'id_type',\n    id_type5: 'id_type'\n  },\n  paging: false,\n  total: `select count(1) cnt \n  from thjs.vw_fxq_cust_info r\n  left join thjs.vw_fxq_cust_rsk cr\n    on cr.client_id = r.client_id\n  left join (select f.*, \n              row_number() over(partition by f.cust_id order by f.busi_date desc) as rn\n              from thjs.tb_fxq_risk_flow f) f\n    on f.cust_id = r.client_id\n    and f.flow_staus = '1'\n    and f.rn = 1\n  left join thjs.t_maintainer_info a\n    on r.client_id = a.client_id \n  left join basic_thjs.wb_user c\n    on a.new_maintainer = c.user_name\n  left join basic_thjs.wb_user_hg c1\n    on a.new_maintainer = c1.user_name\n  where (r.cust_biz <> '测试' or {?sys.username?}='admin')\n  and r.data_status='1'\n  and ({?CLIENT_BELONG?} is null or r.client_belong = {?CLIENT_BELONG?}) \n  and ({?CLIENT_NAME?} is null or instr(r.client_name,trim({?CLIENT_NAME?}))>0)\n  and ({?IS_RSK?} is null or nvl(cr.screen_name,'不涉及')=decode({?IS_RSK?},'1','涉及','不涉及'))\n  and ({?IF_RISK_LIST?} is null or nvl(f.is_riskcust,'否')=decode({?IF_RISK_LIST?},'1','是','否'))\n  and ({?GRADE_VALUE?} is null or cr.grade_value = {?GRADE_VALUE?})\n  and ({?CLIENT_STATUS?} is null or instr(r.status,{?CLIENT_STATUS?})>0)\n  and (instr(a.new_maintainer,{?MAINTAINER?})>0 or instr(nvl(c.display_name,c1.display_name),{?MAINTAINER?})>0 or {?MAINTAINER?} is null)\n   `\n});\n"
+  },
+  "_icon": "module"
+}

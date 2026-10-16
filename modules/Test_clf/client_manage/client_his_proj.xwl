@@ -1,0 +1,14 @@
+{
+  "title": "查询历史项目信息",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx({\n  sql: `{call thjs.p_fxq_cust_proj_latest({*cursor|result*},{?CLIENT_ID?},{?CLIENT_NAME?},{?bigint|_from?},{?bigint|_size?},{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n});"
+  },
+  "_icon": "module"
+}

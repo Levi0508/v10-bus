@@ -1,0 +1,10 @@
+{
+  "title": "表字段管理包",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "actions.xwl",
+    "common.xwl"
+  ]
+}

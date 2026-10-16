@@ -1,0 +1,2930 @@
+({
+  cname: "module",
+  cid: "module",
+  links: ["wb/custom-made/vue/vue.js","wb/custom-made/vue/element.js","wb/custom-made/vue/element.css","wb/custom-made/css/projlist_form.css"],
+  serverScript(){
+    Wb.set({
+      projid: Wb.get('projid'),
+      i_op_flag: Wb.get('i_op_flag'),     // 1 - 只有从关联信息修改入口进来时传递1
+      state: Wb.get('state'),             // info，只有双击查看时显示这个参数
+      piid1: Wb.get('piid1'),             // 流程参数 - 清单自查流程 流程id
+      piid2:Wb.get('piid2'),              // 流程参数 - 隔离墙操作变动审核流程 流程id
+      nodeCode:Wb.get('nodeCode'),        // 流程参数 - 隔离墙操作变动审核流程 当前流程节点
+      staff_id:Wb.get('staff_id'),        // 流程参数 - 隔离墙操作变动审核流程 项目组节点流程接收人
+      deptmananame:Wb.get('depemananame'),// 流程参数 - 隔离墙操作变动审核流程 项目组节点流程接收人中文名
+      deptname:Wb.get('deptname')         // 流程参数 - 隔离墙操作变动审核流程 项目组节点流程接收人所在部门
+    });
+    
+    Wb.info(Wb.get());
+    
+  },
+  events: {
+    initialize(options){
+      let data = {
+        roList: ['1、签订保密协议', '2、项目立项', '3、进场开展工作', '4、实际获知敏感信息'],
+        coList: ['1、价格确定', '2、项目终止', '3、转限制清单', '4、转静默期', '5、见备注说明'], // 出观察
+        rlList: ['1、项目信息已公告', '2、项目公告后进场'],
+        clList: ['1、价格/利率确定', '2、股东大会审议通过', '3、项目终止', '4、收购交易完成并公告', '5、挂牌并公开转让之日', '6、交易所同意转板的意见之日', '7、见备注说明'], // 出限制
+        rqList: ['1、敏感信息已公告'],
+        cqList: ['1、静默期结束'],
+        projType: '',
+        // projTypeList : ['IPO','非公开','公司债（非公开）','公司债（公开）','配股','公募增发','优先股','可转债']
+        projId: '_$projid$_',
+        projStatus: '_$projlist_status$_',
+        userCode: '_$sys.username$_',
+        dispName: '_$sys.dispname$_',
+        custName: '_$custname$_',
+        nowDate: Wb.format(new Date(), 'yMMdd'),
+        op_flag: '_$i_op_flag$_',
+        state: '_$state$_',
+        nodeCode: '_$nodeCode$_',
+        BATCH_ID: '',
+        // 我管理的清单列表 清单修正
+        adminProjlist: '_$open_projlist$_' * 1,
+        revise: '_$revise$_' * 1,
+        reviseId: '_$reviseId$_',
+        reviseList: []
+      }
+      Wb.apply(app, {
+        data: data,
+      })
+      
+      // Wb.apply(app, {
+      //   stkCode: '_$stkcode$_',
+      //   matchingStk($tr) {
+      //     // Wb.ajax({
+      //     //   url: 'm?xwl=info_query/projlist_data/stk_q',
+      //     //   params: {
+      //     //     i_comp_name: row.comp_name,
+      //     //     i_stk_code: row.stk_code,
+      //     //     i_stk_name: row.stk_name
+      //     //   },
+      //     //   success(resp){
+      //     //     let resp = Wb.decode(resp).items[0];
+      //     //     if(!resp){
+      //     //       return
+      //     //     }
+      //     //     if(app.stkCode.split('.')[0]===resp.s_info_code){
+      //     //       Wb.info('关联公司与客户相同，无需填写');
+      
+      //     //     }
+      //     //   }
+      //     // })
+      //     $.when(app.dataReq('stk_q', {
+      //       i_comp_name: $tr.find('.comp_name').val(),
+      //       i_stk_code: $tr.find('.stk_code').val(),
+      //       i_stk_name: $tr.find('.stk_name').val()
+      //     })).done(function (resp) {
+      //       resp = Wb.decode(resp.responseText).rows[0];
+      //       if (isNil(resp)) return;
+      //       // 如果匹配到的证券代码与项目本身的证券代码相同，提示并清空
+      //       if (equals(app.stkCode.split('.')[0], resp.S_INFO_CODE)) {
+      //         Wb.info('关联公司与客户相同，无需填写');
+      //         $tr.find('input').val('');
+      //         return;
+      //       }
+      //       // 将匹配返回的'上市公司名称'、'股票简称'、'股票代码'填充至页面对应文本框中
+      //       $tr.find('.comp_name').val(resp.S_INFO_COMPNAME).end().find('.stk_code').val(resp.S_INFO_CODE).end().find('.stk_name').val(resp.S_INFO_NAME);
+      //       let cust_name = $('.cust_name').val(); // 本身客户名称
+      //       // 如果填写的证券代码匹配返回的客户名称与项目本身客户名称一致，自动将关联性质设置为'1-客户其他代码'，不允许修改
+      //       if (equals(cust_name, resp.S_INFO_COMPNAME)) {
+      //         $tr.next().find('.related_property').val('1');
+      //         $tr.next().find('.related_property').attr('disabled', 'disabled');
+      //       } else {
+      //         $tr.next().find('.related_property').attr('disabled', false);
+      //       }
+      //     });
+      //   },
+      //   //-----------modify by YLT 20201120---------------
+      //   addDate(date, days) {
+      //     //       days = Maybe.Just(days).getOrElse(1);
+      //     date = new Date(date);
+      //     date.setDate(date.getDate() + days * 1);
+      //     return date.getFullYear() + '-' + (date.getMonth() + 1).toString().padStart(2, '0') + '-' + date.getDate().toString().padStart(2, '0');
+      //   },
+      //   op(p, cn, ln) {
+      //     // 在选项数组前面添加"请选择"
+      //     ln.unshift('请选择');
+      //     // 遍历数组，为每个选项创建option元素
+      //     for (let i = 0; i < ln.length; i++) {
+      //       p.find('select.' + cn).append('<option value="' + i + '">' + ln[i] + '&emsp;</option>');
+      //     }
+      //   },
+      //   req(t, p, c) {
+      //     Wb.request({
+      //       async: false,
+      //       url: 'm?xwl=info_query/projlist_data/' + t + '_s',
+      //       params: p,
+      //       success(r) {
+      //         c(r.status === 200);
+      //       }
+      //     });
+      //   },
+      //   uploadFile(form, name, params) {
+      //     let defer = $.Deferred();
+      //     Wb.upload({
+      //       form: form,
+      //       url: 'm?xwl=info_query/projlist_data/' + name,
+      //       params: params,
+      //       success(form, action, value) {
+      //         defer.resolve(Wb.decode(value));
+      //       }
+      //     });
+      //     return defer.promise();
+      //   },
+      //   dataReq(name, params) {
+      //     console.info("name", name, "params", params);
+      //     let defer = $.Deferred();
+      //     Wb.request({
+      //       url: 'm?xwl=info_query/projlist_data/' + name,
+      //       params: params,
+      //       success(resp) {
+      //         defer.resolve(resp);
+      //       },
+      //       failure(error) {
+      //         Wb.except(error);
+      //       }
+      //     });
+      //     return defer.promise();
+      //   },
+      //   multistkReq() {
+      //     return app.dataReq('multistk_q', {
+      //       i_projid: projId
+      //     });
+      //   },
+      //   inoutReq() {
+      //     Wb.ajax({
+      //       url: 'm?xwl=info_query/projlist_data/inout_q',
+      //       params: {
+      //         i_projid: projId
+      //       },
+      //       success(resp) {
+      //         // defer.resolve(resp);
+      //       },
+      //       failure(error) {
+      //         Wb.except(error);
+      //       }
+      //     });
+      //   },
+      //   inoutBatchReq(batch_num) {
+      //     return app.dataReq('inout_batch_q', {
+      //       i_projid: projId,
+      //       i_batch_num: batch_num
+      //     });
+      //   },
+      //   //-----------modify by YLT 20201121 start---------------
+      //   loadMultistk: function () {
+      //     $.when(app.multistkReq()).then(function (r) {
+      //       r = Wb.decode(r.responseText).rows;
+      //       console.info("页面初始化数据：", r);
+      //       //       console.info('projStatus:',projStatus);
+      
+      //       let $mtb = $('#' + projId).find('.projlist-multictk');
+      //       let $ltr = $mtb.find('tr.last'); //表格中关联性质所在行
+      //       let $mtr = $mtb.find('tr.first'); //表格倒数第二行
+      
+      //       $mtb.find('.write_date').val(nowDate);
+      
+      //       if (isEmpty(r)) return;
+      
+      //       if (op_flag == 1) { //关联信息修改 按钮进来的
+      //         for (let v = 1; v < r.length; v++) {
+      //           $mtb.append($mtr.clone().prop('outerHTML'));
+      //           $mtr.last().children('td.in').each(function () {
+      //             //           $(this).children().attr('data-id',_.init($(this).children().attr('data-id')) + _.inc($mtr.next().index()));
+      //             let dataid = $(this).children().attr('data-id').split('_'),
+      //               s = dataid[0] + '_' + dataid[1],
+      //               i = dataid[2] * 1 + 1;
+      //             $(this).children().attr('data-id', s + '_' + i);
+      //             $(this).find('[data-id=' + s + '_' + i + ']').attr('disabled', 'true'); //将查询出来的数据禁用，不可修改
+      //           });
+      
+      //           $mtb.append($ltr.clone().prop('outerHTML'));
+      //           $ltr.last().children('td.in').each(function () {
+      //             //           $(this).children().attr('data-id',_.init($(this).children().attr('data-id')) + _.inc($ltr.next().index()));
+      //             let dataid2 = $(this).children().attr('data-id').split('_'),
+      //               s = dataid2[0] + '_' + dataid2[1],
+      //               i = dataid2[2] * 1 + 1;
+      //             $(this).children().attr('data-id', s + '_' + i);
+      //             $(this).find('[data-id=' + s + '_' + i + ']').attr('disabled', 'true'); //将查询出来的数据禁用，不可修改
+      //           });
+      //         }
+      //         if (r.length > 0) { //如果length大于0，代表关联多家上市公司有数据，查询出来的数据需要置为只读，不可修改
+      //           $mtb.find('[data-id=comp_name_1]').attr('disabled', 'true');
+      //           $mtb.find('[data-id=stk_name_1]').attr('disabled', 'true');
+      //           $mtb.find('[data-id=stk_code_1]').attr('disabled', 'true');
+      //           $mtb.find('[data-id=write_date_1]').attr('disabled', 'true');
+      //           $mtb.find('[data-id=related_property_1]').attr('disabled', 'true');
+      //           $mtb.find('[data-id=ralated_ramark_1]').attr('disabled', 'true');
+      //           $mtb.find('[data-id=matching_stk_1]').attr('disabled', 'true');
+      
+      //           $mtb.find('[data-id=issue_reason_1]').attr('disabled', 'true');
+      //           $mtb.find('[data-id=issue_date_1]').attr('disabled', 'true');
+      //           $mtb.find('[data-id=issue_file_1]').attr('disabled', 'true');
+      //         }
+      
+      //         //设置不同背景色
+      //         let trs = $mtb.find("tr");
+      //         trs.each(function (i, item) {
+      //           let j = parseInt(i / 2); //每2行为一个单位
+      //           if (!(j % 2 === 0)) {
+      //             $(this).find('.y').css('background', 'rgb(210, 231, 247)'); //设置成蓝色，与上行颜色可看出明显区别
+      //           }
+      //         });
+      
+      //       } else {
+      //         for (let j = 1; j < r.length; j++) {
+      //           $mtb.append($mtr.clone().prop('outerHTML'));
+      //           $mtr.last().children('td.in').each(function () {
+      //             let dataid = $(this).children().attr('data-id').split('_'),
+      //               s = dataid[0] + '_' + dataid[1],
+      //               i = dataid[2] * 1 + 1;
+      //             $(this).children().attr('data-id', s + '_' + i);
+      //           });
+      
+      //           $mtb.append($ltr.clone().prop('outerHTML'));
+      //           $ltr.last().children('td.in').each(function () {
+      //             let dataid2 = $(this).children().attr('data-id').split('_'),
+      //               s = dataid2[0] + '_' + dataid2[1],
+      //               i = dataid2[2] * 1 + 1;
+      //             $(this).children().attr('data-id', s + '_' + i);
+      //           });
+      
+      //         }
+      //       }
+      //       // 设置不同背景色
+      //       let trs = $mtb.find("tr");
+      //       trs.each(function (i, item) {
+      //         let j = parseInt(i / 2); // 每2行为一个单位
+      //         if (!(j % 2 === 0)) {
+      //           $(this).find('.y').css('background', 'rgb(210, 231, 247)'); // 设置成蓝色，与上行颜色可看出明显区别
+      //         }
+      //       });
+      
+      //       // 遍历返回的数据，填充到表格中
+      //       // r 是数据库查询返回的关联公司数组，每个元素是一条记录
+      //       for (let k = 0; k < r.length; k++) {
+      //         let rowData = r[k]; // 当前行的数据对象
+      //         // 遍历对象的所有属性，填充到对应的表单元素中
+      //         for (let key in rowData) {
+      //           if (rowData.hasOwnProperty(key)) {
+      //             // 构建 data-id 选择器，格式如：comp_name_1, stk_code_2 等
+      //             // key 需要转小写，索引需要+1（因为页面从1开始计数）
+      //             let dataId = key.toLowerCase() + '_' + (k + 1);
+      //             // 找到对应的表单元素并赋值
+      //             $mtb.find('[data-id=' + dataId + ']').val(rowData[key]);
+      //           }
+      //         }
+      //       }
+      //     });
+      //   },
+      //   //-----------modify by YLT 20201121 end---------------
+      //   loadInout: function () {
+      //     let $itb = $('#' + projId).find('.projlist-basic-bill.his');
+      //     $.when(app.inoutReq()).then(function (resp) {
+      //       resp = Wb.decode(resp.responseText).rows[0];
+      //       projType = resp.PROJTYPE;
+      //       BATCH_ID = resp.BATCH_ID;
+      //       // ------------------批次tab逻辑开始--------------------
+      //       console.log('resp-init-BATCH_COUNT----', resp.BATCH_COUNT);
+      //       if (resp.BATCH_COUNT === null) {
+      //         // 如果没有历史批次，隐藏批次管理按钮
+      //         $('#' + projId).find('.projlist-tab-btn').hide().end().find('.projlist_tab_header').hide();
+      //       } else {
+      //         // 有历史批次，生成批次标签
+      //         let listr = '';
+      //         for (let a = 0; a < resp.BATCH_COUNT; a++) {
+      //           listr += '<li data-index=' + (resp.BATCH_COUNT - a) + '>批次' + (resp.BATCH_COUNT - a) + '</li>';
+      //         }
+      //         $('#' + projId).find('.projlist_tab_header ul').append(listr).end()
+      //           .find('.projlist_tab_header ul li:nth-child(1)').addClass("projlist_active");
+      //       }
+      //       // ------------------批次tab逻辑结束--------------------
+      
+      //       // 遍历返回数据的所有字段
+      //       for (let r in resp) {
+      //         // 将数据填充到对应的表单元素中
+      //         $itb.find('tr[data-type]').children('td:not(:last)').find('[data-id="' + r.toLowerCase() + '"]').val(resp[r]);
+      
+      //         // 如果是附件路径字段，特殊处理
+      //         if (equals(sp_L(r), 'FILEPATH') && notNil(resp[r]) && notNil(sp2fL(resp[r]))) {
+      //           // 设置附件相关信息
+      //           $itb.find('tr.' + sp_H_toLower(r)).attr('hasFile', true)
+      //             .find('.x-form-field').val(sp2fL(resp[r])) // 显示文件名
+      //             .end().find('a').attr('href', resp[r]); // 设置下载链接
+      //         }
+      
+      //         // 如果是修正模式，记录需要修正的清单类型
+      //         if (gt0(revise)) {
+      //           if (and(equals(sp_L(r), 'REASON'), notNil(resp[r]))) {
+      //             // 将字段名按下划线分割取第一部分，转小写后加入修正列表
+      //             reviseList.push(sp_H(r).toLowerCase());
+      //           }
+      //         }
+      //       }
+      
+      //       // 处理填报日期字段
+      //       $itb.find('.now-date').each(function () {
+      //         let currentVal = $(this).val();
+      //         // 如果没有值，设置为当前日期
+      //         if (isEmpty(currentVal)) {
+      //           $(this).val(Wb.format(new Date(), 'Y-m-d'));
+      //         }
+      //         // 如果当前行不是选中状态且下拉框没有选择值，清空日期
+      //         let isSelected = $(this).parents('tr').is('.selected');
+      //         let selectVal = $(this).parents('tr').find('select').val();
+      //         if (!isSelected && selectVal < 1) {
+      //           $(this).val('');
+      //         }
+      //       });
+      //       return $.when(reviseList);
+      
+      //     }).then(function (reviseList) {
+      //       if (isEmpty(reviseList)) return;
+      //       // 修正模式下，先禁用所有行
+      //       $itb.children('tbody').children('tr').addClass('disabled-row');
+      //       // 然后启用需要修正的行
+      //       for (let i = 0; i < reviseList.length; i++) {
+      //         console.log('需要修正的清单类型:', reviseList[i]);
+      //         $itb.children('tbody').find('tr.' + reviseList[i])
+      //           .removeClass('disabled-row')
+      //           .addClass('disabled-except-first selected');
+      //       }
+      //     });
+      //   },
+      
+      //   init: function () {
+      //     app.loadMultistk(); //关联多家上市公司table块初始化
+      //     app.loadInout(); //清单类型table块初始化
+      //     //-----------modify by YLT 20201121 start---------------
+      //     if (op_flag == 1) { //如果op_flag=1，代表是通过‘关联信息修改’按钮进来的，此时需要把清单table禁用
+      //       $('#' + projId).find('.projlist-basic-bill :input').attr('disabled', true); //将清单整个table禁用
+      //     }
+      //   },
+      //   //上传附件时检查文件名称中是否包含英文[],如包含则替换为【】,如不替换上传成功后,下载时会报错!
+      //   checkSymbol: function (filename) {
+      //     if (filename.indexOf('[') > 0 || filename.indexOf(']') > 0) {
+      //       Wb.info('文件名含[]非法字符，保存时将自动替换为【】 !');
+      //       filename = filename.replace(/\[/g, '【').replace(/\]/g, '】');
+      //       return filename;
+      //     } else {
+      //       return filename;
+      //     }
+      //   }
+      // });
+    }
+  },
+  items : [{
+    cname: "viewport",
+    cid: "viewport1",
+    autoScroll: true,
+    events: {
+      ready(configs, options){
+        console.log("111")
+        console.log('_$i_op_flag$_')
+        console.log("222")
+        console.log('_$projId$_')
+      }
+    },
+    items : [{
+      cname: "container",
+      cid: "customerContainer",
+      width: "1200px",
+      alignSelf: "center",
+      items : [{
+        cname: "container",
+        cid: "customerForm",
+        events: {
+          ready(configs, options){
+            let comp = this;
+            comp.vue = new Vue({
+              el: comp.el.addEl(),
+              template: `
+            <div id="projlist-app">
+              <div class="projlist-form-input">
+                <div style="font-size:24px;text-align:center;padding:20px 0 20px 0">{{ op_flag == '1' ? '清单填报（关联信息修改）' : '清单填报' }}</div>
+            
+                <!-- 基本信息 -->
+                <el-card shadow="never" class="projlist-card">
+                  <div class="info-div-basic">
+                    <div class="table-row">
+                      <div class="cell-label-basic col-4">客户名称</div>
+                      <div class="cell-value-basic col-8">{{basicForm.custname || '-'}}</div>
+                      <div class="cell-label-basic col-4">项目编号</div>
+                      <div class="cell-value-basic col-8">{{basicForm.projcode || '-'}}</div>
+                    </div>
+                    <div class="table-row">
+                      <div class="cell-label-basic col-4">业务类型</div>
+                      <div class="cell-value-basic col-8">{{ basicForm.projtype || '-'}}</div>
+                      <div class="cell-label-basic col-4">我司角色</div>
+                      <div class="cell-value-basic col-8">{{basicForm.role||'-'}} </div>
+                    </div>
+                    <div class="table-row">
+                      <div class="cell-label-basic col-4">证券代码</div>
+                      <div class="cell-value-basic col-8">{{basicForm.stkcode|| '-'}}</div>
+                      <div class="cell-label-basic col-4">股票简称</div>
+                      <div class="cell-value-basic col-8">{{basicForm.stkname || '-'}}</div>
+                    </div>
+                  </div>
+                </el-card>
+            
+                <!-- 添加多公司按钮 -->
+                <div @click="addCompany" style="display: flex; align-items: center; cursor: pointer;" v-if="state!='info'">
+                  <div class="company-add-btn">
+                    <i class="el-icon-circle-plus-outline"></i>
+                  </div>
+                  <div style="font-size:14px;">如一个项目关联多个上市公司或证券代码，请点击此处添加<span style="color: #e74c3c">（无需添加自身）</span></div>
+                </div>
+            
+                <!-- 关联公司列表 -->
+                <div v-for="(item, index) in companyList" :key="index" class="company-table-wrapper">
+                  <div class="company-delete-btn" @click="removeCompany(index)" v-show="!item.dataFlag">
+                    <i class="el-icon-remove-outline"></i>
+                  </div>
+                  <div class="company-table">
+                    <!-- 第一行 -->
+                    <div class="company-row">
+                      <div class="company-label">上市公司名称</div>
+                      <div class="company-cell">
+                        <el-input v-model="item.compName" size="small" placeholder="请输入"></el-input>
+                      </div>
+                      <div class="company-label">股票简称</div>
+                      <div class="company-cell">
+                        <el-input v-model="item.stkName" size="small" placeholder="请输入"></el-input>
+                      </div>
+                      <div class="company-label">证券代码</div>
+                      <div class="company-cell">
+                        <el-input v-model="item.stkCode" size="small" placeholder="请输入"
+                          @input="item.stkCode = item.stkCode.replace(/[\W_]/g, '')"></el-input>
+                      </div>
+                      <div class="company-match-btn">
+                        <el-button type="primary" size="small" plain @click="matchCompany(item)">匹配</el-button>
+                      </div>
+                    </div>
+                    <!-- 第二行 -->
+                    <div class="company-row">
+                      <div class="company-label">关联性质</div>
+                      <div class="company-cell">
+                        <el-select v-model="item.relatedProperty" size="small" placeholder="请选择" style="100%"
+                          :disabled="item.disabled">
+                          <el-option label="客户其他代码" value="1"></el-option>
+                          <el-option label="交易对手方" value="2"></el-option>
+                          <el-option label="交易标的" value="3"></el-option>
+                          <el-option label="其他（请填备注）" value="4"></el-option>
+                        </el-select>
+                      </div>
+                      <div class="company-label">备注</div>
+                      <div class="company-cell" style="flex: 3;border-right:none;">
+                        <el-input v-model="item.remark" size="small" placeholder="请输入"></el-input>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            
+                <!-- 附件上传注意事项 -->
+                <el-card shadow="never" class="projlist-card" v-if="basicForm.batch_count>0">
+                  <div class="projlist-file-tips">
+                    <p>附件上传注意事项（在我的清单列表页面补充附件）:</p>
+                    <p>1、系统可以多次上传附件，但后一次上传附件会覆盖前一次上传附件</p>
+                    <p>2、一次上传附件有两个或多个文件，必须做成压缩包上传，否则有覆盖现象</p>
+                    <p>3、上传附件有先后，先上传一个文件，后期补充上传另一个文件。必须将前一个文件下载后与后一个文件压缩后再上传</p>
+                  </div>
+                </el-card>
+            
+                <!-- 添加批次按钮 -->
+                <div v-if="op_flag!='1' && projlist_status!='0' && state!='info'">
+                  <div slot="append" class="projlist-tab-add" @click="addNewBatchTab"
+                    :title="isAddBatchDisabled ? '首次入单或未出单项目不允许添加新的批次！' : ''"
+                    :style="{ cursor: isAddBatchDisabled ? 'not-allowed' : 'pointer' }">
+                    <i class="el-icon-circle-plus-outline"></i>添加
+                  </div>
+                  <div class="projlist-tab-add" @click="removeNewBatch" style="cursor: pointer;"
+                    v-if="showNewTable">
+                    <i class="el-icon-remove-outline"></i>删除
+                  </div>
+                </div>
+            
+                <el-tabs v-model="activeTab" @tab-click="handleTabChange">
+                  <!-- 新增批次tab -->
+                  <el-tab-pane label="new" name="new" v-if="showNewTable">
+                    <div class="bill-table new">
+                      <div class="bill-header">
+                        <div class="bill-cell bill-type-header">清单类型</div>
+                        <div class="bill-cell bill-reason-header">入/出单事由</div>
+                        <div class="bill-cell bill-date-header">入/出单事由发生日期</div>
+                        <div class="bill-cell bill-date-header">入/出单事由填报日期</div>
+                        <div class="bill-cell bill-remark-header">备注说明</div>
+                        <div class="bill-cell bill-file-header">附件上传</div>
+                      </div>
+                      <div v-for="(item, index) in billList" :key="index"
+                        :class="['bill-row', item.rowClass, item.selected ? 'selected' : '']">
+                        <div class="bill-cell bill-type-cell" @click="toggleRowSelection(item)">
+                          <label class="type-label">
+                            <span>{{ item.typeLabel }}</span>
+                            <span v-if="item.selected && !item.disabled" class="type-hint">发生日期为{{ item.typeLabel.replace('入 ','').replace('出 ','') }}<br>入/出单事由的实际发生日期</span>
+                          </label>
+                        </div>
+                        <div :class="['bill-cell', 'bill-reason-cell', { 'field-required': item.selected && !item.disabled }]">
+                          <el-select v-model="item.inoutReason" size="small" placeholder="请选择" :disabled="item.disabled"
+                            @change="handleReasonChange(item)" clearable>
+                            <el-option v-for="opt in getReasonOptions(item.listType)" :key="opt.value" :label="opt.label"
+                              :value="opt.value"></el-option>
+                          </el-select>
+                        </div>
+                        <div :class="['bill-cell', 'bill-date-cell', { 'field-required': item.selected && !item.disabled }]">
+                          <el-date-picker v-model="item.inoutDate" type="date" size="small" placeholder="选择日期"
+                            value-format="yyyy-MM-dd" :disabled="item.disabled" @change="handleDateChange(item)" clearable></el-date-picker>
+                        </div>
+                        <div class="bill-cell bill-date-cell">
+                          <el-date-picker v-model="item.reportDate" type="date" size="small" placeholder="选择日期"
+                            value-format="yyyy-MM-dd" :disabled="item.reportDisabled" clearable></el-date-picker>
+                        </div>
+                        <div :class="['bill-cell', 'bill-remark-cell', { 'remark-required': item.remarkRequired && item.selected }]">
+                          <el-input v-model="item.remark" size="small" placeholder="请输入" :disabled="item.disabled" clearable></el-input>
+                        </div>
+                        <div :class="['bill-cell', 'bill-file-cell', { 'field-required': item.selected && !item.disabled }]">
+                          <div class="file-upload-wrapper">
+                            <el-input v-model="item.fileName" size="small" readonly placeholder=""
+                                class="file-name-input full-text-select" :disabled="item.disabled"></el-input>
+                            <div style="display:flex;">
+                              <el-upload
+                                action="m?xwl=info_query/projlist_data/upload&type=1"
+                                :data="uploadParams"
+                                name="file1"
+                                :on-success="(res) => handleUploadSuccess(res, item)"
+                                :show-file-list="false"
+                                class="file-upload-btn">
+                                <el-button size="small">浏览</el-button>
+                              </el-upload>
+                              <el-button 
+                                size="small" 
+                                @click="downloadFile(item,'proj')" 
+                                style="cursor:pointer" 
+                                class="download-btn"
+                              >
+                                下载
+                              </el-button>
+                            </div>
+                            <!--<template v-if="!item.filepath || !item.disabled">
+                              <el-input v-model="item.fileName" size="small" readonly placeholder="" class="file-name-input"
+                                :disabled="item.disabled"></el-input>
+                              <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
+                                :on-success="(res) => handleUploadSuccess(res, item)" :show-file-list="false"
+                                class="file-upload-btn" :disabled="item.disabled">
+                                <el-button size="small" type="primary" plain :disabled="item.disabled">浏览</el-button>
+                              </el-upload>
+                            </template>
+                            <template v-else>
+                              <el-input v-model="item.fileName" size="small" readonly class="file-name-input"
+                                :disabled="item.disabled"></el-input>
+                              <el-button @click="downloadFile(item,'proj')" style="cursor:pointer">下载</el-button>
+                            </template>-->
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </el-tab-pane>
+            
+                  <!-- 历史批次tabs -->
+                  <el-tab-pane v-for="(batch, index) in batchList" :key="index" :label="'批次' + batch.batchNum" :name="batch.batchNum.toString()">
+                    <div class="bill-table his">
+                      <!-- 表头 -->
+                      <div class="bill-header">
+                        <div class="bill-cell bill-type-header" style="text-align:center;">清单类型</div>
+                        <div class="bill-cell bill-reason-header" style="text-align:center;">入/出单事由</div>
+                        <div class="bill-cell bill-date-header" style="text-align:center;">入/出单事由发生日期</div>
+                        <div class="bill-cell bill-date-header" style="text-align:center;">入/出单事由填报日期</div>
+                        <div class="bill-cell bill-remark-header" style="text-align:center;">备注说明</div>
+                        <div class="bill-cell bill-file-header" style="text-align:center;">附件上传</div>
+                      </div>
+                      <!-- 数据行 与 审核记录区域（每种清单类型一组） -->
+                      <template v-for="(item, idx) in billListHis">
+                        <!-- 清单数据 -->
+                        <div :key="'data-'+idx" :class="['bill-row', item.rowClass, item.selected ? 'selected' : '']">
+                          <!--清单类型-->
+                          <div class="bill-cell bill-type-cell" @click="toggleRowSelectionHis(item)">
+                            <label class="type-label">
+                              <span>{{ item.typeLabel }}</span>
+                              <span v-if="item.selected && !item.disabled" class="type-hint">发生日期为{{ item.typeLabel.replace('入 ','').replace('出 ','') }}<br>入/出单事由的实际发生日期</span>
+                            </label>
+                          </div>
+                          <!--入/出单事由-->
+                          <div :class="['bill-cell', 'bill-reason-cell', { 'field-required': item.selected && !item.disabled }]">
+                            <el-tooltip :content="getSelectedReasonLabel(item.listType, item.inoutReason)"
+                              :disabled="!item.inoutReason" placement="top" effect="light" popper-class="bill-reason-tooltip"
+                              :open-delay="300">
+                              <div style="width: 100%;">
+                                <el-select v-model="item.inoutReason" size="small" placeholder="请选择" :disabled="item.disabled"
+                                  @change="handleReasonChangeHis(item)" clearable>
+                                  <el-option v-for="opt in getReasonOptions(item.listType)" :key="opt.value" :label="opt.label"
+                                    :value="opt.value"></el-option>
+                                </el-select>
+                              </div>
+                            </el-tooltip>
+                          </div>
+                          <!--入/出单事由发生日期-->
+                          <div :class="['bill-cell', 'bill-date-cell', { 'field-required': item.selected && !item.disabled }]">
+                            <el-date-picker v-model="item.inoutDate" type="date" size="small" placeholder="选择日期"
+                              value-format="yyyy-MM-dd" :disabled="item.disabled" @change="handleDateChange(item)">
+                            </el-date-picker>
+                          </div>
+                          <!--入/出单事由填报日期-->
+                          <div class="bill-cell bill-date-cell">
+                            <el-date-picker v-model="item.reportDate" type="date" size="small" placeholder="选择日期"
+                              value-format="yyyy-MM-dd" :disabled="item.reportDisabled">
+                            </el-date-picker>
+                          </div>
+                          <!--备注说明-->
+                          <div :class="['bill-cell', 'bill-remark-cell', { 'remark-required': item.remarkRequired && item.selected }]">
+                            <el-input v-model="item.remark" size="small" placeholder="请输入" :disabled="item.disabled" type="textarea" autosize></el-input>
+                          </div>
+                          <!--附件上传-->
+                          <div :class="['bill-cell', 'bill-file-cell', { 'field-required': item.selected && !item.disabled }]">
+                            <div class="file-upload-wrapper">
+                              <el-input v-model="item.fileName" size="small" readonly placeholder=""
+                                  class="file-name-input full-text-select" :disabled="item.disabled"></el-input>
+                              <div style="display:flex;">
+                                <el-upload
+                                  action="m?xwl=info_query/projlist_data/upload&type=1"
+                                  :data="uploadParams"
+                                  name="file1"
+                                  :on-success="(res) => handleUploadSuccess(res, item)"
+                                  :show-file-list="false"
+                                  class="file-upload-btn"
+                                  >
+                                  <el-button size="small" :disabled="item.disabled">浏览</el-button>
+                                </el-upload>
+                                <el-button 
+                                  size="small" 
+                                  @click="downloadFile(item,'proj')" 
+                                  style="cursor:pointer" 
+                                  class="download-btn"
+                                >
+                                  下载
+                                </el-button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- 审核意见表格 -->
+                        <div :key="'audit-'+idx" class="audit-wrapper">
+                          <!-- 添加审核按钮 -->
+                          <div @click="addAuditRecord(item)" class="audit-add-btn" title="添加审核记录" v-if="piid2&&nodeCode=='hgrysh'">
+                            <i class="el-icon-circle-plus-outline"></i>
+                          </div>
+                          <!-- 审核记录表格容器 -->
+                          <div class="audit-table" v-if="item.checkTableData.length>0">
+                            <template>
+                              <!-- 表头 -->
+                              <div class="bill-header audit-header">
+                                <div class="bill-cell bill-type-header" style="text-align:center;">审核结果</div>
+                                <div class="bill-cell bill-reason-header" style="text-align:center;">审核记录</div>
+                                <div class="bill-cell bill-date-header" style="text-align:center;">审核日期</div>
+                                <div class="bill-cell bill-audit-remark-header" style="text-align:center;width:320px;">备注说明</div>
+                                <div class="bill-cell bill-file-header" style="text-align:center;">附件上传</div>
+                              </div>
+                              <div class="audit-collapse-btn" @click="toggleAuditExpanded(item)" title="展开/折叠审核意见" v-if="item.checkDate&&item.checkTableData.length>1">
+                                  <i :class="[item.auditExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right']"></i>
+                              </div>
+            
+                              <!--默认展示最新审核记录-->
+                              <div class="audit-row-wrapper" v-show="!item.auditExpanded">
+                                <div v-if="!item.checkDate" style="height:56px;width:100%;text-align:center;line-height:56px;color:#C0C4CC;font-size:14px;">暂未添加审核记录</div>
+                                <div v-else class="bill-row audit-row">
+                                  <!--审核结果-->
+                                  <div class="bill-cell bill-type-cell audit-type-cell">
+                                    <el-select v-model="item.checkResult" size="small" placeholder="请选择" disabled>
+                                      <el-option label="准确" value="0"></el-option>
+                                      <el-option label="不准确" value="1"></el-option>
+                                    </el-select>
+                                  </div>
+                                  <!--审核记录-->
+                                  <div class="bill-cell bill-reason-cell">
+                                    <el-select v-model="item.checkRecord" size="small" placeholder="请选择" disabled>
+                                      <el-option label="事由审核" value="事由审核"></el-option>
+                                      <el-option label="日期审核" value="日期审核"></el-option>
+                                      <el-option label="附件审核" value="附件审核"></el-option>
+                                      <el-option label="其他" value="其他"></el-option>
+                                    </el-select>
+                                  </div>
+                                  <!--审核日期-->
+                                  <div class="bill-cell bill-date-cell">
+                                    <el-date-picker v-model="item.checkDate" type="date" size="small" placeholder="选择日期"
+                                      value-format="yyyy-MM-dd" disabled></el-date-picker>
+                                  </div>
+                                  <!--备注说明-->
+                                  <div class="bill-cell bill-audit-remark-cell" style="width:320px;">
+                                    <el-input v-model="item.checkRemark" size="small" placeholder="备注说明" type="textarea" autosize disabled>
+                                    </el-input>
+                                  </div>
+                                  <!--附件上传-->
+                                  <div class="bill-cell bill-file-cell">
+                                    <div class="file-upload-wrapper">
+                                      <el-input v-model="item.checkFileName" size="small" readonly class="file-name-input"
+                                        disabled :title="item.checkFileName"></el-input>
+                                      <div style="display:flex;">
+                                        <el-upload class="file-upload-btn"><el-button size="small" disabled>浏览</el-button></el-upload>
+                                        <el-button 
+                                          size="small" 
+                                          @click="downloadFile(item,'comment1')" 
+                                          style="cursor:pointer" 
+                                          class="download-btn"
+                                        >
+                                          下载
+                                        </el-button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <!--折叠历史审核记录 完整审核记录-->
+                              <div v-if="item.checkTableData.length===0&&item.auditExpanded" style="height:56px;width:100%;text-align:center;line-height:56px;color:#C0C4CC;font-size:14px;">暂未添加审核记录</div>
+                              <div v-else v-for="(record, rIdx) in item.checkTableData" :key="'rec-'+idx+'-'+rIdx" class="audit-row-wrapper" v-show="item.auditExpanded">
+                                <div class="audit-delete-btn" @click="removeAuditRecord(item, rIdx)" title="删除该条审核记录" v-if="record.isDeleteShow">
+                                  <i class="el-icon-remove-outline"></i>
+                                </div>
+                                
+                                <div class="bill-row audit-row">
+                                  <div class="bill-cell bill-type-cell audit-type-cell">
+                                    <el-select v-model="record.check_result" size="small" placeholder="请选择" :disabled="record.isDisabled">
+                                      <el-option label="准确" value="0"></el-option>
+                                      <el-option label="不准确" value="1"></el-option>
+                                    </el-select>
+                                  </div>
+                                  <div class="bill-cell bill-reason-cell">
+                                    <el-select v-model="record.check_record" size="small" placeholder="请选择" :disabled="record.isDisabled">
+                                      <el-option label="事由审核" value="事由审核"></el-option>
+                                      <el-option label="日期审核" value="日期审核"></el-option>
+                                      <el-option label="附件审核" value="附件审核"></el-option>
+                                      <el-option label="其他" value="其他"></el-option>
+                                    </el-select>
+                                  </div>
+                                  <div class="bill-cell bill-date-cell">
+                                    <el-date-picker v-model="record.create_time" type="date" size="small" placeholder="选择日期"
+                                      value-format="yyyy-MM-dd" disabled></el-date-picker>
+                                  </div>
+                                  <div class="bill-cell bill-audit-remark-cell" style="width:320px;">
+                                    <el-input v-model="record.remark" size="small" placeholder="备注说明" type="textarea" autosize :disabled="record.isDisabled" maxlength="500" show-word-limit>
+                                    </el-input>
+                                  </div>
+                                  <div class="bill-cell bill-file-cell">
+                                    <div class="file-upload-wrapper">
+                                      <el-input v-model="record.fileName" size="small" readonly placeholder="" class="file-name-input"
+                                          :disabled="record.isDisabled"></el-input>
+                                      <div style="display:flex;">
+                                        <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
+                                          :on-success="(res) => handleUploadSuccess(res, record)" :show-file-list="false" class="file-upload-btn">
+                                          <el-button size="small" :disabled="record.isDisabled">浏览</el-button>
+                                        </el-upload>
+                                        <el-button 
+                                          size="small" 
+                                          @click="downloadFile(record,'comment2')" 
+                                          style="cursor:pointer" 
+                                          class="download-btn"
+                                        >
+                                          下载
+                                        </el-button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </el-tab-pane>
+                </el-tabs>
+            
+                <!--清单填报 首次新增-->
+                <div class="bill-table his" v-if="batchList.length === 0&&projlist_status==='0'">
+                  <!-- 表头 -->
+                  <div class="bill-header">
+                    <div class="bill-cell bill-type-header" style="text-align:center;">清单类型</div>
+                    <div class="bill-cell bill-reason-header" style="text-align:center;">入/出单事由</div>
+                    <div class="bill-cell bill-date-header" style="text-align:center;">入/出单事由发生日期</div>
+                    <div class="bill-cell bill-date-header" style="text-align:center;">入/出单事由填报日期</div>
+                    <div class="bill-cell bill-remark-header" style="text-align:center;">备注说明</div>
+                    <div class="bill-cell bill-file-header" style="text-align:center;">附件上传</div>
+                  </div>
+                  <!-- 数据行 -->
+                  <template v-for="(item, idx) in billList">
+                    <!-- 清单数据行 -->
+                    <div :key="'first-data-'+idx" :class="['bill-row', item.rowClass, item.selected ? 'selected' : '']">
+                      <div class="bill-cell bill-type-cell" @click="toggleRowSelection(item)">
+                        <label class="type-label">
+                          <span>{{ item.typeLabel }}</span>
+                          <span v-if="item.selected && !item.disabled" class="type-hint">发生日期为{{ item.typeLabel.replace('入 ','').replace('出 ','') }}<br>入/出单事由的实际发生日期</span>
+                        </label>
+                      </div>
+                      <div :class="['bill-cell', 'bill-reason-cell', { 'field-required': item.selected && !item.disabled }]">
+                        <el-select v-model="item.inoutReason" size="small" placeholder="请选择" :disabled="item.disabled"  @change="handleReasonChangeHis(item)">
+                          <el-option v-for="opt in getReasonOptions(item.listType)" :key="opt.value" :label="opt.label" :value="opt.value">
+                          </el-option>
+                        </el-select>
+                      </div>
+                      <div :class="['bill-cell', 'bill-date-cell', { 'field-required': item.selected && !item.disabled }]">
+                        <el-date-picker v-model="item.inoutDate" type="date" size="small" placeholder="选择日期"
+                          value-format="yyyy-MM-dd" @change="handleDateChange(item)"></el-date-picker>
+                      </div>
+                      <div class="bill-cell bill-date-cell">
+                        <el-date-picker v-model="item.reportDate" type="date" size="small" placeholder="选择日期"
+                          value-format="yyyy-MM-dd" :disabled="item.reportDisabled"></el-date-picker>
+                      </div>
+                      <div :class="['bill-cell', 'bill-remark-cell', { 'remark-required': item.remarkRequired && item.selected }]">
+                        <el-input v-model="item.remark" size="small" placeholder="请输入" :disabled="item.disabled"></el-input>
+                      </div>
+                      <div :class="['bill-cell', 'bill-file-cell', { 'field-required': item.selected && !item.disabled }]">
+                        <div class="file-upload-wrapper">
+                          <!-- 无文件时：显示上传按钮 -->
+                          <template v-if="!item.filepath || !item.disabled">
+                            <el-input v-model="item.fileName" size="small" readonly placeholder="" class="file-name-input"
+                              :disabled="item.disabled"></el-input>
+                            <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
+                              :on-success="(res) => handleUploadSuccess(res, item)" :show-file-list="false" class="file-upload-btn"
+                              :disabled="item.disabled">
+                              <el-button size="small" type="primary" plain>浏览</el-button>
+                            </el-upload>
+                          </template>
+                          <!-- 有文件时：显示下载按钮 -->
+                          <template v-else>
+                            <el-input v-model="item.fileName" size="small" readonly class="file-name-input"
+                              :disabled="item.disabled" :title="item.fileName"></el-input>
+                            <el-button size="small" @click="downloadFile(item,'proj')" style="cursor:pointer">下载</el-button>
+                          </template>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+            
+                <!-- 清单自查表格 仅当从流程进来时展示-->
+                <div style="display:flex;justify-content:space-between;width:100%;padding:30px 0 10px 0;" v-if="piid1">
+                  <span>清单自查情况</span>
+                  <el-button type="primary" size="mini" @click="addCheckRow" :disabled="state === 'info'">+添加行</el-button>
+                </div>
+                <el-table :data="tableData" stripe style="width: 100%" border v-if="piid1">
+                  <el-table-column label="自查日期" width="245">
+                    <template slot-scope="scope">
+                      <el-date-picker v-model="scope.row.check_date" type="date" format="yyyy-MM-dd" placeholder="选择日期" size="small" disabled></el-date-picker>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="自查结果" width="180">
+                    <template slot-scope="scope">
+                      <el-select v-model="scope.row.check_result" placeholder="请选择自查结果" size="small">
+                        <el-option label="准确" value="0"></el-option>
+                        <el-option label="已更正" value="1"></el-option>
+                      </el-select>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="备注说明">
+                    <template slot-scope="scope">
+                      <el-input type="textarea" v-model="scope.row.remark" :autosize="{ minRows: 1, maxRows: 4}" placeholder="请输入备注说明" size="small" :required="scope.row.check_result === '1'" :class="{ 'required-field': scope.row.check_result === '1' }"></el-input>
+                      <span v-if="scope.row.check_result === '1' && !scope.row.remark" style="color: #f56c6c; font-size: 12px;">*</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="附件上传" width="310">
+                    <template slot-scope="scope">
+                      <div class="file-upload-wrapper">
+                        <template>
+                          <el-input v-model="scope.row.fileName" size="small" readonly placeholder="" class="file-name-input"></el-input>
+                          <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
+                            :on-success="(res) => handleUploadSuccess(res, scope.row)" :show-file-list="false" class="file-upload-btn">
+                            <el-button size="small" type="primary" plain :disabled="state === 'info'">浏览</el-button>
+                          </el-upload>
+                        </template>
+                      </div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="80" header-align="center" align="center">
+                    <template slot-scope="scope">
+                      <el-button size="mini" type="text" @click="removeCheckRow(scope.$index)" :disabled="state === 'info' || tableData.length <= 1" style="color:#f56c6c;">移除</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+            
+                <!-- 历史清单自查表格 -->
+                <div style="color:#4b4b4b;padding:20px 0 10px 0;display:flex;" @click="showCheckLogs=!showCheckLogs">
+                  <div style="width:140px;">历史清单自查情况</div>
+                  <div style="border-bottom:1px solid #e1e0e0;height:12px;flex:1"></div>
+                  <div style="width:20px;padding-left:10px;">
+                    <span v-if="showCheckLogs"><i class="el-icon-arrow-down" style="color:#e1e0e0"></i></span>
+                    <span v-else><i class="el-icon-arrow-up" style="color:#e1e0e0"></i></span>
+                  </div>
+                </div>
+                <el-table :data="tableDataHis" stripe style="width: 100%" v-show="showCheckLogs" border>
+                  <el-table-column prop="create_time" label="自查日期" width="180"></el-table-column>
+                  <el-table-column prop="check_result$" label="自查结果" width="180"></el-table-column>
+                  <el-table-column prop="display_name" label="自查人员"></el-table-column>
+                  <el-table-column prop="remark" label="备注说明"></el-table-column>
+                  <el-table-column prop="filename" label="附件">
+                    <template slot-scope="scope">
+                      <el-button type="text" @click="downloadFile(scope.row,'selfcheck')" class="attachment-btn">
+                        {{ scope.row.filename }}
+                      </el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <!-- 操作按钮 -->
+                <div class="projlist-btns">
+                  <el-button type="success" @click="handleSubmit(1)" :disabled="submitButtonDisabled" v-if="state!='info'">提交</el-button>
+                  <el-button type="success" @click="handleSubmit(2)" v-if="showReviseBtn" :disabled="submitButtonDisabled">修正</el-button>
+                </div>
+              </div>
+            </div>
+              `,
+              data() {
+                return {
+                  // 基本信息
+                  basicForm: {
+                    custname: '',
+                    projcode: '',
+                    projtype: '',
+                    role: '',
+                    stkcode: '',
+                    stkname: '',
+                    batch_count: 0,
+                  },
+                  op_flag: '_$i_op_flag$_',// 从【关联信息修改】按钮进页面时为1
+                  projid: '_$projid$_',
+                  projlist_status: '_$projlist_status$_',
+                  state: '_$state$_',
+                  piid1: '_$piid1$_',// 清单自查流程流程id
+                  piid2: '_$piid2$_',// 隔离墙操作变动流程流程id
+                  nodeCode: '_$nodeCode$_',
+                  projname: '_$projname$_',
+                  candidates: '',// 隔离墙操作变动流程 流程候选人user_id
+                  uploadParams: {
+                    user: '_$sys.username$_',
+                    projId: '_$projid$_',
+                    date: Wb.format(new Date(), 'yMMdd'),
+                    type: '1'
+                  },
+                  // 多公司列表
+                  companyList: [
+                    {
+                      compName: '',
+                      stkName: '',
+                      stkCode: '',
+                      writeDate: '',
+                      relatedProperty: '1',
+                      remark: '',
+                      dataFlag: false
+                    }
+                  ],
+                  // 清单表格数据 - 新增批次
+                  billList: [
+                    { listType: 'ro', typeLabel: '入 观察清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
+                    { listType: 'co', typeLabel: '出 观察清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true },
+                    { listType: 'rl', typeLabel: '入 限制清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
+                    { listType: 'cl', typeLabel: '出 限制清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true },
+                    { listType: 'rq', typeLabel: '入 静默期', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
+                    { listType: 'cq', typeLabel: '出 静默期', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true }
+                  ],
+                  // 清单表格数据 - 已有批次
+                  billListHis: [
+                    {
+                      listType: 'ro',
+                      typeLabel: '入 观察清单',
+                      inoutReason: '',
+                      inoutDate: '',
+                      reportDate: '',
+                      remark: '',
+                      remarkRequired: false,
+                      fileName: '',
+                      filepath: '',
+                      selected: false,
+                      disabled: false,       // 控制整行是否可编辑
+                      rowClass: '',
+                      reportDisabled: false, // 控制入/出单事由填报日期是否可编辑
+                      auditExpanded: false,  // 控制历史审核记录是否展开
+                      batchId: '',
+                      // 最新一条审核记录
+                      checkResult: '',
+                      checkRecord: '',
+                      checkDate: '',
+                      checkRemark: '',
+                      checkFilepath: '',
+                      checkFileName: '',
+                      checkTableData: []     // 历史审核记录表格
+                    },
+                    {
+                      listType: 'co',
+                      typeLabel: '出 观察清单',
+                      inoutReason: '',
+                      inoutDate: '',
+                      reportDate: '',
+                      remark: '',
+                      remarkRequired: false,
+                      fileName: '',
+                      filepath: '',
+                      selected: false,
+                      disabled: false,
+                      rowClass: '',
+                      reportDisabled: false,
+                      auditExpanded: false,
+                      batchId: '',
+                      // 最新一条审核记录
+                      checkResult: '',
+                      checkRecord: '',
+                      checkDate: '',
+                      checkRemark: '',
+                      checkFilepath: '',
+                      checkFileName: '',
+                      checkTableData: []
+                    },
+                    {
+                      listType: 'rl',
+                      typeLabel: '入 限制清单',
+                      inoutReason: '',
+                      inoutDate: '',
+                      reportDate: '',
+                      remark: '',
+                      remarkRequired: false,
+                      fileName: '',
+                      filepath: '',
+                      selected: false,
+                      disabled: false,
+                      rowClass: '',
+                      reportDisabled: false,
+                      auditExpanded: false,
+                      batchId: '',
+                      // 最新一条审核记录
+                      checkResult: '',
+                      checkRecord: '',
+                      checkDate: '',
+                      checkRemark: '',
+                      checkFilepath: '',
+                      checkFileName: '',
+                      checkTableData: []
+                    },
+                    {
+                      listType: 'cl',
+                      typeLabel: '出 限制清单',
+                      inoutReason: '',
+                      inoutDate: '',
+                      reportDate: '',
+                      remark: '',
+                      remarkRequired: false,
+                      fileName: '',
+                      filepath: '',
+                      selected: false,
+                      disabled: false,
+                      rowClass: '',
+                      reportDisabled: false,
+                      auditExpanded: false,
+                      batchId: '',
+                      // 最新一条审核记录
+                      checkResult: '',
+                      checkRecord: '',
+                      checkDate: '',
+                      checkRemark: '',
+                      checkFilepath: '',
+                      checkFileName: '',
+                      checkTableData: []
+                    },
+                    {
+                      listType: 'rq',
+                      typeLabel: '入 静默期',
+                      inoutReason: '',
+                      inoutDate: '',
+                      reportDate: '',
+                      remark: '',
+                      remarkRequired: false,
+                      fileName: '',
+                      filepath: '',
+                      selected: false,
+                      disabled: false,
+                      rowClass: '',
+                      reportDisabled: false,
+                      auditExpanded: false,
+                      batchId: '',
+                      // 最新一条审核记录
+                      checkResult: '',
+                      checkRecord: '',
+                      checkDate: '',
+                      checkRemark: '',
+                      checkFilepath: '',
+                      checkFileName: '',
+                      checkTableData: []
+                    },
+                    {
+                      listType: 'cq',
+                      typeLabel: '出 静默期',
+                      inoutReason: '',
+                      inoutDate: '',
+                      reportDate: '',
+                      remark: '',
+                      remarkRequired: false,
+                      fileName: '',
+                      filepath: '',
+                      selected: false,
+                      disabled: false,
+                      rowClass: '',
+                      reportDisabled: false,
+                      auditExpanded: false,
+                      batchId: '',
+                      // 最新一条审核记录
+                      checkResult: '',
+                      checkRecord: '',
+                      checkDate: '',
+                      checkRemark: '',
+                      checkFilepath: '',
+                      checkFileName: '',
+                      checkTableData: []
+                    }
+                  ],
+                  // 是否显示新增表格
+                  showNewTable: false,
+                  // 展开清单自查情况
+                  showCheckLogs: false,
+                  // 批次列表
+                  batchList: [],
+                  // 当前选中的批次索引
+                  currentBatchIndex: 0,
+                  // 当前激活的标签页
+                  activeTab: '',
+                  // 选中的清单行
+                  selectedBillRows: [],
+                  // 历史记录
+                  historyList: [],
+                  // 本次清单自查结果表格
+                  tableData: [{
+                    check_date: Wb.format(new Date(), 'yyyy-MM-dd'),
+                    check_result: '',
+                    user_name: '_$sys.username$_',
+                    remark: '',
+                    fileName: '',
+                    filepath: ''
+                  }],
+                  // 历史清单自查结果表格
+                  tableDataHis: [],
+                  // 是否显示修正按钮
+                  showReviseBtn: false,
+                  // 是否禁用新增批次按钮
+                  isAddBatchDisabled: false,
+                  // 是否禁用提交按钮
+                  submitButtonDisabled: false,
+                  // 事由选项
+                  reasonOptions: {
+                    ro: [
+                      { label: '1、签订保密协议', value: '1' },
+                      { label: '2、项目立项', value: '2' },
+                      { label: '3、进场开展工作', value: '3' },
+                      { label: '4、实际获知敏感信息', value: '4' }
+                    ],
+                    co: [
+                      { label: '1、价格确定', value: '1' },
+                      { label: '2、项目终止', value: '2' },
+                      { label: '3、转限制清单', value: '3' },
+                      { label: '4、转静默期', value: '4' },
+                      { label: '5、见备注说明', value: '5' }
+                    ],
+                    rl: [
+                      { label: '1、项目信息已公告', value: '1' },
+                      { label: '2、项目公告后进场', value: '2' }
+                    ],
+                    cl: [
+                      { label: '1、价格/利率确定', value: '1' },
+                      { label: '2、股东大会审议通过', value: '2' },
+                      { label: '3、项目终止', value: '3' },
+                      { label: '4、收购交易完成并公告', value: '4' },
+                      { label: '5、挂牌并公开转让之日', value: '5' },
+                      { label: '6、交易所同意转板的意见之日', value: '6' },
+                      { label: '7、见备注说明', value: '7' }
+                    ],
+                    rq: [
+                      { label: '1、敏感信息已公告', value: '1' }
+                    ],
+                    cq: [
+                      { label: '1、静默期结束', value: '1' }
+                    ]
+                  }
+                };
+              },
+              methods: {
+                showMessage(msg, time, type) {
+                  this.$message({
+                    showClose: true,
+                    dangerouslyUseHTMLString: true,
+                    message: msg,
+                    duration: time ? time : 0,
+                    type: type ? type : 'success'
+                  })
+                },
+                // 清单填报页查询
+                inoutReq(projid) {
+                  let that = this;
+                  Wb.ajax({
+                    url: 'm?xwl=info_query/projlist_data/inout_q',
+                    params: {
+                      i_projid: projid
+                    },
+                    success(resp) {
+                      resp = Wb.decode(resp).items[0];
+                      let batch_id = resp.batch_id;
+                      console.log("inoutReq---resp", resp);
+                      that.basicForm = { ...resp };
+                      that.projStatus = resp.projlist_status;
+            
+                      // 处理批次信息
+                      if (resp.batch_count) {
+                        // 生成批次列表
+                        that.batchList = [];
+                        for (let i = 0; i < resp.batch_count; i++) {
+                          that.batchList.push({
+                            batchId: resp.batch_id, // 批次编码
+                            batchNum: resp.batch_count - i,// 批次顺序
+                            batchName: `批次${resp.batch_count - i}`
+                          });
+                        }
+                        // 设置默认激活的标签页为第一个批次
+                        if (that.batchList.length > 0) {
+                          that.activeTab = that.batchList[0].batchNum.toString();
+                          that.switchBatch(0);
+                        }
+                      } else {
+                        // 没有批次时，显示历史批次表格
+                        that.activeTab = '1';
+                      }
+            
+                      // 填充历史批次表格数据
+                      const listTypes = ['ro', 'co', 'rl', 'cl', 'rq', 'cq'];
+                      listTypes.forEach(listType => {
+                        const row = that.billListHis.find(item => item.listType === listType);
+                        if (row) {
+                          row.inoutReason = resp[`${listType}_inout_reason`] || '';
+                          row.inoutDate = resp[`${listType}_inout_date`] || '';
+                          row.reportDate = resp[`${listType}_report_date`] || '';
+                          row.remark = resp[`${listType}_inout_remark`] || '';
+                          row.filepath = resp[`${listType}_filepath`] || '';
+                          row.batchId = batch_id || '';
+                          row.remarkRequired = (listType === 'co' && row.inoutReason === '5') || (listType === 'cl' && row.inoutReason === '7');
+                          // if (row.reportDate) { row.disabled = true; }
+                          // 最新一条审核记录
+                          row.checkResult = resp[`${listType}_check_result`] || '';
+                          row.checkRecord = resp[`${listType}_check_record`] || '';
+                          row.checkDate = resp[`${listType}_create_time`] || '';
+                          row.checkRemark = resp[`${listType}_remark`] || '';
+                          row.checkFilepath = resp[`${listType}_check_filepath`] || '';
+            
+                          // 提取文件名
+                          if (row.filepath) {
+                            const parts = row.filepath.split('/');
+                            row.fileName = parts[parts.length - 1] || '';
+                          } else {
+                            row.fileName = '';
+                          }
+                          // 提取审核文件名
+                          if (row.checkFilepath) {
+                            const parts = row.checkFilepath.split('/');
+                            row.checkFileName = parts[parts.length - 1] || '';
+                          } else {
+                            row.checkFileName = '';
+                          }
+                          let listTypeMap = {
+                            'ro': 'io',
+                            'co': 'oo',
+                            'rl': 'il',
+                            'cl': 'ol',
+                            'rq': 'iq',
+                            'cq': 'oq'
+                          };
+                          let records = [],
+                            inout_type = listTypeMap[listType][1],
+                            inout_direct = listTypeMap[listType][0];
+            
+                          Wb.ajax({
+                            url: 'm?xwl=info_query/projlist_data/comment_q',
+                            params: {
+                              i_projid: '_$projid$_',
+                              i_batchid: batch_id,
+                              i_inout_type: inout_type,
+                              i_inout_direct: inout_direct
+                            },
+                            success(resp) {
+                              let res = Wb.decode(resp).items || [];
+                              // 为查询出来的审核记录添加控制字段
+                              records = res.map(item => ({
+                                ...item,
+                                fileName: item.filepath ? item.filepath.split('/')[item.filepath.split('/').length - 1] : '',
+                                isDisabled: true,    // 已有记录不可编辑
+                                isDeleteShow: false  // 已有记录不显示删除按钮
+                              }));
+                              row.checkTableData = records;
+                              console.log("------row", row);
+                            }
+                          });
+                        }
+                      });
+                    }
+                  });
+                },
+                // 关联信息查询
+                multistkReq(projid) {
+                  let that = this;
+                  Wb.ajax({
+                    url: 'm?xwl=info_query/projlist_data/multistk_q',
+                    params: {
+                      i_projid: projid
+                    },
+                    success(resp) {
+                      let res = Wb.decode(resp).items;
+                      console.log("multistkReq---resp", res);
+                      // 填充关联公司数据
+                      if (res.length > 0) {
+                        that.companyList = res.map(item => ({
+                          ...item,
+                          relatedProperty: item.related_property || '',
+                          compName: item.comp_name || '',
+                          stkCode: item.stk_code || '',
+                          stkName: item.stk_name || '',
+                          remark: item.ralated_ramark || '',
+                          writeDate: item.write_date || '',
+                          dataFlag: true //已存在的关联公司信息dataFlag为true 不可编辑不可删除
+                        }));
+                        // 关联信息修改 已有数据行设为只读，新增行可编辑
+                        // if (that.op_flag == '1') {
+                        //   that.companyList.forEach(item => {
+                        //     if (item.dataFlag === 1) {
+                        //       item.disabled = true;
+                        //     }
+                        //   });
+                        // }
+                        // console.log("companyList", that.companyList)
+                      }
+                    }
+                  });
+                },
+                // 清单自查表格查询
+                selfcheckReq(projid) {
+                  let that = this;
+                  Wb.ajax({
+                    url: 'm?xwl=info_query/projlist_data/selfcheck_q',
+                    params: {
+                      i_projid: projid
+                    },
+                    success(resp) {
+                      resp = Wb.decode(resp).items;
+                      if (resp.length > 0) {
+                        that.tableDataHis = resp.map(item => ({
+                          ...item,
+                          filename: item.file_path ? item.file_path.split('/').pop() : ''
+                        }));
+                      }
+                      console.log("tableDataHis", resp);
+                      // that.tableDataHis = [...resp];
+                    }
+                  })
+                },
+                getCandidates(staff_id, projid) {
+                  let that = this;
+                  let url = that.nodeCode == 'hgrysh' ?
+                    'm?xwl=th_projlist/ADMIN_PROJLIST/operation/select_candidates_xmfzr' :
+                    'm?xwl=th_projlist/my_projlist/operation/select_candidates_hg'
+                  Wb.ajax({
+                    url: url,
+                    params: {
+                      i_staff_id: staff_id,
+                      i_projid: projid
+                    },
+                    success(resp) {
+                      let res = Wb.decode(resp);
+                      console.log("getCandidates--res", res);
+                      if (res.items[0]) {
+                        that.candidates = res.items[0].user_id
+                      }
+                    }
+                  });
+                },
+                // 添加关联公司
+                addCompany() {
+                  this.companyList.push({
+                    compName: '',
+                    stkName: '',
+                    stkCode: '',
+                    writeDate: '',
+                    relatedProperty: '1',
+                    remark: '',
+                    dataFlag: false,
+                    disabled: false
+                  });
+                },
+                // 删除关联公司
+                removeCompany(index) {
+                  // 关联信息修改 已有数据行不可删除
+                  // if (this.companyList[index].dataFlag === '1' && this.op_flag == '1') {
+                  //   return;
+                  // }
+                  if (this.companyList.length <= 1) {
+                    Wb.info('至少需保留一行关联公司数据');
+                    return;
+                  }
+                  Wb.confirm('确认删除该行？', () => {
+                    this.companyList.splice(index, 1);
+                  });
+                },
+                // 匹配关联公司
+                matchCompany(item) {
+                  // 1. 如果证券代码没有填写，则不进行匹配
+                  if (!item.stkCode || item.stkCode.trim() === '') {
+                    this.$message.warning('请先填写证券代码');
+                    return;
+                  }
+            
+                  // 2. 如果公司名称输入框禁用，则不进行匹配
+                  // 注意：需要在companyList数据结构中添加disabled字段
+                  // 或通过其他条件判断是否禁用
+                  if (item.disabled) {
+                    return;
+                  }
+            
+                  // 3. 调用匹配方法
+                  this.matchingStk(item);
+                },
+                // 匹配证券
+                matchingStk(item) {
+                  let that = this;
+                  Wb.ajax({
+                    url: 'm?xwl=info_query/projlist_data/stk_q', // 需要确认实际接口地址
+                    params: {
+                      i_comp_name: item.compName,
+                      i_stk_name: item.stkName,
+                      i_stk_code: item.stkCode
+                    },
+                    success: (resp) => {
+                      resp = Wb.decode(resp);
+                      // 假设返回的数据包含公司名称和股票简称
+                      if (resp.items && resp.items.length > 0) {
+                        const data = resp.items[0];
+                        // const data = {
+                        //   s_info_windcode: "874567.NQ",
+                        //   s_info_compname: "上海辛帕智能科技股份有限公司",
+                        //   s_info_code: "874567",
+                        //   s_info_name: "辛帕智能"
+                        // }
+            
+                        // 检查是否与项目本身的证券代码相同
+                        if (that.basicForm.stkcode && data.s_info_windcode && that.basicForm.stkcode.split('.')[0] === data.s_info_windcode.split('.')[0]) {
+                          Wb.info('关联公司与客户相同，无需填写');
+                          item.compName = '';
+                          item.stkName = '';
+                          item.stkCode = '';
+                          return;
+                        }
+            
+                        item.compName = data.s_info_compname || item.compName;
+                        item.stkName = data.s_info_name || item.stkName;
+                        item.stkCode = data.s_info_code || item.stkCode;
+            
+                        // 如果匹配返回的客户名称与项目本身客户名称一致，自动将关联性质设置为'1-客户其他代码'，不允许修改
+                        if (that.basicForm.custname && data.s_info_compname && that.basicForm.custname === data.s_info_compname) {
+                          item.relatedProperty = '1';
+                          item.disabled = true; // 禁用关联性质选择
+                        } else {
+                          item.disabled = false; // 启用关联性质选择
+                        }
+                        console.log("匹配成功------", data)
+                        that.$message.success('匹配成功');
+                      } else {
+                        that.$message.warning('未找到匹配的公司信息');
+                      }
+                    },
+                    failure: () => {
+                      that.$message.error('匹配失败，请稍后重试');
+                    }
+                  });
+                },
+                // 添加新批次tab页
+                addNewBatchTab() {
+                  // console.log("batchList",this.batchList);
+                  const projStatus = '_$projlist_status$_' || this.projStatus;
+                  const op_flag = '_$i_op_flag$_';
+                  const state = '_$state$_';
+                  const adminProjlist = '_$open_projlist$_' * 1;
+                  const revise = '_$revise$_' * 1;
+            
+                  // 首次入单或未出单项目不允许添加新的批次
+                  if (projStatus == '0' || projStatus == 'ro' || projStatus == 'rl' || projStatus == 'rq') {
+                    Wb.info('首次入单或未出单项目不允许添加新的批次！');
+                    return;
+                  }
+            
+                  // 查看模式或关联信息修改模式：不允许添加新批次
+                  if (state == 'info' || op_flag == '1') {
+                    Wb.info('当前模式不允许添加新批次！');
+                    return;
+                  }
+            
+                  // 清单类型分组
+                  const outList = ['co', 'cl', 'cq']; // 出单类型
+                  const inList = ['ro', 'rl', 'rq'];  // 入单类型
+            
+                  // 清空新增表格数据
+                  const today = new Date().toISOString().split('T')[0];
+            
+                  // 根据权限状态初始化批次表格
+                  let newBillList = [
+                    { listType: 'ro', typeLabel: '入 观察清单', inoutReason: '', inoutDate: '', reportDate: today, remark: '', fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
+                    { listType: 'co', typeLabel: '出 观察清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true },
+                    { listType: 'rl', typeLabel: '入 限制清单', inoutReason: '', inoutDate: '', reportDate: today, remark: '', fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
+                    { listType: 'cl', typeLabel: '出 限制清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true },
+                    { listType: 'rq', typeLabel: '入 静默期', inoutReason: '', inoutDate: '', reportDate: today, remark: '', fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
+                    { listType: 'cq', typeLabel: '出 静默期', inoutReason: '', inoutDate: '', reportDate: '', remark: '', fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true }
+                  ];
+            
+            
+                  // 管理员模式：所有行可编辑
+                  if (adminProjlist > 0) {
+                    newBillList.forEach(item => {
+                      item.disabled = false;
+                      item.rowClass = '';
+                    });
+                  }
+            
+                  // 修正模式：只启用有数据的行（新增批次没有历史数据，所以保持默认）
+                  if (revise === 1) {
+                    newBillList.forEach(item => {
+                      item.disabled = true;
+                      item.rowClass = 'disabled-row';
+                    });
+                  }
+            
+                  // this.billList = newBillList;
+            
+                  this.showNewTable = true;
+                  this.currentBatchIndex = -1; // -1表示新增批次tab页
+                  // 设置激活的标签页为new
+                  this.activeTab = 'new';
+                  // 禁用添加批次按钮，防止重复添加
+                  this.isAddBatchDisabled = true;
+                },
+                // 处理 tab 切换事件
+                handleTabChange(tab) {
+                  console.log("handleTabChange", tab);
+                  const tabName = tab.name;
+            
+                  // 如果是新增批次 tab，不需要重新加载数据
+                  if (tabName === 'new') {
+                    this.currentBatchIndex = -1;
+                    return;
+                  }
+            
+                  // 查找对应的批次索引
+                  const index = this.batchList.findIndex(batch => batch.batchNum.toString() === tabName);
+                  if (index !== -1 && index !== this.currentBatchIndex) {
+                    this.switchBatch(index);
+                  }
+                },
+                // 删除新批次
+                removeNewBatch() {
+                  this.showNewTable = false;
+                  // 重置新增批次的数据
+                  this.billList = [];
+                  // 重新启用添加批次按钮
+                  const projStatus = '_$projlist_status$_';
+                  this.isAddBatchDisabled = (projStatus == '0' || projStatus == 'ro' || projStatus == 'rl' || projStatus == 'rq');
+                  // 如果当前激活的标签页是new，切换到第一个历史批次
+                  console.log("this.activeTab", this.activeTab);
+                  if (this.activeTab === 'new') {
+                    console.log("this.batchList", this.batchList);
+                    if (this.batchList.length > 0) {
+                      this.activeTab = this.batchList[0].batchNum.toString();
+                      this.currentBatchIndex = 0;
+                      this.switchBatch(0);
+                    } else {
+                      this.activeTab = '';
+                      this.currentBatchIndex = 0;
+                    }
+                  }
+                },
+                // 切换到历史批次表格
+                switchToHisTable() {
+                  this.showNewTable = false;
+                },
+                // 切换批次
+                switchBatch(index, tab, event) {
+                  console.log("switchBatch");
+                  console.log(tab);
+                  console.log(event);
+                  let that = this;
+                  this.currentBatchIndex = index;
+                  // this.showNewTable = false; // 隐藏新增批次表格
+            
+                  // 获取选中的批次
+                  let selectedBatch = this.batchList[index];
+                  if (!selectedBatch) {
+                    return;
+                  }
+            
+                  // 更新激活的标签页
+                  this.activeTab = selectedBatch.batchNum.toString();
+            
+                  // 调用接口获取批次数据
+                  Wb.ajax({
+                    url: 'm?xwl=info_query/projlist_data/inout_batch_q', // 需要确认实际接口地址
+                    params: {
+                      i_projid: '_$projid$_',
+                      i_batch_num: selectedBatch.batchNum
+                    },
+                    success(resp) {
+                      resp = Wb.decode(resp);
+                      console.log("resp", resp)
+                      if (resp.items && resp.items.length > 0) {
+                        let batchData = resp.items[0];
+                        let batch_id = resp.items[0].batch_id;
+                        console.log("batchData", batchData);
+                        // 更新历史批次表格数据
+                        that.billListHis.forEach(item => {
+                          // 从扁平化的数据结构中获取对应的数据
+                          item.inoutReason = batchData[`${item.listType}_inout_reason`] || '';
+                          item.inoutDate = batchData[`${item.listType}_inout_date`] || '';
+                          item.reportDate = batchData[`${item.listType}_report_date`] || '';
+                          item.remark = batchData[`${item.listType}_inout_remark`] || '';
+                          item.filepath = batchData[`${item.listType}_filepath`] || '';
+                          item.batchId = batch_id || '';
+                          item.remarkRequired = (item.listType === 'co' && item.inoutReason === '5') || (item.listType === 'cl' && item.inoutReason === '7');
+                          // if (item.reportDate) { item.disabled = true; }
+                          // 最新一条审核记录
+                          item.checkResult = batchData[`${item.listType}_check_result`] || '';
+                          item.checkRecord = batchData[`${item.listType}_check_record`] || '';
+                          item.checkDate = batchData[`${item.listType}_create_time`] || '';
+                          item.checkRemark = batchData[`${item.listType}_remark`] || '';
+                          item.checkFilepath = batchData[`${item.listType}_check_filepath`] || '';
+            
+                          // item.checkTableData = that.getAuditRecord('_$projId$_', batch_id, 'oo');
+            
+                          // 提取文件名
+                          if (item.filepath) {
+                            const parts = item.filepath.split('/');
+                            item.fileName = parts[parts.length - 1] || '';
+                          } else {
+                            item.fileName = '';
+                          }
+                          // 提取审核文件名
+                          if (item.checkFilepath) {
+                            const parts = item.checkFilepath.split('/');
+                            item.checkFileName = parts[parts.length - 1] || '';
+                          } else {
+                            item.checkFileName = '';
+                          }
+                          // 设置选中状态
+                          item.selected = !!item.inoutReason;
+                        });
+                        // 判断是否是最新批次（索引0为最新批次）
+                        if (index === 0) {
+                          // 
+                          that.initHisTableStatus();
+                          console.log("最新批次：根据当前状态决定哪些行可编辑")
+                        } else {
+                          // 非最新批次：所有行都不可编辑（与老代码一致）
+                          that.billListHis.forEach(item => {
+                            item.disabled = true;
+                            item.selected = false;
+                            item.rowClass = 'disabled-row';
+                            item.reportDisabled = true;
+                          });
+                        }
+                      }
+                    },
+                    failure() {
+                      Wb.info('加载批次数据失败，请稍后重试');
+                    }
+                  });
+                },
+                // 初始化历史批次表格的状态
+                initHisTableStatus() {
+                  const projStatus = '_$projlist_status$_' || this.projStatus;
+                  const outList = ['0', 'co', 'cl', 'cq'];
+                  const inList = ['ro', 'rl', 'rq'];
+                  const op_flag = '_$i_op_flag$_';
+                  const state = '_$state$_';
+                  const adminProjlist = '_$open_projlist$_' * 1;
+                  const revise = '_$revise$_' * 1;
+                  const piid2 = this.piid2;
+                  console.log("state---", state)
+            
+                  if (op_flag == 1 || state == 'info' || (piid2 && this.nodeCode == 'hgrysh')) {
+                    console.log("关联信息进入或查看模式：所有行禁用")
+                    this.billListHis.forEach(item => {
+                      item.disabled = true;
+                      item.selected = false;
+                      item.rowClass = 'disabled-row';
+                      item.reportDisabled = true;
+                    });
+                    console.log("billListHis---------", this.billListHis);
+                    return;
+                  }
+            
+                  if (adminProjlist > 0) {
+                    // 移除所有禁用和选中状态
+                    this.billListHis.forEach(item => {
+                      item.disabled = false;
+                      item.selected = false;
+                      item.rowClass = '';
+                      item.reportDisabled = false;
+                    });
+                    return;
+                  }
+            
+                  // 出静默期状态(cq)：所有行禁用（流程已结束，不允许编辑）
+                  if (projStatus === 'cq') {
+                    console.log("出静默期状态(cq)：所有行禁用");
+                    this.billListHis.forEach(item => {
+                      item.disabled = true;
+                      item.selected = false;
+                      item.rowClass = 'disabled-row';
+                      item.reportDisabled = true;
+                    });
+                    return;
+                  }
+            
+                  // 修正模式：只启用有数据的行
+                  if (revise === 1) {
+                    this.billListHis.forEach(item => {
+                      if (item.inoutReason) {
+                        item.disabled = false;
+                        item.selected = true;
+                        item.rowClass = 'disabled-except-first';
+                        item.reportDisabled = true;
+                      } else {
+                        item.disabled = true;
+                        item.selected = false;
+                        item.rowClass = 'disabled-row';
+                        item.reportDisabled = true;
+                      }
+                    });
+                    return;
+                  }
+            
+                  // 根据projStatus设置默认选中状态
+                  const statusIndexMap = {
+                    'ro': 0, 'co': 1, 'rl': 2, 'cl': 3, 'rq': 4, 'cq': 5
+                  };
+                  const currentIndex = statusIndexMap[projStatus];
+            
+                  if (outList.includes(projStatus)) {
+                    // 出单状态：当前行及之前的所有行禁用
+                    this.billListHis.forEach((item, index) => {
+                      if (index <= currentIndex || outList.includes(item.listType)) {
+                        item.disabled = true;
+                        item.selected = false;
+                        item.rowClass = 'disabled-row';
+                        item.reportDisabled = true;
+                      } else {
+                        item.disabled = false;
+                        item.selected = false;
+                        item.rowClass = '';
+                        item.reportDisabled = false;
+                      }
+                    });
+                  } else if (inList.includes(projStatus)) {
+                    // 入单状态：对应的出单行选中，其他行禁用
+                    const outIndexMap = { 'ro': 1, 'rl': 3, 'rq': 5 }; // 入对应出的索引
+            
+                    this.billListHis.forEach((item, index) => {
+                      if (index === outIndexMap[projStatus]) {
+                        // 对应的出单行选中
+                        item.disabled = false;
+                        item.selected = true;
+                        item.rowClass = 'disabled-except-first';
+                        item.reportDisabled = true;
+                        item.reportDate = new Date().toISOString().split('T')[0];
+                        console.log("----260615对应出单行选中")
+                      } else {
+                        // 其他行禁用
+                        item.disabled = true;
+                        item.selected = false;
+                        item.rowClass = 'disabled-row';
+                        item.reportDisabled = true;
+                      }
+                    });
+            
+                    // 特殊处理：rq状态时cq行额外处理
+                    if (projStatus === 'rq') {
+                      this.billListHis[5].rowClass = 'disabled-except-first disabled-row';
+                      this.billListHis[5].disabled = true;
+                    }
+                  }
+                },
+                // 切换行选中状态
+                toggleRowSelection(item) {
+                  // 如果行被完全禁用，不可点击
+                  if (item.rowClass === 'disabled-row') {
+                    return;
+                  }
+            
+                  // 如果是disabled-except-first，允许点击切换
+                  if (item.rowClass === 'disabled-except-first') {
+                    // 取消其他行的选中状态
+                    this.billList.forEach(row => {
+                      if (row !== item) {
+                        row.selected = false;
+                      }
+                    });
+                    // 保持当前行选中状态（与老代码一致，不可取消选中）
+                    if (!this.piid1) {
+                      item.selected = true;
+                    } else {
+                      item.selected = !item.selected
+                    }
+                  } else {
+                    // 如果当前行未被选中，才进行切换（与老代码一致，不可取消选中）
+                    if (!item.selected) {
+                      this.billList.forEach(row => {
+                        if (row !== item && !row.disabled) {
+                          row.selected = false;
+                        }
+                      });
+                      if (!this.piid1) {
+                        item.selected = true;
+                      } else {
+                        item.selected = !item.selected
+                      }
+                    }
+                  }
+                },
+                // 下载文件
+                downloadFile(item, type) {
+                  console.log("downloadFile", item);
+                  let filepath;
+                  if (type == 'proj') {// 清单附件
+                    filepath = item.filepath
+                  } else if (type == 'comment1') { // 隔离墙操作变动 - 最新审核附件
+                    filepath = item.checkFilepath
+                  } else if (type == 'comment2') { // 隔离墙操作变动 - 完整表格审核附件
+                    filepath = item.filepath
+                  } else if (type == 'selfcheck') { // 清单自查附件
+                    filepath = item.file_path
+                  }
+                  if (filepath) {
+                    Wb.download({
+                      url: 'm?xwl=info_query/PTY_CLEAR_INFO/operation/download_file',
+                      params: {
+                        disk_url: filepath
+                      }
+                    })
+                  }
+                },
+                // 处理事由变化
+                handleReasonChange(item) {
+                  // 1. 重置相关字段
+                  item.remark = '';
+            
+                  // 2. 根据事由类型处理特殊逻辑（与老系统一致，co5/cl7 备注列显示红色星号必填标记）
+                  item.remarkRequired = (item.listType === 'co' && item.inoutReason === '5') ||
+                    (item.listType === 'cl' && item.inoutReason === '7');
+            
+                  // 3. rq原因变化时的特殊处理（与老系统一致）
+                  if (item.listType === 'rq') {
+                    const projType = this.basicForm.projtype;
+                    const thisDate = item.inoutDate;
+            
+                    if (item.inoutReason) {
+                      // rq有值：cq行启用，设为 disabled-except-first 状态，事由同步为rq的事由
+                      const cqRow = this.billList.find(row => row.listType === 'cq');
+                      if (cqRow) {
+                        cqRow.disabled = false;
+                        cqRow.selected = true;
+                        cqRow.rowClass = 'disabled-except-first';
+                        cqRow.inoutReason = item.inoutReason;
+                      }
+                      // rq行设为 disabled-except-first 状态
+                      item.selected = true;
+                      item.rowClass = 'disabled-except-first';
+            
+                      if (thisDate) {
+                        // 计算静默期结束日期
+                        this.calculateCQDate(this.billList, thisDate, projType);
+                      }
+                    } else {
+                      // rq无值：cq行恢复禁用状态
+                      const cqRow = this.billList.find(row => row.listType === 'cq');
+                      if (cqRow) {
+                        cqRow.disabled = true;
+                        cqRow.selected = false;
+                        cqRow.rowClass = 'disabled-row';
+                        cqRow.inoutReason = '';
+                        cqRow.inoutDate = '';
+                      }
+                      // rq行恢复正常状态
+                      item.selected = false;
+                      item.rowClass = '';
+                    }
+                    // rq变化不触发状态转换逻辑，直接返回
+                    return;
+                  }
+            
+                  // 4. 清除其他事由联动
+                  this.clearLinkedEffects(this.billList, item);
+            
+                  // 5. 状态转换逻辑
+                  this.handleStatusTransition(item, this.billList);
+                },
+                // 处理日期变化
+                handleDateChange(item) {
+                  const billList = this.showNewTable ? this.billList : this.billListHis;
+                  const joinStr = item.listType + item.inoutReason;
+                  const projType = this.basicForm.projtype;
+                  const thisDate = item.inoutDate;
+            
+                  // 处理 co、cl 日期变化时的状态转换
+                  if ((item.listType === 'co' || item.listType === 'cl') && item.inoutReason) {
+                    // 基本状态转换
+                    if (joinStr === 'co3') {
+                      this.updateBillRow(billList, 'rl', 1, thisDate);
+                    } else if (joinStr === 'co4') {
+                      this.updateBillRow(billList, 'rq', 1, thisDate);
+                      this.updateBillRow(billList, 'cq', 1, thisDate);
+                      this.calculateCQDate(billList, thisDate, projType);
+                    } else if (joinStr === 'cl1') {
+                      this.updateBillRow(billList, 'rq', 1, thisDate);
+                      this.updateBillRow(billList, 'cq', 1, thisDate);
+                      this.calculateCQDate(billList, thisDate, projType);
+                    }
+            
+                    // 新三板项目特殊逻辑
+                    if (projType && (projType.includes('新三板_OTC-推荐挂牌') || projType.includes('新三板_OTC-定向发行') || projType.includes('新三板_OTC-公开发行') || projType.includes('新三板_OTC-优先股'))) {
+                      if (joinStr === 'cl5') {
+                        this.updateBillRow(billList, 'rq', 1, thisDate);
+                        this.updateBillRow(billList, 'cq', 1, thisDate);
+                        this.calculateCQDate(billList, thisDate, projType);
+                      }
+                    }
+            
+                    // 股权融资_非公开项目特殊逻辑
+                    if (projType && (projType.includes('股权融资_非公开') || projType.includes('新三板_OTC-定向发行'))) {
+                      if (joinStr === 'co1') {
+                        this.updateBillRow(billList, 'rq', 1, thisDate);
+                        this.updateBillRow(billList, 'cq', 1, thisDate);
+                        this.calculateCQDate(billList, thisDate, projType);
+                      }
+                    }
+                  }
+            
+                  // 处理 rq 日期变化时的静默期结束日期计算
+                  if (item.listType === 'rq' && item.inoutReason) {
+                    this.calculateCQDate(billList, thisDate, projType);
+                  }
+                },
+                // 清除因之前选择的事由而自动联动填充的其他行
+                clearLinkedEffects(billList, item) {
+                  const projType = this.basicForm.projtype;
+                  if (item.listType === 'co') {
+                    // co3 联动了 rl 行
+                    const rlRow = billList.find(r => r.listType === 'rl');
+                    if (rlRow && rlRow.rowClass === 'disabled-except-first') {
+                      rlRow.selected = false;
+                      rlRow.rowClass = '';
+                      rlRow.inoutReason = '';
+                      rlRow.inoutDate = '';
+                    }
+                    // co4/co1 联动了 rq + cq 行
+                    const rqRow = billList.find(r => r.listType === 'rq');
+                    if (rqRow && rqRow.rowClass === 'disabled-except-first') {
+                      rqRow.selected = false;
+                      rqRow.rowClass = '';
+                      rqRow.inoutReason = '';
+                      rqRow.inoutDate = '';
+                    }
+                    const cqRow = billList.find(r => r.listType === 'cq');
+                    if (cqRow && cqRow.rowClass === 'disabled-except-first') {
+                      cqRow.selected = false;
+                      cqRow.rowClass = 'disabled-row';
+                      cqRow.disabled = true;
+                      cqRow.inoutReason = '';
+                      cqRow.inoutDate = '';
+                    }
+                  } else if (item.listType === 'cl') {
+                    // cl1/cl5 联动了 rq + cq 行
+                    const rqRow = billList.find(r => r.listType === 'rq');
+                    if (rqRow && rqRow.rowClass === 'disabled-except-first') {
+                      rqRow.selected = false;
+                      rqRow.rowClass = '';
+                      rqRow.inoutReason = '';
+                      rqRow.inoutDate = '';
+                    }
+                    const cqRow = billList.find(r => r.listType === 'cq');
+                    if (cqRow && cqRow.rowClass === 'disabled-except-first') {
+                      cqRow.selected = false;
+                      cqRow.rowClass = 'disabled-row';
+                      cqRow.disabled = true;
+                      cqRow.inoutReason = '';
+                      cqRow.inoutDate = '';
+                    }
+                  }
+                },
+                // 处理状态转换
+                handleStatusTransition(item, billList) {
+                  const projType = this.basicForm.projtype;
+                  const joinStr = item.listType + item.inoutReason;
+                  const thisDate = item.inoutDate;
+                  let isTransition = false;
+            
+                  // 特殊业务规则优先（与老系统一致，特殊项目类型的逻辑优先于基本转换）
+                  if (projType && (projType.includes('新三板_OTC-推荐挂牌') || projType.includes('新三板_OTC-定向发行') || projType.includes('新三板_OTC-公开发行') || projType.includes('新三板_OTC-优先股')) && joinStr === 'cl5') {
+                    this.updateBillRow(billList, 'rq', 1, thisDate);
+                    this.updateBillRow(billList, 'cq', 1, thisDate);
+                    this.calculateCQDate(billList, thisDate, projType);
+                    isTransition = true;
+                  } else if (projType && (projType.includes('股权融资_非公开') || projType.includes('新三板_OTC-定向发行')) && joinStr === 'co1') {
+                    this.updateBillRow(billList, 'rq', 1, thisDate);
+                    this.updateBillRow(billList, 'cq', 1, thisDate);
+                    this.calculateCQDate(billList, thisDate, projType);
+                    isTransition = true;
+                  } else if (joinStr === 'co3') {
+                    // co3 (出观察清单-转限制清单) -> rl (入限制清单)
+                    this.updateBillRow(billList, 'rl', 1, thisDate);
+                    isTransition = true;
+                  } else if (joinStr === 'co4') {
+                    // co4 (出观察清单-转静默期) -> rq (入静默期) + cq (出静默期)
+                    this.updateBillRow(billList, 'rq', 1, thisDate);
+                    this.updateBillRow(billList, 'cq', 1, thisDate);
+                    this.calculateCQDate(billList, thisDate, projType);
+                    isTransition = true;
+                  } else if (joinStr === 'cl1') {
+                    // cl1 (出限制清单-价格/利率确定) -> rq (入静默期) + cq (出静默期)
+                    this.updateBillRow(billList, 'rq', 1, thisDate);
+                    this.updateBillRow(billList, 'cq', 1, thisDate);
+                    this.calculateCQDate(billList, thisDate, projType);
+                    isTransition = true;
+                  }
+            
+                  // 非转换触发器：取消所有其他行的选中和disabled-except-first状态（与老系统一致）
+                  if (!isTransition) {
+                    billList.forEach(row => {
+                      if (row.listType !== item.listType) {
+                        row.selected = false;
+                        row.rowClass = '';
+                      }
+                    });
+                  }
+                },
+                // 更新清单行（与老系统一致）
+                updateBillRow(billList, listType, reason, date) {
+                  const row = billList.find(item => item.listType === listType);
+                  if (row) {
+                    row.selected = true;
+                    row.disabled = false;  // disabled-except-first 样式的行是可选中的，只有类型列可点击
+                    row.rowClass = 'disabled-except-first';
+                    row.inoutReason = reason.toString();
+                    row.inoutDate = date;
+                  }
+                },
+                // 计算静默期结束日期
+                calculateCQDate(billList, startDate, projType) {
+                  const cqRow = billList.find(item => item.listType === 'cq');
+                  if (cqRow && startDate) {
+                    const days = this.getSilentPeriodDays(projType);
+                    cqRow.inoutDate = this.addDate(startDate, days);
+                  }
+                },
+                // 获取静默期天数
+                getSilentPeriodDays(projType) {
+                  if (projType && (projType.includes('IPO') || projType.includes('新三板_OTC-推荐挂牌'))) {
+                    return 40; // IPO 和新三板_OTC-推荐挂牌项目静默期为 40 天
+                  }
+                  return 10; // 其他项目静默期为 10 天
+                },
+                // 日期计算
+                addDate(date, days) {
+                  const d = new Date(date);
+                  d.setDate(d.getDate() + days);
+                  return d.toISOString().split('T')[0];
+                },
+                // 切换历史批次行选中状态
+                toggleRowSelectionHis(item) {
+                  // 如果行被完全禁用，不可点击
+                  if (item.rowClass === 'disabled-row') {
+                    return;
+                  }
+            
+                  // 如果是disabled-except-first，允许点击切换
+                  if (item.rowClass === 'disabled-except-first') {
+                    // 取消其他行的选中状态
+                    this.billListHis.forEach(row => {
+                      if (row !== item) {
+                        row.selected = false;
+                      }
+                    });
+            
+                    if (!this.piid1) {
+                      item.selected = true; // 自查流程可以取消选中
+                    } else {
+                      item.selected = !item.selected
+                    }
+                  } else {
+                    // 如果当前行未被选中，才进行切换
+                    if (!item.selected) {
+                      this.billListHis.forEach(row => {
+                        if (row !== item && !row.disabled) {
+                          row.selected = false;
+                        }
+                      });
+                      if (!this.piid1) {
+                        item.selected = true;
+                      } else {
+                        item.selected = !item.selected
+                      }
+                    }
+                  }
+                },
+                // 处理历史批次事由变化
+                handleReasonChangeHis(item) {
+                  // 1. 重置相关字段
+                  item.remark = '';
+            
+                  // 2. 根据事由类型处理特殊逻辑（与老系统一致，co5/cl7 备注列显示红色星号必填标记）
+                  item.remarkRequired = (item.listType === 'co' && item.inoutReason === '5') ||
+                    (item.listType === 'cl' && item.inoutReason === '7');
+            
+                  // 3. rq原因变化时的特殊处理（与老系统一致）
+                  if (item.listType === 'rq') {
+                    const projType = this.basicForm.projtype;
+                    const thisDate = item.inoutDate;
+            
+                    if (item.inoutReason) {
+                      // rq有值：cq行启用，设为 disabled-except-first 状态，事由同步为rq的事由
+                      const cqRow = this.billListHis.find(row => row.listType === 'cq');
+                      if (cqRow) {
+                        cqRow.disabled = false;
+                        cqRow.selected = true;
+                        cqRow.rowClass = 'disabled-except-first';
+                        cqRow.inoutReason = item.inoutReason;
+                      }
+                      // rq行设为 disabled-except-first 状态
+                      item.selected = true;
+                      item.rowClass = 'disabled-except-first';
+            
+                      if (thisDate) {
+                        // 计算静默期结束日期
+                        this.calculateCQDate(this.billListHis, thisDate, projType);
+                      }
+                    } else {
+                      // rq无值：cq行恢复禁用状态
+                      const cqRow = this.billListHis.find(row => row.listType === 'cq');
+                      if (cqRow) {
+                        cqRow.disabled = true;
+                        cqRow.selected = false;
+                        cqRow.rowClass = 'disabled-row';
+                        cqRow.inoutReason = '';
+                        cqRow.inoutDate = '';
+                      }
+                      // rq行恢复正常状态
+                      item.selected = false;
+                      item.rowClass = '';
+                    }
+                    // rq变化不触发状态转换逻辑，直接返回
+                    return;
+                  }
+            
+                  // 4. 清除其他的事由联动
+                  this.clearLinkedEffects(this.billListHis, item);
+            
+                  // 5.状态转换
+                  this.handleStatusTransition(item, this.billListHis);
+                },
+                // 添加清单行
+                addBillRow() {
+                  this.billList.push({
+                    listType: '',
+                    inoutReason: '',
+                    inoutDate: '',
+                    reportDate: '',
+                    remark: '',
+                    remarkRequired: false,
+                    filepath: '',
+                    fileName: ''
+                  });
+                },
+                // 删除清单行
+                removeBillRow() {
+                  this.billList = this.billList.filter(item => !this.selectedBillRows.includes(item));
+                  this.selectedBillRows = [];
+                },
+                // 添加审核记录
+                addAuditRecord(item) {
+                  // 先展开全部审核记录表格
+                  if (!item.auditExpanded) {
+                    item.auditExpanded = !item.auditExpanded;
+                  }
+                  console.log("addAuditRecord,item:", item)
+                  const today = new Date().toISOString().split('T')[0];
+                  if (!item.checkTableData) {
+                    this.$set(item, 'checkTableData', []);
+                  }
+                  item.checkTableData.push({
+                    check_result: '',     // 审核结果：1通过/2未通过
+                    check_record: '',     // 审核记录内容
+                    create_time: today,    // 审核日期
+                    remark: '',     // 备注（跨填报日期+备注说明两列）
+                    fileName: '',        // 附件文件名
+                    filepath: '',        // 附件路径
+                    isDisabled: false,    // 是否禁用
+                    isDeleteShow: true,   // 是否展示删除按钮
+                  });
+                  console.log("end item:", item)
+                },
+                // 删除审核记录
+                removeAuditRecord(item, rIdx) {
+                  item.checkTableData.splice(rIdx, 1);
+                },
+                // 添加自查行
+                addCheckRow() {
+                  this.tableData.push({
+                    check_date: Wb.format(new Date(), 'yyyy-MM-dd'),
+                    check_result: '',
+                    user_name: '_$sys.username$_',
+                    remark: '',
+                    fileName: '',
+                    filepath: ''
+                  });
+                },
+                // 移除自查行
+                removeCheckRow(index) {
+                  if (this.tableData.length > 1) {
+                    this.tableData.splice(index, 1);
+                  }
+                },
+                // 根据清单类型和事由值获取显示文本
+                getSelectedReasonLabel(listType, value) {
+                  if (!value) return '';
+                  const options = this.reasonOptions[listType] || [];
+                  const opt = options.find(o => o.value === value);
+                  return opt ? opt.label : '';
+                },
+                // 切换审核记录区域折叠/展开
+                toggleAuditExpanded(item) {
+                  item.auditExpanded = !item.auditExpanded;
+                  console.log("111")
+                },
+                // 清单选择变化
+                handleBillSelectionChange(selection) {
+                  this.selectedBillRows = selection;
+                },
+                // 根据清单类型获取事由选项
+                getReasonOptions(listType) {
+                  return this.reasonOptions[listType] || [];
+                },
+                // 清单类型改变
+                onListTypeChange(row) {
+                  row.inoutReason = '';
+                },
+                // 上传成功
+                handleUploadSuccess(res, row) {
+                  console.log("handleUploadSuccess,row:", row)
+                  // 检查文件名中的非法字符
+                  const fileName = this.checkSymbol(res.name || '');
+                  row.filepath = res.path;
+                  row.fileName = fileName;
+            
+                },
+                // 检查文件名中的非法字符
+                checkSymbol(filename) {
+                  if (!filename) {
+                    return '';
+                  }
+                  if (filename.indexOf('[') > 0 || filename.indexOf(']') > 0) {
+                    Wb.info('文件名含[]非法字符，保存时将自动替换为【】 !');
+                    filename = filename.replace(/\[/g, '【').replace(/\]/g, '】');
+                    return filename;
+                  } else {
+                    return filename;
+                  }
+                },
+                // 提交 type 1-提交 2-修正
+                handleSubmit(type) {
+                  let that = this;
+                  let projStatus = '_$projlist_status$_' || this.projStatus;
+                  let billList = (this.showNewTable || projStatus == '0') ? this.billList : this.billListHis;
+                  let selectedRow = billList.find(item => item.selected);
+                  console.log("selectedRow", selectedRow)
+                  // 1. 表单校验
+                  if (!that.validateForm()) {
+                    console.log("表单校验不通过")
+                    return;
+                  }
+            
+                  // 2. 禁用提交按钮，防止重复提交
+                  that.submitButtonDisabled = true;
+            
+                  // 3. 准备提交数据
+                  let submitData = that.prepareSubmitData(type);
+            
+                  // 4. 调用接口提交 关联信息修改(op_flag==1)用multistk_s
+                  if (that.op_flag == '1') {
+                    // 4.1 关联信息修改入口 提交（与老系统一致：每行单独调用一次multistk_s接口）
+                    const today = new Date();
+                    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    let successCount = 0;
+                    let totalCount = 0;
+                    const fillId = Wb.getId(); // 生成唯一填充ID，同批次所有行共享
+            
+                    // 过滤出需要提交的行（只提交新增行，即dataFlag为false的行）
+                    const submitRows = that.companyList.filter(item => !item.dataFlag);
+            
+                    if (submitRows.length === 0) {
+                      Wb.info('页面数据无修改，不做提交操作！');
+                      that.submitButtonDisabled = false;
+                      return;
+                    }
+            
+                    totalCount = submitRows.length;
+            
+                    // 逐行提交
+                    submitRows.forEach((item, index) => {
+                      // 构建单行提交数据
+                      let rowData = {
+                        i_projid: '_$projid$_',
+                        i_projlist_status: '_$projlist_status$_',
+                        i_usercode: '_$sys.username$_',
+                        i_submit_status: type,
+                        i_fill_id: fillId,
+                        i_comp_name: item.compName || '',
+                        i_stk_name: item.stkName || '',
+                        i_stk_code: item.stkCode || '',
+                        i_related_property: item.relatedProperty || '',
+                        i_ralated_ramark: item.remark || '',
+                        i_write_date: item.writeDate || todayStr,
+                        i_data_flag: item.dataFlag ? '1' : ''
+                      };
+            
+                      Wb.ajax({
+                        url: 'm?xwl=info_query/projlist_data/multistk_s',
+                        params: rowData,
+                        success(resp) {
+                          let res = Wb.decode(resp);
+                          if (res.O_RETURN_CODE === '0') {
+                            successCount++;
+                            // 所有行提交成功
+                            if (successCount === totalCount) {
+                              that.showMessage('提交成功！', 2000, 'success');
+                              Wb.close();
+                            }
+                          } else {
+                            that.showMessage('第' + (index + 1) + '行提交失败：' + res.O_RETURN_MSG, 2000, 'error');
+                            that.submitButtonDisabled = false;
+                          }
+                        },
+                        failure() {
+                          that.showMessage('第' + (index + 1) + '行提交失败，请稍后重试', 2000, 'error');
+                          that.submitButtonDisabled = false;
+                        }
+                      });
+                    });
+                    return;
+                  } else if (that.piid1 && !selectedRow) {
+                    // 4.2 自查流程 - 更改清单表格信息跳过inout_s的后台校验
+                    Wb.ajax({
+                      url: 'm?xwl=info_query/projlist_data/selfcheck_s',
+                      params: {
+                        batchList: that.tableData,
+                        piid: that.piid1,
+                        projid: that.projid,
+                        check_id: Wb.getId()
+                      },
+                      success(resp) {
+                        let result = Wb.decode(resp);
+                        if (result.O_RETURN_CODE == '0') {
+                          that.showMessage("保存成功，请至全链接系统OA待办点击递交。", 2000, 'success');
+                        } else {
+                          that.showMessage(result.O_RETURN_MSG, 5000, 'error')
+                        }
+                      }
+                    })
+                    return;
+                  } else if (that.piid2 && that.nodeCode == 'hgrysh') {
+                    // 4.3 隔离墙操作变动流程 - 合规人员审核节点只保存审核意见
+                    const paramsTable = [];
+                    const billListHis = that.billListHis;
+                    if (!billListHis || !Array.isArray(billListHis)) return [];
+            
+                    // 定义 listType 到 inout_type/inout_direct 的映射关系
+                    const typeMap = {
+                      ro: { inout_type: 'o', inout_direct: 'i' }, // 入观察
+                      co: { inout_type: 'o', inout_direct: 'o' }, // 出观察
+                      rl: { inout_type: 'l', inout_direct: 'i' }, // 入限制
+                      cl: { inout_type: 'l', inout_direct: 'o' }, // 出限制
+                      rq: { inout_type: 'q', inout_direct: 'i' }, // 入静默
+                      cq: { inout_type: 'q', inout_direct: 'o' }  // 出静默
+                    };
+            
+                    let resCount = 0;
+                    let checkResultText = ''; // 隔离墙操作变动流程所需参数 - 审核反馈 
+                    let checkResultTime = ''; // 隔离墙操作变动流程所需参数 - 审核时间
+                    let curBatch = '';
+                    let curCheckId = Wb.getId(); // 当前最新一批审核记录的唯一id
+            
+                    billListHis.forEach(item => {
+                      curBatch = item.batchId;
+                      console.log("curBatch", curBatch)
+            
+                      // 1. 获取当前行的类型配置
+                      const config = typeMap[item.listType];
+                      if (!config) {
+                        console.warn(`未知的 listType: ${item.listType}`);
+                        return;
+                      }
+            
+                      // 2. 确定要遍历的数据源
+                      // 如果 checkTableData 存在且有数据，则遍历它；否则视情况是否生成一条空记录或跳过
+                      // 这里假设主要处理 checkTableData 中的数据
+                      const tableRows = item.checkTableData || [];
+            
+                      tableRows.forEach(row => {
+                        if (!row.isDisabled && row.check_result == '1') {
+                          // 只判断本次新填写的审核记录
+                          resCount += 1;
+                          checkResultText += row.check_record + '不准确；';
+                          checkResultTime = row.check_date; // 取最后一条审核记录的时间
+                        }
+                        // 构建单条记录对象
+                        const record = {
+                          // --- 基础信息 ---
+                          piid: that.piid2,
+                          projid: that.projid,
+                          batch_id: item.batchId || row.batch_id || '',
+                          inout_id: row.inout_id || '',
+            
+                          // --- 审核相关信息 ---
+                          check_id: Wb.getId(),
+                          check_result: row.check_result,
+                          check_record: row.check_record,
+                          remark: row.remark || '',
+                          upload_id: row.upload_id || '',
+                          filepath: row.filepath || '',
+                          create_time: row.create_time,
+                          create_user: row.create_user,
+                          update_time: row.update_time,
+                          update_user: row.update_user,
+                          inout_type: config.inout_type,
+                          inout_direct: config.inout_direct
+                        };
+            
+                        if (!row.isDisabled) {
+                          // 只保存本次新增的审核意见
+                          paramsTable.push(record);
+                        }
+                      });
+                    });
+            
+                    // 保存合规人员审核意见
+                    Wb.ajax({
+                      url: 'm?xwl=info_query/projlist_data/comment_s',
+                      params: {
+                        paramsTable: paramsTable
+                      },
+                      success(resp) {
+                        let result = Wb.decode(resp);
+                        if (result.O_RETURN_CODE == '0') {
+                          console.log("----resCount", resCount);
+                          that.showMessage("保存成功", 2000, 'success');
+            
+                          if (resCount > 0 && that.piid2 == 'beforedraft') {
+                            // 下发隔离墙操作变动流程 最终审核结果存在不准确的记录，且是合规人员点击提交，下发流程、
+            
+                            let formData = {
+                              PROJ_ID: '_$proj_id$_',
+                              BATCH_ID: that.basicForm.batch_id,
+                              DEPTMANANAME: '_$deptmananame$_',
+                              KHNAME: that.basicForm.custname,
+                              PROJCODE: that.basicForm.projcode,
+                              STOCKCODE: '', // 证券代码（实际未用到）
+                              STOCKNAME: '', // 股票简称（实际未用到）
+                              STAFF_ID: '114398', //'_$staff_id$_',// 项目负责人阅知节点候选人参数，测试时先设置成固定人员 chenhaiyang  114398
+                              DEPTNAME: '_$deptname$_',
+                              PROJLIST_STATUS: that.basicForm.projlist_status,
+                              OP_CONTENT: '', // 合规人员下发时无操作内容
+                              OP_TIME: '',    // 合规人员下发时无操作时间
+                              CHECK_RESULT: checkResultText,
+                              CHECK_TIME: checkResultTime,
+                              PROJNAME: that.basicForm.projname,
+                              IS_MANAUL: '1',// 1-合规人员主动触发 0-项目组变更清单内容触发
+                              PROJTYPE: that.basicForm.projtype
+                            };
+            
+                            Wb.ajax({
+                              url: 'm?xwl=th_projlist/ADMIN_PROJLIST/operation/flow_request_deal',
+                              params: {
+                                'x-flow-systemId': 'IBCM',//当前发送全连接流程类型
+                                'x-userId': '_$sys.userid$_',//当前登录人id
+                                'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),//当前登录人name
+                                'url': 'http://10.116.131.13:8094/auto/submit',
+                                'formDatas': formData,
+                                "todoTitle": that.basicForm.projname + '项目清单审核意见反馈',// 工作台待办名称
+                                "sysGuid": "IBCM",
+                                "flowCode": "IBCM003",
+                                "templateName": that.basicForm.projname + '项目清单审核意见反馈',// 待办表单打开后标题
+                                "flowVer": "1",
+                                "nodeCode": "draft",
+                                "applyTable": "T_PROJ_CHANGE_FLOW",
+                                "candidates": '035937', // 合规人员主动发起，candidates为项目负责人的user_id
+                              },
+                              success(resp) {
+                                let res = Wb.decode(resp)
+                                if (res.code == '0') {
+                                  that.showMessage("存在不准确记录，已下发【合规人员清单审核管理流程】", 2000, 'success');
+                                } else {
+                                  that.showMessage("【合规人员清单审核管理流程】下发失败：" + res.msg, 2000, 'error');
+                                }
+            
+                                app.close();
+                              }
+                            });
+                          } else {
+                            console.log("app.parentApp", app.parentApp)
+                            app.close();
+                          }
+                        } else {
+                          that.showMessage(result.O_RETURN_MSG, 5000, 'error')
+                        }
+                      }
+                    })
+                    return;
+                  } else {
+                    // 4.4 修改了清单表格信息
+                    // case1：前台清单变更入口进
+                    // case2：自查流程 且修改了清单表单
+                    // case3：隔离墙操作变动流程 且项目负责人阅知节点
+                    Wb.ajax({
+                      url: 'm?xwl=info_query/projlist_data/inout_s',
+                      params: submitData,
+                      success(resp) {
+                        let res = Wb.decode(resp);
+                        if (res.O_RETURN_CODE == '0') {
+                          that.showMessage('提交成功！', 2000, 'success');
+                          // 如果是从自查流程进来则还需要保存自查结果
+                          if (that.piid1) {
+                            Wb.ajax({
+                              url: 'm?xwl=info_query/projlist_data/selfcheck_s',
+                              params: {
+                                batchList: that.tableData,
+                                piid: that.piid1,
+                                projid: that.projid,
+                                check_id: Wb.getId()
+                              },
+                              success(resp) {
+                                let result = Wb.decode(resp);
+                                if (result.O_RETURN_CODE == '0') {
+                                  that.showMessage("保存成功，请至全链接系统OA待办点击递交。", 2000, 'success');
+                                  app.parentApp.parentContainer.close();
+                                } else {
+                                  that.showMessage(result.O_RETURN_MSG, 5000, 'error')
+                                }
+                              }
+                            })
+                          }
+            
+                          // 清单状态变更 发起隔离墙操作变动流程
+                          if (selectedRow) {
+                            const now = new Date();
+            
+                            // 获取各项时间并补零
+                            const year = now.getFullYear();
+                            const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份从 0 开始，需要 +1
+                            const day = String(now.getDate()).padStart(2, '0');
+                            const hours = String(now.getHours()).padStart(2, '0');
+                            const minutes = String(now.getMinutes()).padStart(2, '0');
+                            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+                            const nowTime = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+            
+                            let formData = {
+                              PROJ_ID: '_$proj_id$_',
+                              BATCH_ID: that.basicForm.batch_id,
+                              DEPTMANANAME: '_$deptmananame$_',
+                              KHNAME: that.basicForm.custname,
+                              PROJCODE: that.basicForm.projcode,
+                              STOCKCODE: '', // 证券代码（实际未用到）
+                              STOCKNAME: '', // 股票简称（实际未用到）
+                              STAFF_ID: '114398', //'_$staff_id$_', // 清单变更触发，项目负责人阅知节点候选人，测试时写死成 chenhaiyang 114398
+                              DEPTNAME: '陈海洋', //'_$deptname$_',
+                              PROJLIST_STATUS: that.basicForm.projlist_status,
+                              OP_CONTENT: '清单状态变更 - ' + selectedRow.typeLabel,
+                              OP_TIME: nowTime,
+                              CHECK_RESULT: '',
+                              CHECK_TIME: '',
+                              PROJNAME: that.basicForm.projname,
+                              IS_MANAUL: '0',// 1-合规人员主动触发 0-项目组变更清单内容触发
+                              PROJTYPE: that.basicForm.projtype
+                            };
+            
+                            Wb.ajax({
+                              url: 'm?xwl=th_projlist/ADMIN_PROJLIST/operation/flow_request_deal',
+                              params: {
+                                'x-flow-systemId': 'IBCM',//当前发送全连接流程类型
+                                'x-userId': '_$sys.userid$_',//当前登录人id
+                                'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),//当前登录人name
+                                'url': 'http://10.116.131.13:8094/auto/submit',
+                                'formDatas': formData,
+                                "todoTitle": that.basicForm.projname + '项目清单审核意见反馈',// 工作台待办名称
+                                "sysGuid": "IBCM",
+                                "flowCode": "IBCM003",
+                                "templateName": that.basicForm.projname + '项目清单审核意见反馈',// 待办表单打开后标题
+                                "flowVer": "1",
+                                "nodeCode": "draft",
+                                "applyTable": "T_PROJ_CHANGE_FLOW",
+                                "candidates": '035937',//that.candidates,// 项目负责人user_id
+                              }
+                            });
+                          }
+                          Wb.close();
+                        } else {
+                          that.showMessage("清单信息保存失败：" + res.O_RETURN_MSG, 2000, 'error');
+                          app.parentApp.parentContainer.close();
+                        }
+                        that.submitButtonDisabled = false;
+                      },
+                      failure() {
+                        that.showMessage('提交失败，请稍后重试', 2000, 'error');
+                        that.submitButtonDisabled = false;
+                      }
+                    });
+                    return;
+                  }
+                },
+                // 表单校验
+                validateForm() {
+                  let op_flag = this.op_flag;
+                  let projStatus = '_$projlist_status$_' || this.projStatus;
+            
+                  // 1. 校验关联公司列表（仅当从关联信息修改入口进来时必填）
+                  if (op_flag == '1') {
+                    // 从关联信息修改入口进来：关联信息必填
+                    for (let i = 0; i < this.companyList.length; i++) {
+                      let item = this.companyList[i];
+            
+                      // 关联性质必填
+                      if (!item.relatedProperty) {
+                        this.$message.warning('关联性质必填！');
+                        return false;
+                      }
+            
+                      // 证券代码必填
+                      if (!item.stkCode || item.stkCode.trim() === '') {
+                        this.$message.warning('证券代码必填！');
+                        return false;
+                      }
+            
+                      // 关联性质为"其他"时，备注必填
+                      if (item.relatedProperty === '4' && (!item.remark || item.remark.trim() === '')) {
+                        this.$message.warning('当关联性质选择为其他时，备注栏必填！');
+                        return false;
+                      }
+                    }
+                  } else {
+                    // 从清单填报入口进来：关联信息为可选填
+                    // 只有填写了证券代码的行才需要校验其他字段
+                    for (let i = 0; i < this.companyList.length; i++) {
+                      let item = this.companyList[i];
+                      // 如果填写了证券代码，则校验其他必填项
+                      if (item.stkCode && item.stkCode.trim() !== '') {
+                        if (!item.compName || item.compName.trim() === '') {
+                          this.$message.warning('请填写关联公司名称');
+                          return false;
+                        }
+                        if (!item.relatedProperty) {
+                          this.$message.warning('关联性质必填！');
+                          return false;
+                        }
+                        // 关联性质为"其他"时，备注必填
+                        if (item.relatedProperty === '4' && (!item.remark || item.remark.trim() === '')) {
+                          this.$message.warning('当关联性质选择为其他时，备注栏必填！');
+                          return false;
+                        }
+                      }
+                    }
+                  }
+            
+                  // 2. 校验清单数据
+                  if (this.piid1) {
+                    // 2.1 自查流程
+                    for (let i = 0; i < this.tableData.length; i++) {
+                      const row = this.tableData[i];
+                      console.log("row", row)
+                      // 校验 check_date
+                      if (!row.check_date || String(row.check_date).trim() === '') {
+                        this.showMessage(`自查情况的“自查日期”不能为空`, 2000, 'error');
+                        return false;
+                      }
+            
+                      // 校验 check_result
+                      if (!row.check_result || String(row.check_result).trim() === '') {
+                        this.showMessage(`自查情况的“自查结果”不能为空`, 2000, 'error');
+                        return false;
+                      }
+                      // 校验 remark
+                      if (row.check_result && row.check_result == '1' && (!row.remark || String(row.remark).trim() === '')) {
+                        this.showMessage(`自查情况的“自查结果”不能为空`, 2000, 'error');
+                        return false;
+                      }
+                    }
+            
+                  } else if (this.piid2 && this.nodeCode == 'hgrysh') {
+                    // 2.2 隔离墙操作变动流程 合规人员审核节点 只校验审核表单
+                    const billListHis = this.billListHis;
+                    if (!billListHis || !Array.isArray(billListHis)) {
+                      return false;
+                    }
+            
+                    for (let i = 0; i < billListHis.length; i++) {
+                      const item = billListHis[i];
+                      const tableRows = item.checkTableData || [];
+            
+                      for (let j = 0; j < tableRows.length; j++) {
+                        const row = tableRows[j];
+            
+                        // 1. 审核结果必填校验
+                        if (!row.check_result || String(row.check_result).trim() === '') {
+                          this.showMessage(`请选择“${item.typeLabel}”的审核结果`, 2000, 'error');
+                          return false;
+                        }
+            
+                        // 2. 审核结果为"不准确"时，审核记录必填
+                        // check_result: '1' = 不准确, '0' = 准确
+                        // check_record: '事由审核', '日期审核', '附件审核', '其他'
+                        if (row.check_result === '1') {
+                          if (!row.check_record || String(row.check_record).trim() === '') {
+                            this.showMessage('审核结果为"不准确"时请选择审核记录', 2000, 'error');
+                            return false;
+                          }
+                        }
+                      }
+                    }
+            
+                  } else {
+                    // 2.3 关联信息修改
+                    if (op_flag == '1') {
+                      // 关联信息修改入口：只检查关联信息数据是否有修改
+                      let hasChanges = false;
+                      for (let i = 0; i < this.companyList.length; i++) {
+                        let item = this.companyList[i];
+                        if (item.dataFlag !== '1') {
+                          hasChanges = true;
+                          break;
+                        }
+                      }
+                      if (!hasChanges) {
+                        Wb.info('页面数据无修改，不做提交操作！');
+                        this.submitButtonDisabled = false;
+                        return false;
+                      }
+                    } else {
+                      // 清单填报入口：校验清单数据
+                      let billList = (this.showNewTable || projStatus == '0') ? this.billList : this.billListHis;
+                      let selectedRow = billList.find(item => item.selected);
+            
+                      if (!selectedRow) {
+                        this.$message.warning('请选择要提交的清单行');
+                        return false;
+                      }
+            
+                      if (!selectedRow.inoutReason) {
+                        this.$message.warning('请选择入/出单事由');
+                        return false;
+                      }
+            
+                      if (!selectedRow.inoutDate) {
+                        this.$message.warning('请选择入/出单事由发生日期');
+                        return false;
+                      }
+            
+                      if (!selectedRow.reportDate) {
+                        this.$message.warning('请选择入/出单事由填报日期');
+                        return false;
+                      }
+            
+                      // 特殊校验：如果事由是"见备注说明"，必须填写备注
+                      if ((selectedRow.listType === 'co' && selectedRow.inoutReason === '5') ||
+                        (selectedRow.listType === 'cl' && selectedRow.inoutReason === '7')) {
+                        if (!selectedRow.remark || selectedRow.remark.trim() === '') {
+                          this.$message.warning('请填写备注说明');
+                          return false;
+                        }
+                      }
+                    }
+                  }
+            
+                  return true;
+                },
+                // 准备提交数据
+                prepareSubmitData(type) {
+                  let projStatus = '_$projlist_status$_' || this.projStatus;
+                  let billList = (this.showNewTable || projStatus == '0') ? this.billList : this.billListHis;
+                  let selectedRow = billList.find(item => item.selected);
+                  let op_flag = '_$i_op_flag$_';
+            
+                  // 获取当日日期，用于i_write_date默认值
+                  const today = new Date();
+                  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+                  let data = {
+                    i_projid: '_$projid$_',
+                    i_op_flag: '_$i_op_flag$_',
+                    i_state: '_$state$_',
+                    i_type: type, // 1: 提交, 2: 修正
+                    i_revise: '_$revise$_',
+                    i_reviseId: '_$reviseId$_',
+                    i_projlist_status: '_$projlist_status$_',
+                    i_usercode: '_$sys.username$_',
+                    i_submit_status: type
+                  };
+            
+                  console.log("this.showNewTable", this.showNewTable);
+                  console.log("this.currentBatchIndex", this.currentBatchIndex);
+                  console.log("this.batchList", this.batchList);
+                  // 添加批次ID
+                  if (!this.showNewTable && this.currentBatchIndex >= 0 && this.batchList && this.batchList[this.currentBatchIndex]) {
+                    console.log("赋值batch_id")
+                    data.i_batch_id = this.batchList[this.currentBatchIndex].batchId;
+                  }
+            
+                  // 如果不是关联信息修改模式，添加清单数据
+                  if (op_flag != 1 && selectedRow) {
+                    // 清单数据 - 按照旧代码格式：i_[listType]_[fieldName]
+                    var listType = selectedRow.listType;
+                    data['i_' + listType + '_inout_reason'] = selectedRow.inoutReason;
+                    data['i_' + listType + '_inout_date'] = selectedRow.inoutDate;
+                    data['i_' + listType + '_report_date'] = selectedRow.reportDate;
+                    data['i_' + listType + '_inout_remark'] = selectedRow.remark;
+                    data['i_' + listType + '_filepath'] = selectedRow.filepath;
+                  }
+            
+                  // 关联公司列表 - 转换为接口需要的格式
+                  // multistk_s接口需要：i_comp_name, i_stk_name, i_stk_code, i_related_property, i_ralated_ramark, i_write_date, i_fill_id
+                  // if (this.companyList && this.companyList.length > 0) {
+                  //   let formattedCompanyList = this.companyList.map(item => ({
+                  //     i_fill_id: Wb.getId(),
+                  //     i_comp_name: item.compName || '',
+                  //     i_stk_name: item.stkName || '',
+                  //     i_stk_code: item.stkCode || '',
+                  //     i_related_property: item.relatedProperty || '',
+                  //     i_ralated_ramark: item.remark || '',
+                  //     i_write_date: todayStr, // 如果没有填写则使用当日日期
+                  //     i_data_flag: item.dataFlag || ''
+                  //   }));
+                  //   data.companyList = JSON.stringify(formattedCompanyList);
+                  // } else {
+                  //   data.companyList = JSON.stringify([]);
+                  // }
+            
+                  console.log("prepareSubmitData", data);
+            
+                  return data;
+                }
+              },
+              watch: {
+            
+              },
+              created: async function () {
+                // 设置填报日期为当前日期
+                const today = new Date().toISOString().split('T')[0];
+            
+            
+                const inList = ['ro', 'rl', 'rq'];  // 入单类型
+            
+                // 只为入单行设置填报日期（与老系统保持一致）
+                this.billList.forEach(item => {
+                  if (inList.includes(item.listType)) {
+                    item.reportDate = today;
+                  }
+                  item.reportDisabled = true; // 填报日期默认禁用
+                });
+                this.billListHis.forEach(async item => {
+                  if (inList.includes(item.listType)) {
+                    item.reportDate = today;
+                  }
+                  item.reportDisabled = true; // 填报日期默认禁用
+                });
+            
+                // 清单表格数据查询
+                await this.inoutReq('_$projid$_');
+                await this.multistkReq('_$projid$_');
+                await this.selfcheckReq('_$projid$_');
+                await this.getCandidates('_$staff_id$_', '_$projid$_'); // 隔离墙操作变动流程 - 查询流程下一节点待办接收人
+            
+            
+                // 初始化是否禁用新增批次按钮
+                const projStatus = '_$projlist_status$_';
+                this.isAddBatchDisabled = (projStatus === '0' || projStatus === 'ro' || projStatus === 'rl' || projStatus === 'rq');
+            
+                // 初始化历史批次表格状态
+                this.initHisTableStatus();
+              },
+              mounted: function () {
+                console.log("piid1", this.piid1);
+              },
+              beforeDestroy() {
+              }
+            });
+            
+          }
+        }
+      }
+      ]
+    }
+    ]
+  }
+  ]
+})

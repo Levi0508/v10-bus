@@ -1,0 +1,124 @@
+/* .dome .w-tabbar {
+  padding-top: .5em;
+}
+.dome .card2 {
+  position: relative;
+}
+.dome .card-btn {
+  position: absolute;
+  right: 0;
+  top: .5em;
+}
+.dome .w-btn.w-closable-btn .w-label {
+  font-weight: 600;
+}
+
+.dome .iscard1,.iscard2,.iscard3,.iscard4 {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 1em;
+}
+.dome .iscard1 .h2 ,.iscard2 .h2 ,.iscard3 .h2 ,.iscard4 .h2 {
+  font-weight: 600;
+}
+.gridlist .w-body .w-item {
+  margin: 0 0 .5em 0;
+  align-items: center;
+}
+.gridlist .w-body .w-item img {
+  margin-right: .5em;
+  width: 1.5em;
+  height: 1.5em;
+}
+.gridlist .w-body .w-item .title {
+  line-height: 1.5em;
+}
+.gridlist .w-body .w-item:nth-child(1){
+  background-color: rgb(255, 126, 75);
+}
+.gridlist .w-body .w-item:nth-child(2){
+  background-color: rgb(248, 220, 183);
+}
+.gridlist .w-body .w-item:nth-child(3){
+  background-color: antiquewhite;
+} */
+
+.dome .w-tabbar {
+  padding-top: .5em;
+  background: transparent;
+}
+.dome .w-tabbar .w-btn {
+  font-weight: 600;
+  background: transparent;
+  font-size: 1.1em;
+}
+.dome .w-tabbar .w-btn:hover {
+  background: transparent !important;
+}
+.dome .w-tabbar .w-btn.w-btn-active { 
+  background: transparent !important;
+  border-bottom-color: rgb(38, 92, 235) !important; 
+  color: rgb(38, 92, 235) !important;
+}
+
+.title-label .title {
+  border-radius: 1em 0 1em 0;
+}
+.dome-box {
+  position: relative;
+}
+.dome-box .card-date {
+  position: absolute;
+  right: 0;
+  top: .5em;
+}
+.dome-box .card-date .w-input-wrap {
+  background-color: rgba(255, 255, 255, .4);
+}
+.boxShadow {
+  box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
+}
+.hgsy-card .w-item {
+  display: flex;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255);
+  border-radius: .5em;
+  padding: 1em;
+}
+.hgsy-card .w-item .title-box {
+  align-items: center;
+  padding-bottom: .2em;
+}
+.hgsy-card .w-item .title {
+  font-weight: 600;
+  color: #666;
+  margin-right: .2em;
+}
+.hgsy-card .w-item .num {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-right: .2em;
+}
+.hgsy-card .w-item .date-box {
+  align-items: center;
+}
+.hgsy-card .w-item .date {
+  color: #999;
+  font-size: .8em;
+  padding: .5em 0;
+  margin-right: .2em;
+}
+.hgsy-card .w-item .bfb {
+  color: #666;
+  font-weight: 600;
+  align-items: center;
+}
+
+.card-sy-grid .w-header-table .w-text {
+  background: #f1f8ff;
+}
+.card-sy-grid .w-content-table .w-item {
+  background: #fff;
+}

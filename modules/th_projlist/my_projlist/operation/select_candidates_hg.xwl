@@ -1,0 +1,14 @@
+{
+  "title": "查询当前项目对应投行合规人员",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "// 20260916没有配置对口合规人员的部门默认发给何川老师\nWb.sendRowx(`SELECT nvl(c.manager_user_id,'038622'), i.deptname\nFROM thjs.tb_ib_cust_info i\nINNER JOIN thjs.TB_PROJLIST_REVIEW_CONF c\n    ON NVL(c.sub_dept_code, c.dept_code) = NVL(i.dept_code2, i.dept_code1)\nWHERE i.projid = {?i_projid?}`);"
+  },
+  "_icon": "module"
+}

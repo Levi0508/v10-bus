@@ -1,0 +1,1 @@
+{"title":"查询审核总批次数","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({\n  sql: `select count(distinct audit_id) as cnt\n  FROM thjs.T_TH_APPR_LIST \nWHERE client_id = {?I_CLIENT_ID?};`});"},"_icon":"module"}

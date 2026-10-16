@@ -1,0 +1,14 @@
+{
+  "title": "查看通知详情",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx({sql:`select t.*,a.projcode,a.khname,a.deptmanacode,a.deptmananame,u.staff_id,a.dept_name1 ||'-'|| a.dept_name2 as dept_name \nfrom thjs.T_PROJ_SELFCHECK_FLOW t \nleft join thjs.TB_IB_CUST_INFO a on a.projid = t.projid\nleft join basic_thjs.wb_user u on a.deptmanacode = u.user_id\nwhere t.check_batch_id = {?check_batch_id?}\n`});"
+  },
+  "_icon": "module"
+}

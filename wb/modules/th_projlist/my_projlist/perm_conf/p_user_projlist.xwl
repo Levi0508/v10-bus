@@ -1,0 +1,1 @@
+{"title":"用户项目列表查询","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`{call thjs.p_user_projlist({*cursor|result*},{?sys.username?},{?i_projname?},{?i_khname?},{*O_RETURN_MSG*},{*INTEGER|O_RETURN_CODE*})}`);"},"_icon":"module"}

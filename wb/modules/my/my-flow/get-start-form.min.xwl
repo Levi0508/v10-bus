@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Get starting form","serverScript":"function main(){const n=Wb.load(\"./util.mjs\");let o=new Wb.Workflow({file:Params.file});Wb.send({form:n.getForm(o,\"start\")})}main();"},"_icon":"module"}

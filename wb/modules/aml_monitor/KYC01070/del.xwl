@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Delete users","serverScript":"Wb.sendRows(`delete from thjs.t_dict_subentry a  \n where a.entry_no = 'BENEFICIAL_TYPE'\n   and a.subentry = {?BENEFICIAL_TYPE_CODE?}`);\n"},"_icon":"module"}

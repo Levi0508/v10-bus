@@ -1,0 +1,11 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "items": [
+    "client_new_id.xwl",
+    "client_report_query.xwl"
+  ]
+}

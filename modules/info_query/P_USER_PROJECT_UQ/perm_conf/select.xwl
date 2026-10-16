@@ -1,0 +1,14 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let order = Wb.getOrderSql();\n\nWb.sendRowx({\n  sql: `{call THJS.P_USER_PROJECT_UQ({*cursor|return*},{?sys.username?},{?I_PROJNAME?},{?I_KHNAME?},{?I_BUSI_TYPE?},{?bigint|_from?},{?bigint|_size?},'${order}',{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n  paging: false,\n  total: `SELECT COUNT(1)\n  FROM thjs.tb_ib_cust_info t\n INNER JOIN thjs.ib_v_finance_projmember p\n    ON p.proj_id = t.projid\n INNER JOIN ehr01.tcl_v_emp_info_hgfk u\n    ON u.ehr_id = p.workno\n WHERE t.pro_is_valid = '1'\n   AND ({?I_PROJNAME?} IS NULL OR INSTR(t.projname, {?I_PROJNAME?}) > 0)\n   AND ({?I_KHNAME?} IS NULL OR INSTR(t.khname, {?I_KHNAME?}) > 0)\n   AND ({?I_BUSI_TYPE?} IS NULL OR t.projtype = {?I_BUSI_TYPE?})\n   AND (\n        u.ehr_id = {?sys.username?} \n        OR u.oa_code = {?sys.username?} \n        OR EXISTS (\n            SELECT 1 \n            FROM table(thjs.splitstr('admin,yangluting,zhangyongyong,chenhaiyang,hechuan', ',')) t_sup\n            WHERE instr(',' || t_sup.column_value || ',', ',' || {?sys.username?} || ',') > 0\n        )\n   )` \n});\n"
+  },
+  "_icon": "module"
+}

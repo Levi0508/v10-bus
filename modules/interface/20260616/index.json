@@ -1,0 +1,11 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "base_edit1.xwl",
+    "base_edit.xwl",
+    "client_edit.xwl"
+  ]
+}

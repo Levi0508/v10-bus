@@ -1,0 +1,12 @@
+{
+  "title": "功能",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "p_projlist_projtype_q.xwl",
+    "flow_request_deal.xwl",
+    "select_candidates_xmfzr.xwl",
+    "update_mainform_value.xwl"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "get_menu.xwl",
+    "get_quick_nav.xwl",
+    "get_history_nav.xwl",
+    "quick_nav_add.xwl",
+    "quick_nav_del.xwl",
+    "history_nav_add.xwl",
+    "get_quick_menu.xwl",
+    "get_gszd_nav.xwl",
+    "get_gn_nav.xwl"
+  ]
+}

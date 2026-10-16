@@ -1,0 +1,15 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "items": [
+    "client_fk_flag.xwl",
+    "client_his_proj.xwl",
+    "client_manage_query.xwl",
+    "client_proj_check.xwl",
+    "client_status_update.xwl",
+    "maintainer_flow_submit.xwl"
+  ]
+}

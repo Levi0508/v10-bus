@@ -1,0 +1,14 @@
+{
+  "title": "下发全链接 客户信息审核流程",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var HttpUtil = Packages.cn.hutool.http.HttpUtil;\nvar Method = Packages.cn.hutool.http.Method;\n// var formData = {\n//   \"CLIENT_ID\": \"1609\",\n//   \"CLIENT_NAME\": \"泰山市泰山投资有限公司\",\n//   \"ORGAN_FLAG\": \"1\",\n//   \"CLIENT_BELONG\": \"1\",\n//   \"CLIENT_STATUS\": \"0\"\n// };\n// var obj = {\n//   \"todoTitle\":\"反洗钱客户填报\",\n//   \"sysGuid\":\"IBCM\",\n//   \"flowCode\":\"IBCM001\",\n//   \"formData\":JSON.stringify(formData),\n//   \"templateName\":\"反洗钱客户填报审核\",\n//   \"flowVer\":\"2\",\n//   \"nodeCode\":\"draft\",\n//   \"applyTable\":\"T_TH_CLIENT_FLOW\",\n//   \"candidates\":\"035937\"\n// };\n\n// var data = JSON.stringify(obj);\n\nvar formData = {\n  \"CLIENT_ID\": Wb.get('CLIENT_ID'),\n  \"CLIENT_NAME\": Wb.get('CLIENT_NAME'),\n  \"ORGAN_FLAG\": Wb.get('ORGAN_FLAG'),\n  \"CLIENT_BELONG\": Wb.get('CLIENT_BELONG'),\n  \"CLIENT_STATUS\": Wb.get('CLIENT_STATUS')\n};\nvar obj = {\n  \"todoTitle\": Wb.get('todoTitle'),\n  \"sysGuid\": Wb.get('sysGuid'),\n  \"flowCode\": Wb.get('flowCode'),\n  \"formData\": JSON.stringify(formData),\n  \"templateName\": Wb.get('templateName'),\n  \"flowVer\": Wb.get('flowVer'),\n  \"nodeCode\": Wb.get('nodeCode'),\n  \"applyTable\": Wb.get('applyTable'),\n  \"candidates\": Wb.get('candidates')\n};\n\nvar data = JSON.stringify(obj);\n\nWb.info(\"Packages.cn.hutool.json.JSONUtil.toJsonStr处理后的data\");\nWb.info(Packages.cn.hutool.json.JSONUtil.toJsonStr(data))\n\n// var url = \"http://10.106.2.92:8094/auto/submit\";//国泰客户信息审核流程开发环境, 当在本地调试时请放开此路径\nvar url = \"http://10.116.131.13:8094/auto/submit\";\n\n//调用接口\n// var resp = Packages.cn.hutool.http.HttpUtil\n//   .createPost(url)\n//   .header(\"Content-Type\", \"application/json;charset=utf-8\")\n//   .header(\"x-flow-systemId\", \"IBCM\")\n//   .header(\"x-userId\",\"035937\")\n//   .header(\"x-userName\",\"chenhaiyang\")\n//   .body(Packages.cn.hutool.json.JSONUtil.toJsonStr(data))\n//   .execute()\n//   .body();\n\nWb.info(Wb.get('x-flow-systemId'));\nWb.info(Wb.get('x-userId'));\nWb.info(Wb.get('x-userName'));\nvar resp = Packages.cn.hutool.http.HttpUtil\n  .createPost(url)\n  .header(\"Content-Type\", \"application/json;charset=utf-8\")\n  .header(\"x-flow-systemId\", Wb.get('x-flow-systemId'))\n  .header(\"x-userId\", Wb.get('x-userId'))\n  .header(\"x-userName\", Wb.get('x-userName'))\n  .body(Packages.cn.hutool.json.JSONUtil.toJsonStr(data))\n  .execute()\n  .body();\n\nWb.info(resp);\nWb.send(resp);\n\n\n"
+  },
+  "_icon": "module"
+}

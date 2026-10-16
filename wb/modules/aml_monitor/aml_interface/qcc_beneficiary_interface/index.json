@@ -1,0 +1,14 @@
+{
+  "title": "企查查受益所有人接口",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "beneficiary_batch.xwl",
+    "flow-push.xwl",
+    "flow-push_bak.xwl",
+    "flow-push1.xwl",
+    "fuzzySearch.xwl",
+    "manual_beneficiary_demo.xwl"
+  ]
+}

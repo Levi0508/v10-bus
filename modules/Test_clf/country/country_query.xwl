@@ -1,0 +1,15 @@
+{
+  "title": "KYC01060/select",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "// let a = Wb.getOrderSql();\n// Wb.send(a);\nWb.sendRowx(`select a.subentry as country_code,a.comments as country_name,a.remark\nfrom thjs.t_dict_subentry a \nwhere a.entry_no = '1040'\nand ((instr(a.subentry, {?COUNTRY_NAME?}) > 0 or {?COUNTRY_NAME?} is null) \nor (instr(a.comments, {?COUNTRY_NAME?}) > 0 or {?COUNTRY_NAME?} is null)) `+ Wb.getOrderSql());\n"
+  },
+  "_icon": "module",
+  "items": []
+}

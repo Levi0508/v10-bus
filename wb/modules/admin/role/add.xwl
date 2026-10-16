@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Add role","serverScript":"function main() {\n  let sid = Wb.getId();\n\n  Params.sid = sid;\n  Wb.sync({ tableName: 'wb_role', insert: Params });\n  Wb.send({ sid });\n}\nmain();"},"_icon":"module"}

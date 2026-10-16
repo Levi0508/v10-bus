@@ -1,0 +1,14 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "call_reback.xwl",
+    "error-page.xwl",
+    "p_op_log_s.xwl",
+    "call_reback1.xwl",
+    "call_reback2.xwl",
+    "check_user.xwl"
+  ]
+}

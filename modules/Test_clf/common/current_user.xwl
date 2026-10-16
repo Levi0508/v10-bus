@@ -1,0 +1,14 @@
+{
+  "title": "当前登录用户",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx(`\nselect {?sys.username?} as user_name, {?sys.userid?} as user_id from dual\n`);"
+  },
+  "_icon": "module"
+}

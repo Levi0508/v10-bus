@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Select online users","serverScript":"Wb.checkDemo();function main(){let e=Wb.getInt(\"_from\"),n=Wb.getInt(\"_to\");Wb.send(Wb.UserUtil.getOnlineUsers(e,n))}main();"},"_icon":"module"}

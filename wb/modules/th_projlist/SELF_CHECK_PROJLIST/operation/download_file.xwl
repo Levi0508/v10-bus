@@ -1,0 +1,1 @@
+{"title":"附件下载","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let file = Wb.getRow({ sql: \"select * from thjs.t_proj_selfcheck_file where id = {?id?}\" });\nlet path = file.file_path;\nWb.exportData(new Wb.File(true, '../../../../../../../' + path));"},"_icon":"module"}

@@ -1,0 +1,13 @@
+{
+  "title": "我填报的反洗钱客户",
+  "icon": "",
+  "img": "",
+  "tags": "{url: 'https://localhost:3002/#/aml/my_clients', frame: true}",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module"
+  },
+  "items": []
+}

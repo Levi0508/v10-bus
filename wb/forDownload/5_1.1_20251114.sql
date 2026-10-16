@@ -1,0 +1,8 @@
+
+alter table EQUITYDB.TB_FUND_STOCK_CHG modify MATCH_NO VARCHAR2(80);
+
+
+
+alter table EQUITYDB.TB_STOCK_DEAL modify MATCH_NO VARCHAR2(80);
+
+

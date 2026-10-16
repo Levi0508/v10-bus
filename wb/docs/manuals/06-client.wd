@@ -1,0 +1,380 @@
+##客户端开发.同服务端的交互
+客户端代码通常运行于浏览器，而服务端代码则运行于后台应用服务器。在应用的开发中经常需要传递客户端的数据到服务端，或者获取服务端的数据到客户端。
+#静态获取服务端数据
+静态获取服务端数据是指在客户端模块页面生成的过程中同步获得服务端数据，该方式获取服务端数据的优点是可以减少前后台的交互次数。
+该方式获取数据首先需要在服务端{#serverScript|Wb.Module.serverScript}代码中设置参数，然后在客户端脚本、属性或事件中使用"_$name$_"语法来引用参数值。
+如以下的方法将在客户端脚本中获取服务端的当前登录用户名称：
+首先在{#serverScript|Wb.Module.serverScript}中编写代码：
+
+     Wb.set('myName', Wb.encode(Wb.username)); // 把当前用户名称编码成引号引用的字符串后设置到myName参数中
+
+然后在客户端{#initialize|Wb.Module.initialize}中编写代码：
+
+     app.currentUserName = _$myName$_; // 通过"_$name$_"语法引用服务端的myName参数
+
+这样在模块的所有客户端脚本、属性或事件中都可以引用{{app.currentUserName}}变量来获取当前登录的用户名了。请注意该变量不会动态自动更新，如果要刷新变量值必须刷新整个模块。
+#动态获取服务端数据
+动态获取服务端数据是指客户端模块页面在生成完成后，在客户端运行过程中通过代码来获取服务端数据，该方式获取服务端数据的优点是方便灵活。
+该方式获取数据通常使用{#Wb.ajax}方法来获取数据。使用{#Wb.ajax}方法时，可以指定{{params}}, {{comps}}, {{form}}, {{data}}或{{object}}属性来传递客户端参数
+到服务端，然后在{{success}}等事件中获取服务端返回的内容。
+如以下的方法将通过{#Wb.ajax}来获取服务端返回的内容：
+首先在{#serverScript|Wb.Module.serverScript}中编写代码：
+
+     Wb.send('any data');
+
+然后在客户端代码，如按钮的click事件中编写代码：
+
+     Wb.ajax({
+       url: 'm?xwl=path',
+       params: { param1: 'abc', param2: 123 },
+       success(resp) {
+         //如果resp为JSON字符串，可以通过Wb.decode方法或在ajax方法中指定json参数为true来转换为JSON对象
+         Wb.tip(resp);
+       }
+     });
+
+#使用WebSocket
+系统提供了{#Wb.Socket}类用于发送和获取数据。使用WebSocket获取数据同使用{#Wb.ajax}的区别是建立WebSocket连接后服务端可以主动发送数据给客户端。
+创建WebSocket连接的方法如下：
+-添加{#socket|Wb.Socket}控件。
+-设置{#Wb.Socket.name}属性，用于标识该WebSocket。
+-如果需要通过WebSocket发送内容到服务器端指定模块可以设置"xwl"属性。如果仅用于接收服务端消息，此步可省略。
+-发送消息时可以使用{#Wb.Socket.send}方法发送任意内容。仅当设置"xwl"属性时有意义，否则发送到服务端的内容将被丢弃。
+-接收消息时可以在{#Wb.Socket.message}事件内监听服务端发送的内容。服务端可以使用{#Wb.send}方法发送内容，比如{{Wb.send('msg', 'socketName');}}
+详见{#%web-socket|ide?openModule=example/comps/web-socket.xwl}示例。
+
+#其它方法
+另外还可以通过{#Wb.submit|Wb-Client.submit}或{#Wb.download}等方法来传递和获取数据。
+##客户端开发.创建界面
+界面是指用户与软件进行交互的可视化部分，它包括了网页的布局、设计、元素以及它们之间的交互方式。在WebBuilder中，可以通过多种方式来创建界面。
+#通过设置HTML或添加元素来创建界面
+每个组件都具有{#html|Wb.Component.html}属性，设置该属性可以通过HTML来配置页面。例如我们添加{#Wb.Component}组件，并配置html属性为：
+
+     $html:<ul class="my-class">
+     <li>item1</li>
+     <li>item2</li>
+     <li>item3</li>
+     </ul>
+
+为元素添加点击事件：
+
+     component1.query('ul').onclick =  e => Wb.tip('clicked');
+     component1.mon(component.query('ul'), 'click', e => Wb.tip('clicked'));
+
+通过上述方法为组件定义了一个列表界面。另外我们也可以通过代码的方式来设置html或创建元素：
+
+     // 不建议的方法，容易引起xss注入漏洞
+     component1.html = `<ul>
+      <li>item1</li>
+      <li>item2</li>
+      <li>item3</li>
+      </ul>`;
+     // 建议的方法
+     let div, ul;
+     div = component1.el.addEl();
+     ul = div.addTag('ul');
+     ul.addTag('li').textContent = 'item1';
+     ul.addTag('li').textContent = 'item2';
+     ul.addTag('li').textContent = 'item3';
+     // 通过 Ajax 获取远程数据后通过代码动态创建元素
+     listEl = panel1.el.query('[cid=list]');
+     Wb.ajax({
+       url: 'demo-source?xaction=staffFirstRow',
+       json: true,
+       success(resp) {
+         listEl.addEl().textContent = 'Code:';
+         listEl.addEl().textContent = resp.code;
+         listEl.addEl().textContent = 'Name:';
+         listEl.addEl().textContent = resp.full_name;
+       }
+     });
+
+#通过模板创建界面
+{#模板|Wb.Template}是指通过定义HTML框架，并把动态变化部分的内容通过"{name}"语法来引用。每个组件都具有{#tpl|Wb.Component.tpl}属性，设置该属性可以通过模板来配置页面。例如我们添加{#Wb.Component}组件，并配置tpl属性为：
+
+     $html:<div class="w-grid2" style="grid-template-columns: 8em 1fr;">
+       <div>Code:</div>
+       <div>{code}</div>
+       <div>Name:</div>
+       <div>{full_name}</div>
+     </div>
+
+然后可以通过静态设置{#tplData|Wb.Component.tplData}属性或动态调用{#update|Wb.Component.update}方法来填充数据到模板中。如以下代码：
+
+     component1.update({code: '10001', full_name: 'Terri Duffy'});
+
+#通过组件创建界面
+组件具有特定的功能，是对多个元素的封装，并提供了一系列的属性、事件和方法。比如{#text|Wb.Text}控件通过封装多个元素实现了简单、灵活和丰富的文本编辑功能。
+通过下面的代码可以通过 Ajax 获取远程数据后动态创建一个包含多个组件的表单：
+
+     let panel = app.compPagePanel;
+     Wb.ajax({
+       url: 'demo-source?xaction=staffFirstRow',
+       json: true,
+       success(data) {
+         panel.add({ cname: 'displayField', cid: 'code', text: 'Code', value: data.code });
+         panel.add({ cname: 'text', cid: 'full_name', text: 'Name', value: data.full_name });
+         panel.add({ cname: 'component', html: 'WebBuilder components' });
+       }
+     });
+
+相关示例见：{#%create-page|ide?openModule=example/basic/create-page.xwl}
+##客户端开发.页面组件.组件
+{#组件|Wb.Component}是可视化组件的基类。
+#组件的常用属性、方法和事件
+-组件的类简名由{#cname|Wb.Base.cname}属性指定，通过配置对象的方式创建组件的类型由该属性指定。
+-是否可见由{#visible|Wb.Component.visible}属性设置。
+-是否禁用由{#disabled|Wb.Component.disabled}属性设置。
+-组件的宽度由{#width|Wb.Component.width}属性设置，高度由{#height|Wb.Component.height}属性设置。
+-组件的样式由{#cls|Wb.Component.cls}属性设置。
+-访问{#el|Wb.Component.el}属性可以获取组件关联的dom元素。
+-当容器的layout为"row"或"column"等弹性布局时，设置{#alignSelf|Wb.Component.alignSelf}和{#justifySelf|Wb.Component.justifySelf}属性可以设置该组件的对齐方式。
+-当在IDE内设置属性或事件时，可以在{#tagProperties|Wb.Component.tagProperties}属性内设置自定义的属性，在{#tagEvents|Wb.Component.tagEvents}属性内设置自定义的事件。
+-在容器内使用{#add|Wb.Container.add}方法可以添加组件到容器，可以指定配置对象来创建组件。
+-使用{#remove|Wb.Component.remove}方法或{#destroy|Wb.Component.destroy}方法可以移除或销毁组件。
+-在组件就绪后执行的代码可以放在{#ready|Wb.Component.ready}事件内。
+#组件的创建
+组件既可以在设计阶段静态创建，也可以在运行阶段通过代码动态创建。
+以把{#文本框|Wb.Text}添加到{#面板|Wb.Panel}为例，以下代码均可以动态创建文本框并添加到面板中：
+
+     panel.add({cname: 'text', text: 'label'}); // 通过配置对象添加
+     panel.add(new Wb.Text({text: 'label'})); // 通过实例添加
+     panel.insert(2, {cname: 'text', text: 'label'}); // 在第2个下级组件处插入新的文本框
+     panel.insertBefore({cname: 'text', text: 'label'}, text1); // 在text1之前插入新的文本框
+     panel.insertAfter(new Wb.Text({text: 'label'}), text1); // 在text1之后插入新的文本框
+
+#组件的移除
+移除组件是指从其父组件上移除该组件，被移除的组件仍可以再次添加到容器下。移除组件使用{#remove|Wb.Component.remove}方法。如以下代码将移除button：
+
+     button.remove();
+
+#组件的销毁
+销毁组件是指从其父组件上移除、摧毁并释放该组件，其所有的子组件和下级组件都将同时被销毁，销毁的组件不可被再次使用。未被引用的销毁的组件将会被垃圾回收。销毁组件使用{#destroy|Wb.Component.destroy}方法，当组件使用完成后不需要被再次使用时，必须使用该方法来销毁组件并释放资源。添加到容器的组件，通常会随着容器的销毁而自动销毁。如以下代码将销毁button：
+
+     button.destroy();
+
+#组件的分类
+组件主要分为：
+-组件基类：所有组件的基类，详见{#Wb.Component}说明。
+-容器：用于添加一个或多个下级组件。包括{#Wb.Container}，{#Wb.Panel}，{#Wb.Fieldset}，{#Wb.Window}，{#Wb.Tab}，{#Wb.Card}，{#Wb.TabCt}等。
+-控件：{#Wb.Control}用于输入数据并获取数据的组件。包括{#Wb.Text}，{#Wb.Number}，{#Wb.Select}，{#Wb.Check}，{#Wb.Radio}等。
+-视图：所有视图类组件的基类是{#Wb.View}，包括{#Wb.Grid}、{#Wb.Tree}、{#Wb.ListView}等。
+-其他：未包含在上述分类中的组件，包括{#Wb.Chart}，{#Wb.Socket}和{#Wb.Xwl}等。
+#组件和DOM元素
+每个WebBuilder的页面{#组件|Wb.Component}都关联到一个顶层的DOM元素，可以通过组件的{#el|Wb.Component.el}属性获取到关联的顶层DOM元素。当需要渲染第三方控件到组件时，可以直接渲染到组件的el；当{#销毁|Wb.Component.destroy}组件时关联的所有DOM元素也将被删除。
+##客户端开发.页面组件.容器
+容器用于包含一个或多个下级组件，并对下级组件设置不同形式的布局。常用的容器控件包括{#container|Wb.container}和{#panel|Wb.Panel}，前者为普通的容器，后者为具有标题栏，顶部工具条{#tbar|Wb.Panel.tbar}和底部工具条{#bbar|Wb.Panel.bbar}等部件的容器。
+#视口组件Viewport的使用
+{#视口组件|Wb.Viewport}是全屏显示的{#面板|Wb.Panel}，通常作为模块内的顶层组件使用。
+#窗口Window的使用
+{#窗口|Wb.Window}为弹出式且可拖动和可调整大小的面板组件，经常作为对话框使用。作为对话框的窗口，通常模态显示，并在底部包含"确定"和"取消"按钮。可以通过设置窗口的{#dialog|Wb.Window.dialog}，{#resetDialog|Wb.Window.resetDialog}或{#clearDialog|Wb.Window.clearDialog}属性为true，来快速设置窗口为对话框。点击对话框的确定按钮时将触发{#ok|Wb.Window.ok}事件，默认点击确定按钮窗口内所有组件的值将会发起合法性校验，可以通过设置{#noVerify|Wb.Component.noVerify}为false来禁止默认的校验。窗口组件通常直接添加到模块的module节点下，以使窗口的显示独立于整个模块。
+窗口默认隐藏，通常通过代码显示，如点击按钮后显示窗口，可以使用以下代码：
+
+     app.window1.show();
+
+关闭窗口时默认为隐藏，如果关闭窗口时需要销毁窗口，可以设置窗口的{#closeAction|Wb.Window.closeAction}为"destroy"。
+#标签页Tab的使用
+{#标签页|Wb.Tab}，用于分页显示的容器组件，该容器下通常直接添加{#卡片|Wb.Card}作为该控件的每一页，然后再在{#卡片|Wb.Card}内添加文本框，按钮，表格之类的组件。每一个卡片为标签页组件的每一页，添加多个卡片即为标签页比组件添加多个页。设置卡片的{#title|Wb.Card.title}属性为页的标题，设置卡片的{#icon|Wb.Card.icon}属性为页的图标。
+#界面的布局
+界面通常包含{#容器组件|Wb.Container}和非容器组件，容器组件下可以添加包含容器组件在内的任意组件，容器下面可以添加容器以实现组件的嵌套。非容器组件下不能添加组件。容器的布局方式由容器的{#layout|Wb.Container.layout}属性决定，该属性通过对容器的{#bodyEl|Wb.Container.bodyEl}元素设置{#cls|Element.cls}属性来定义布局，布局完全通过CSS的方式实现。
+关于布局的示例请参考：{#%layout|ide?openModule=example/basic/layout.xwl}。
+#用户界面的组成
+一个典型的用户界面通常由顶部工具条，客户区容器和窗口组成。工具条提供功能按钮和搜索框，客户区容器展现主页面，窗口提供弹出式的交互界面。
+每个模块通常包含一个[viewport]控件，该控件通常直接添加到模块的根节点下，表示模块内全屏展现的容器。在[viewport]控件下选择tbar属性，然后在属性编辑框内点击[添加 Wb.Toolbar]即可在viewport下创建内置的顶部工具栏。在工具栏内可以添加{#item|Wb.Item}作为工具按钮，还可以添加{#text|Wb.Text}或{#select|Wb.Select}等控件作为搜索框。
+用户界面的布局通常分为如下几种：
+-全屏：下级组件布满整个viewport。例如viewport下面添加grid，grid布满viewport。设置viewport的layout属性为"fit"即可实现该布局。
+-左侧栏加客户区：左侧栏固定宽度，客户区自适应宽度。例如viewport下面依次添加tree, splitter和grid。tree作为左侧栏，grid为客户区。设置viewport的layout属性为"row"，设置tree的width为"20em"，设置grid的flex为1即可实现该布局。
+-底部栏加客户区：底部栏固定高度，客户区自适应宽度。例如viewport下面依次添加grid, splitter和panel。panel作为底部栏，grid为客户区。设置viewport的layout属性为"column"，设置grid的flex属性为1，设置panel的height为"20em"即可实现该布局。
+-表单：即容器下有多个组件，以表单样式显示，通常按垂直单列或多列布局。例如viewport下面依次添加多个编辑控件生成表单。设置viewport的layout属性为"form", "form1", "grid", "grid1"或"grid2"即可，建议设置为"grid1"。
+-以上几种布局的叠加和嵌套：可以添加多个容器以实现叠加和嵌套的布局。
+#可视化设计
+选择任意一个容器组件，然后点击工具栏上的[界面设计器]按钮即可以对该容器进行可视化设计。拖动组件可以调整组件在容器内的先后顺序，当组件拖动到目标组件的前半部分时将插入到目标组件之前。在设计器内可以通过按Ctrl/Shift加点击选择或画框的方式可以实现对组件的多选。
+##客户端开发.页面组件.编辑控件
+编辑{#控件|Wb.Control}，用于输入数据并获取数据的组件。包括子类{#文本框|Wb.Text}，{#数字框|Wb.Number}和{#选择框|Wb.Select}等。
+#控件标签
+每个控件自带标签，{#text|Wb.Control.text}属性为纯文本标签，{#html|Wb.Control.html}属性为HTML标签。标签的对齐方式由{#labelAlign|Wb.Control.labelAlign}属性设置，设置{#labelUp|Wb.Control.labelUp}可以使标签显示在控件上方。标签的宽度由{#labelWidth|Wb.Control.labelWidth}属性设置。
+#获取和设置值
+通常控件都包含{#value|Wb.Control.value}属性用于存取值，另外还可以通过{#getValue|Wb.Control.getValue}方法来获取值，通过{#setValue|Wb.Control.setValue}方法来设置值。
+如以下代码：
+
+     control.value = 'abc'; // 通过设置value属性设置值
+     let value = control.value; // 通过读取value属性获取值
+     value = control?.getValue(); // 通过getValue方法获取值，通常结合“?."可选链操作，否则建议直接使用value属性
+     control?.setValue('abc');  // 通过setValue方法设置值，通常结合“?."可选链操作，否则建议直接使用value属性
+
+使用{#clear|Wb.Control.clear}方法可以清除控件值，使用{#reset|Wb.Control.reset}方法可以重置控件值。
+#文本框类控件
+文本框类控件包括{#文本框|Wb.Text}，{#数字框|Wb.Number}和{#多行文本框|Wb.TextArea}等。
+常用属性、方法和事件：
+-是否只读由{#readonly|Wb.Text.readonly}属性设置。
+-输入提示信息由{#placeholder|Wb.Text.placeholder}属性设置。
+-设置{#password|Wb.Text.password}属性可以使文本框变为密码框。
+-设置{#clearButton|Wb.Text.clearButton}可以使文本框带清除按钮。
+-文本框的预定义的值类型由{#valueType|Wb.Text.valueType}属性设置，比如"email", "filename"和"url"等。
+-自定义的值验证可以通过设置{#validator|Wb.Text.validator}实现。
+-值改变时触发{#change|Wb.Text.change}事件。
+文本框相关示例见：{#%input|ide?openModule=example/comps/input.xwl}
+#下拉框类控件
+下拉框类控件包括{#Wb.Trigger}，{#Wb.Picker}和{#Wb.Select}等。下拉框类控件也继承自文本框控件，因此也具有上述属性、方法和事件。
+常用属性、方法和事件：
+-控件是否允许编辑由{#editable|Wb.Trigger.editable}属性设置。
+-下拉组件由{#picker|Wb.Picker.picker}属性设置。
+-展开下拉前触发{#beforecollapse|Wb.Picker.beforecollapse}事件，返回{{false}}可阻止展开。
+-触发按钮点击时触发{#triggerclick|Wb.Trigger.triggerclick}事件。
+{#下拉框|Wb.Select}用于通过下拉条目的方式显示数据，下拉框的下拉组件默认为{#Wb.SelectView}。
+下拉框的数据可来自{#data|Wb.Select.data}或{#url|Wb.Select.url}，前者表示本地数据，后者表示获取远程数据的URL地址。下拉数据可以为对象列表或数组
+列表，如以下的数据
+
+     [{field1: 'abc', field2: 123}, {field1: 'def', field2: 456}] // 对象列表
+     [['name1', 'value1'], ['name2', 'value2'], ['name3', 'value3']] // 数组列表
+
+当使用数据列表时，默认首个字段为名称，第2个字段为值。
+下拉框的条目内容默认由{#textField|Wb.Select.textField}字段指定，条目值由{#valueField|Wb.Select.valueField}字段指定。下拉框的条目内容也可以通过设置{#itemTpl|Wb.Select.itemTpl}或{#itemTpl|Wb.Select.itemTplFn}来自定义渲染。
+设置下拉框的{#keyName|Wb.Select.keyName}属性可以为下拉框设置一个预置的下拉列表，下拉列表数据在{#%键值编辑器|kve}中指定。
+当需要设置或获取下拉框的多个值时，比如需要同时获取下拉列表的人员姓名、编号和id，可以通过设置{#bindField|Wb.Select.bindField}或{#valueMap|Wb.Select.valueMap}属性来实现。
+设置{#multiSelect|Wb.Select.multiSelect}属性为true可以指定下拉框多选。设置{#treePicker|Wb.Select.treePicker}属性为true可以指定下拉框下拉条目为树型结构。
+下拉框相关示例见：{#%select|ide?openModule=example/comps/select.xwl}
+##客户端开发.页面组件.视图、表格和树
+{#视图|Wb.View}组件，根据数据生成指定内容条目列表的组件。包括子类{#表格|Wb.Grid}，{#树|Wb.Tree}和{#列表|Wb.ListView}等。
+#视图数据
+视图的数据可通过{#data|Wb.View.data}, {#localData|Wb.View.localData}或{#url|Wb.View.url}来指定。
+读写当前页数据可以设置{#data|Wb.View.data}属性。
+读写本地分页数据可以设{#localData|Wb.View.localData}属性，动态设置localData后请调用{#load|Wb.View.load}方法来更新视图数据。
+读取远程数据可以设置{#url}属性，通过{#load|Wb.View.load}或{#reload|Wb.View.reload}方法来更新数据，{#autoLoad|Wb.View.autoLoad}属性可以设置视图就绪后是否自动加载远程数据。
+远程加载数据时传递参数到后台可以通过以下3种方式：
+-{#params|Wb.View.params}属性设置静态参数。
+-{#load|Wb.View.load}方法加载数据时传递参数，例如：{{view.load({params: {param1: 'abc', param2: 123}});}}
+-{#beforeload|Wb.View.beforeload}事件中设置params输入参数，例如：{{params.param1 = 'abc';}}
+#视图的数据渲染
+视图的数据渲染可通过{#itemTpl|Wb.View.itemTpl}或{#itemTplFn|Wb.View.itemTplFn}属性来指定，前者通过自定义HTML模板的方式来定义，后者通过自定义函数的方式来定义。定义好渲染的方式后，即可根据数据来渲染视图。
+#视图条目
+{#视图条目|Wb.ViewItem}是视图内每一个展现的条目，比如表格的行或树的节点等。当视图渲染内容时，会根据关联的数据生成视图条目，视图条目数据对应数据源中的每一条记录。通过操作视图条目即可实现
+操作视图内容。视图条目数据有一些具有特定名称的字段，表示特定的含义，比如"_icon"表示图标名称，详见{#data|Wb.ViewItem.data}属性说明。
+设置视图条目的数据可以使用{#set|Wb.ViewItem.set}方法，调用该方法后视图条目将根据配置的模板重新渲染数据。
+#添加和删除数据
+在视图中添加数据有两种方式，分别为添加视图条目对象或视图条目数据，后者为前者方法的简化：
+添加或插入视图条目对象：
+
+     view.add({itemCls: 'mycls', data: {field1: 'abc', field2: 123}}); // 添加
+     view.insert(index, item); // 插入
+     view.insertBefore(item, refItem); // 插入到指定条目前
+     view.insertAfter(item, refItem); // 插入到指定条目后
+
+添加或插入视图条目数据：
+
+     view.addData({field1: 'abc', field2: 123}); // 添加
+     view.insertData(index, item); // 插入
+     view.insertDataBefore(item, refItem); // 插入到指定条目前
+     view.insertDataAfter(item, refItem); // 插入到指定条目后
+
+在视图中删除数据，可以通过获取要删除的视图条目，然后调用视图条目的{#destroy|Wb.Component.destroy}或{#remove|Wb.Component.remove}来删除视图内的数据。
+
+     view.selection.destroy(); // 删除选择的条目
+     app.grid1.find(rec => rec.data.user_name=='demo2')?.destroy(); // 删除表格中首条user_name为"demo2"的记录
+
+#表格
+{#表格|Wb.Grid}是行列二维显示的视图。表格无需配置渲染模板，表格通过定义{#columns|Wb.Grid.columns}属性来渲染数据，columns内每个{#column|Wb.Column}表示表格的每一列，在列中可以配置列的标题、宽度，对齐方式，显示格式以及自定义渲染函数等。
+表格内每行均为一个{#表格条目|Wb.GridItem}组件，表格条目继承自视图条目。通过操作表格条目，即可实现对表格数据的操作。
+#树
+{#树|Wb.Tree}是分层多级显示的表格。树继承自表格，因此树的操作同表格类似。
+树内每个节点均为一个{#树条目|Wb.TreeItem}组件，树条目（节点）为容器组件，因此在节点下添加节点或删除节点同视图操作的方式无异：
+
+     node = tree.addData({text: 'folder'}); // 在树下添加目录节点
+     node.addData({text: 'abc', _icon: 'module', _leaf: true}); // 在节点下添加叶子节点
+     node.destroy(); // 删除节点
+
+##客户端开发.页面组件.工具条和菜单
+{#工具条|Wb.Toolbar}和{#菜单|Wb.Menu}是常用的交互组件，通常在工具条或菜单下添加{#条目|Wb.Item}组件作为工具条按钮或菜单项。
+工具条和菜单是容器组件，因此除了添加{#条目|Wb.Item}还可以添加{#文本框|Wb.Text}和{#选择框|Wb.Select}等组件。
+#工具条的使用
+工具条可以作为普通容器使用，它的默认布局为"row"，添加到工具条下且未指定{#cname|Wb.Base.cname}属性的组件默认为{#tool|Wb.Tool}。更常见的方式是工具条作为面板的子组件嵌入到{#tbar|Wb.Panel.tbar}中使用。
+#菜单的使用
+菜单既可以关联到按钮的{#menu|Wb.Button}属性作为下拉菜单使用，也可以关联到任意组件的{#contextMenu|Wb.Component}属性作为弹出式上下文菜单使用。另外菜单
+还可以使用{#showAt|Wb.Component.showAt}或{#showBy|Wb.Component.showBy}方法显示到任意位置。
+#条目组件的使用
+{#条目|Wb.Item}组件通常添加到工具条或菜单下，当条目添加到工具条时，条目默认为{#Wb.Tool}组件。{#条目|Wb.Item}继承自按钮，因此其具有按钮的所有特性。
+##客户端开发.模块化开发
+在客户端通过JavaScript开发复杂的应用时，可以使用模块化开发。模块化开发包含以下几种方法：
+-使用js文件
+-使用mjs文件
+-使用xwl文件
+#使用js文件
+该方式适用于把一些常用的代码放到js文件中，通过{#%配置|config}"sys.app.links"属性实现全局静态加载或使用{#Wb.load|Wb-Client.load}方法动态加载。
+下面演示如何编写和使用js文件。
+首选创建js文件wb/js/test.js：
+
+     Cls['My.Util'] = class myUtil extends Wb.Base {
+       /**
+        * Perform add.
+        * @param {Number} value1 Value 1
+        * @param {Number} value2 Value 2
+        * @return {Number} The result
+        */
+        static add(value1, value2) {
+          return value1 + value2;
+        }
+     }
+
+当需要调用该js时：
+
+     Wb.load('wb/js/test.js', f => My.Util.add(1, 3)); // 如果已经配置为全局静态加载，则无需使用Wb.load加载即可直接使用My.Util类。
+
+在xwl模块文件中如果需要在模块运行前加载js文件，可以设置module的{#links|Wb.Module.links}属性来加载js文件。
+#使用mjs文件
+mjs文件是标准的JavaScript模块文件，可以把一组特定功能的代码放到mjs文件内。该方式适用于把一些不常用的代码放到mjs文件，待需要时使用{#Wb.loadModule}方法加载。
+下面演示如何编写和使用mjs文件。
+首选创建mjs文件wb/js/test.mjs：
+
+     class Util {
+       /**
+        * Perform add.
+        * @param {Number} value1 Value 1
+        * @param {Number} value2 Value 2
+        * @return {Number} The result
+        */
+       static add(value1, value2) {
+          return value1 + value2;
+       }
+     }
+     export default Util; 
+
+当需要调用该mjs时：
+
+     Wb.loadModule('wb/js/test.mjs', module => Wb.tip(module.default.add(3, 5)));
+
+#使用xwl文件
+该方式主要用于运行模块并获取客户端app对象。
+-{#Wb.open}：运行模块文件。
+-{#Wb.openNormal}：运行模块文件，并允许用户在容器中手动刷新该模块。
+-{#Wb.run|Wb-Client.run}：运行模块文件，并在回调函数中返回模块的app对象。
+-使用{#Wb.Xwl}组件静态引用一个Xwl模块。
+使用以下代码运行用户管理模块文件：
+
+     Wb.open({ url: 'm?xwl=admin/user' }); // 打开用户管理模块
+     Wb.openNormal('dbe'); // 打开数据库浏览器并允许刷新该模块页面
+
+使用以下代码运行数据库浏览器，并把数据库浏览器的树添加到viewport1下面。
+首先新建test.xwl，然后添加viewport控件，设置viewport控件的layout属性为fit，然后在module的initialize事件内编写代码：
+
+     Wb.run({
+       url: 'm?xwl=admin/dbe', success(scope) {
+         app.dbeModule = scope; //把dbe模块的app保存到当前模块app的dbeModule属性中
+         app.viewport1.add(scope.tree); //把dbe模块的树添加到viewport1中
+         Wb.tip('最大返回记录数：' + scope.maxRows);  //访问dbe模块app内的maxRows变量
+       }
+     });
+
+使用{#Wb.Xwl}控件来静态加载模块示例见：{#%xwl-static-load|ide?openModule=example/load/xwl-static-load.xwl}
+
+相关示例见：{#%client-load-module|ide?openModule=example/load/client-load-module.xwl}
+##客户端开发.拖放操作
+拖放操作是客户端界面应用中常见的操作，系统提供相关的属性和API方法来快速实现拖放操作。
+#容器内组件的拖放
+每个容器组件均具有{#itemsSortable|Wb.Container.itemsSortable}属性，设置该属性为true后，即可实现容器内组件的拖放。
+#视图内条目的拖放
+视图内条目的拖放，包括表格行或树节点的拖放。设置视图的{#draggable|Wb.View.draggable}和{#droppable|Wb.View.droppable}属性为true即可实现
+视图内条目的拖放，设置{#dropGroup|Wb.Component.dropGroup}为指定值可以限定不同视图之间拖放条目的源视图和目标视图。通过{#itemdrag|Wb.View.itemdrag}事件能
+设置条目是否允许放下以及拖放的模式。通过{#itemdrop|Wb.View.itemdrop}事件能在条目拖动放下后执行相关操作。
+#异步拖放
+异步拖放指在拖动后在远程执行相关操作并且执行成功后再放下。需要异步执行拖放的视图可以设置其{#draggable|Wb.View.draggable}属性为{{"{autoDrop: false }"}}，然后在远程操作成功后调用{{draggable.acceptDrop()}}方法来放下条目。
+相关示例见：{#%drag-drop|ide?openModule=example/basic/drag-drop.xwl}

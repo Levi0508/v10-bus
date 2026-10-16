@@ -1,0 +1,21 @@
+{
+  "title": "接口服务",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "beforeCutomerInfoCheck.xwl",
+    "customerInfoCheck.xwl",
+    "customerInfoCheck",
+    "togo.xwl",
+    "togo2.xwl",
+    "dataquery",
+    "pageQuery",
+    "projlist_form",
+    "20260522",
+    "delete.xwl",
+    "20260612dev",
+    "20260616",
+    "dev.xwl"
+  ]
+}

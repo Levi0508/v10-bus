@@ -1,0 +1,9 @@
+{
+  "title": "邮件管理包",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "actions.xwl"
+  ]
+}

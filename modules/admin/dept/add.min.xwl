@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Add department","serverScript":"function main(){let e={sid:Wb.getId()};Wb.set(e);Params.parent_id||=\"0\";Wb.sync({tableName:\"wb_dept\",insert:Params});e.dept_id_disp=e.sid;Wb.send(e)}main();"},"_icon":"module"}

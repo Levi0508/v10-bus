@@ -1,0 +1,17 @@
+{
+  "title": "我填报的反洗钱客户",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var i_entname = Wb.get('i_entname');\nvar i_usercode = Wb.get('i_usercode');//接口传的user_id\nvar sys_usercode = Wb.get(\"sys.username\");\n\nif (i_usercode === null) {\n  Wb.invoke('m?xwl=interface/projlist_form/error-page', null, false)\n  // let a = Wb.run('m?xwl=interface/projlist_form/error-page');\n  // Wb.send(a);\n  return;\n}\n\n//查询菜单权限并保持访问日志\nvar data = Wb.sql({ sql: `{call THJS.p_fxq_interface_q({*cursor|return*},'0',{?i_entname?},{?i_usercode?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`, contextParams: false, params: { i_entname: i_entname, i_usercode: i_usercode } });\n\nif (!data || data.return.items.length !== 1) {\n  Wb.invoke('m?xwl=interface/projlist_form/error-page', null, false)\n  // let a = Wb.run('m?xwl=interface/projlist_form/error-page');\n  // Wb.send(a);\n  return;\n}\n\nif (data.return.items[0].user_flag === '1') {\n  var params = data.return.items[0];\n  params.i_entname = i_entname;\n  params.i_usercode = i_usercode;\n  Wb.invoke('m?xwl=aml_monitor/KYC01050', params, false);\n  // let a = Wb.run('m?xwl=aml_monitor/KYC01050',params);\n  // Wb.send(a);\n  return;\n} else {\n  Wb.invoke('m?xwl=interface/projlist_form/error-page', null, false)\n  // let a = Wb.run('m?xwl=interface/projlist_form/error-page');\n  // Wb.send(a);\n  return;\n}\n",
+    "loginRequired": "false"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": []
+}

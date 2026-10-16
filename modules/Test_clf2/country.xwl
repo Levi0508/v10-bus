@@ -1,0 +1,41 @@
+{
+  "title": "国家或地区维护",
+  "icon": "",
+  "img": "",
+  "tags": "{url: 'wb/ks/index.html#/aml/country', frame: true}",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module"
+  },
+  "events": {
+    "finalize": "let frame = app.iframe1, tab = Globals.WbMainTab, origin = new URL(frame.el.src, location.href).origin,\n  pageCard = win => tab?.findBy(card => card.ksV10Page && card.el.querySelector('iframe')?.contentWindow === win),\n  onMessage = e => {\n    let data = e.data, type = data?.type, card;\n    if (e.source !== frame.el.contentWindow && !(card = pageCard(e.source)))\n      return;\n    if (type === 'ks-v10:open' && /^m\\?xwl=[\\w\\-./]+$/.test(data.url)) {\n      Wb.open({ url: data.url, title: data.title, params: data.params });\n    } else if (type === 'ks-v10:browse' && tab && new URL(data.url).origin === origin) {\n      let page = tab.insertAfter({ icon: 'module', title: data.title, path: ':', layout: 'fit', ksV10Page: true }, tab.activeCard);\n      page.el.innerHTML = '<iframe class=\"w-iframe\"></iframe>';\n      page.el.firstChild.src = data.url;\n      page.show();\n    } else if (type === 'ks-v10:close' && card) {\n      card.close();\n      return;\n    } else {\n      return;\n    }\n    e.source.postMessage({ type: type + 'ed', id: data.id }, '*');\n  };\nwindow.addEventListener('message', onMessage);\nframe.on('destroy', () => window.removeEventListener('message', onMessage));"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1",
+        "layout": "fit"
+      },
+      "_expanded": true,
+      "items": [
+        {
+          "_icon": "iframe",
+          "text": "iframe1",
+          "cls": "Wb.Iframe",
+          "properties": {
+            "cid": "iframe1",
+            "src": "wb/ks/index.html#/aml/country",
+            "style": "border:none;width:100%;height:100%;"
+          }
+        }
+      ]
+    }
+  ]
+}

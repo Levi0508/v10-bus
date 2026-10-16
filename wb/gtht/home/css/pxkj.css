@@ -1,0 +1,49 @@
+.pxkj .w-item {
+  display: flex;
+  padding: 1em;
+}
+.pxkj .w-item .leftbox {
+  width: 8em;
+  height: 8em;
+  margin-right: 1em;
+}
+.pxkj .w-item .leftbox .img {
+  width: 100%;
+  height: 100%;
+}
+.pxkj .w-item .rightbox {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+}
+.pxkj .w-item .rightbox .top{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-weight: 600;
+}
+.pxkj .w-item .rightbox .top .xx {
+  display: flex;
+  padding: 2em 0;
+}
+.pxkj .xxnum {
+  margin-left: 2em;
+  font-size: .8em;
+}
+.pxkj .w-item .rightbox .date {
+  color: #999;
+}
+.pxkj .w-item .rightbox .bot{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.pxkj .w-item .rightbox .bot .btn {
+  border-radius: .4em;
+  text-align: center;
+  width: 5em;
+  height: 2em;
+  line-height: 2em;
+  background-color: blue;
+  color: #fff;
+}

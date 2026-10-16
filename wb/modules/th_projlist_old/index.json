@@ -1,0 +1,12 @@
+{
+  "title": "清单管理",
+  "icon": "excel",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "my_projlist.xwl",
+    "ADMIN_PROJLIST.xwl",
+    "BUSI_TYPE_ISALLOWREPORT.xwl",
+    "P_PROJLIST_RL_HG_STK_Q.xwl"
+  ]
+}

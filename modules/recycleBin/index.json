@@ -1,0 +1,21 @@
+{
+  "title": "回收站",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "demo-source.xwl",
+    "菜单树.xwl",
+    "lhc-test.xwl",
+    "template.xwl",
+    "select-tree.xwl",
+    "role.xwl",
+    "user",
+    "user.xwl",
+    "employeeRiskProfile1.xwl",
+    "employeeRiskProfile.xwl",
+    "employeeRiskProfile",
+    "hggltz.xwl",
+    "zcs"
+  ]
+}

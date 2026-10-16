@@ -1,0 +1,251 @@
+{
+  "title": "查看通知详情(v10原生 废弃)",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.set({\n  title: Wb.get('title'),\n  content: Wb.get('content'),\n  check_batch_id: Wb.get('check_batch_id')\n})"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1",
+        "height": "100%",
+        "autoScroll": "true"
+      },
+      "_expanded": true,
+      "events": {
+        "ready": "app.label1.html = '_$content$_'"
+      },
+      "items": [
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "border": "false",
+            "height": "400px"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "label",
+              "text": "label1",
+              "cls": "Wb.Label",
+              "properties": {
+                "cid": "label1",
+                "width": "70%",
+                "height": "400px",
+                "full": "true"
+              }
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid2",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid2",
+            "maxHeight": "600px",
+            "emptyHint": "true",
+            "height": "400px",
+            "title": "附件列表"
+          },
+          "_expanded": true,
+          "items": [
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": true,
+              "hasDupCid": 1,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "rownum1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum1_Col",
+                    "rowNum": "true",
+                    "width": "80",
+                    "text": "序号"
+                  },
+                  "hasDupCid": 1
+                },
+                {
+                  "_icon": "column",
+                  "text": "FILENAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "FILENAME_col",
+                    "text": "附件名称",
+                    "fieldName": "filename"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "CREATE_TIME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CREATE_TIME_col",
+                    "text": "上传时间",
+                    "fieldName": "create_time",
+                    "draggable": "false",
+                    "width": "400"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "CREATE_USER_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CREATE_USER_col",
+                    "text": "上传人",
+                    "fieldName": "create_user",
+                    "minWidth": "300",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "OP_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "OP_Col",
+                    "render": "let a = el.addEl('my-link', 'a');\nel.cls = 'w-ta-center';\na.textContent = '下载';\nconsole.log(\"el\",el)",
+                    "text": "操作"
+                  },
+                  "hasDupCid": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid1",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid1",
+            "pagingBar": "pageNums",
+            "pageSize": "100",
+            "border": "false",
+            "url": "@xpath + '/../SELFCHECK_PROJLIST_HIS/select_selfchek_details'",
+            "emptyHint": "true",
+            "multiSelect": "true",
+            "height": "400px",
+            "title": "项目列表"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "events": {
+            "click": "let link = e.target.closest('.my-link');\nif (link) {\n  let row = this.findItemByEl(link);\n  Wb.tip(' clicked at ' + row.data.check_batch_id);\n  Wb.ajax({\n    url: 'm?xwl=info_query/projlist_data/inout_q',\n    params: {\n      i_projid: row.data.projid,\n      i_usercode: '_$sys.username$_'\n    },\n    success(resp) {\n      var scope = Wb.decode(resp).items[0];\n      var card, encodedParams = scope.projid;\n      scope.state = 'info';\n      if (window.destTabPanel) {\n        window.destTabPanel.items.each(function (item) {\n          if (item.detailParams == encodedParams) {\n            card = item;\n            return false;\n          }\n        });\n        if (card) {\n          destTabPanel.setActiveTab(card);\n          return;\n        }\n      }\n      card = Wb.open({\n        url: 'm?xwl=info_query/projlist/projlist_form_container',\n        params: scope,\n        title: '清单查看 - ' + scope.custname,\n        success(scope) {\n        }\n      });\n      if (card) {\n        card.detailParams = encodedParams;\n        window.destTabPanel = card.ownerCt;\n      }\n    }\n  });\n}",
+            "beforeload": "params.check_batch_id = '_$check_batch_id$_'"
+          },
+          "items": [
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": true,
+              "hasDupCid": 1,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "OP_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "OP_Col",
+                    "render": "let a = el.addEl('my-link', 'a');\nel.cls = 'w-ta-center';\na.textContent = '查看清单详情';\nconsole.log(\"el\",el)"
+                  },
+                  "hasDupCid": 1
+                },
+                {
+                  "_icon": "column",
+                  "text": "rownum1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum1_Col",
+                    "rowNum": "true",
+                    "width": "80",
+                    "text": "序号"
+                  },
+                  "hasDupCid": 1
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJCODE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJCODE_col",
+                    "text": "项目编号",
+                    "fieldName": "projcode"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "KHNAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "KHNAME_col",
+                    "text": "公司全称",
+                    "fieldName": "khname",
+                    "draggable": "false",
+                    "width": "400"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPTMANACODE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPTMANACODE_col",
+                    "text": "项目负责人工号",
+                    "fieldName": "deptmanacode",
+                    "minWidth": "300",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPT_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPT_NAME_Col",
+                    "text": "部门名称",
+                    "fieldName": "dept_name"
+                  },
+                  "hasDupCid": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

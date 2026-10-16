@@ -1,0 +1,1 @@
+{"title":"仅从磁盘下载 数据库无记录","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let disk_url = Wb.get('disk_url')\n\nWb.exportData(new Wb.File(true, disk_url));"},"_icon":"module","items":[]}

@@ -1,0 +1,116 @@
+##概述.什么是 WebBuilder
+欢迎使用 WebBuilder，本文档旨在使您快速掌握如何使用 WebBuilder。
+#WebBuilder 简介
+WebBuilder 是一款强大，全面和高效的应用开发和运行平台。WebBuilder 既是一个功能强大的应用开发平台，也是一个高效稳定的应用运行平台，为复杂的企业级应用系统的开发和运行提供了集成的一体化的解决方案。
+-基于浏览器的集成开发环境，智能化的设计，能轻松完成从常规桌面应用到面向手机等的移动应用开发。
+-高效、稳定和可扩展的特点，适合复杂企业级应用的运行。
+-跨平台、数据库和浏览器的架构，适应复杂的服务器和客户端环境。
+-包含多项先进技术，使应用系统的开发更快捷和简单。
+#WebBuilder 系统功能和特点
+-使用先进的技术和架构支撑大型系统和海量数据的运行。WebBuilder 使用先进的技术构建，并具有极高的性能，可以支撑高负载的大型系统运行。灵活和可扩展的架构可以实现复杂的业务功能。
+-统一的基于桌面和移动设备的客户端开发。仅需开发一套应用，即可轻松实现从桌面浏览器应用到手机PAD移动应用的开发。智能化的设计，帮助开发人员屏蔽不同终端设备之间的开发差异。在手机上您依然可以使用集成开发环境进行开发。
+-系统简单易学易用，极大降低学习成本并快速掌握使用系统进行开发。WebBuilder 使用最新的标准技术构建，用户无需学习额外的技术，比如仅会 JavaScript 即可轻松掌握 WebBuilder。同时系统提供完备易用的文档系统和丰富的示例模块，使用户可以快速掌握系统的使用。
+-跨平台、数据库和终端。WebBuilder 支持所有符合工业标准的操作系统，应用服务器，数据库，浏览器，终端和手机PAD等，真正实现“开发一次，到处运行”。
+-轻松实现国际化开发。通过简单配置即可实现国际化开发，包括文字，数字，日期，格式和排版等的国际化。
+-多开发语言支持。可以使用包括Java, JavaScript, Python, Ruby, R等多种语言来混合开发，并以高性能方式运行。
+-强大的开发和调试功能。系统提供基于浏览器的强大的IDE，包括可视化设计，智能化代码编辑器，基于DevTools的调试器等。
+#WebBuilder的应用场景
+WebBuilder 的应用面非常广泛，可以开发各行业的各类型应用系统，这些应用系统应用在包括金融与银行，电信，能源与电力，生产与制造，零售与电商，医疗与健康，教育与培训，建筑与房地产，物流与运输，政府与公共部门等。
+#如何快速掌握 WebBuilder
+首先通过本文档来学习 WebBuilder，然后参考系统附带的{#%示例模块|ide?openExample=1}来学习常用和经典功能开发，并根据示例开发一些功能相近的应用。
+如果您具备以下的基础知识，将会对您快速掌握 WebBuilder 提供很大帮助，这些基础知识包括：
+-{#%JavaScript|docs:Web/JavaScript}
+-{#%HTML|docs:Web/HTML}/{#%CSS|docs:Web/CSS}
+-{#%Java|https://www.w3schools.com/java}
+-{#%SQL|https://www.w3schools.com/sql}
+如果您不具备以上的知识，也可以通过在使用 WebBuilder 的过程中来学习这些知识。
+##概述.WebBuilder 的安装与运行
+#系统运行环境需求
+WebBuilder对硬件的需求较低，具体可以根据系统的规模作调整。
+|条目|需求|
+|操作系统|Windows, Linux, MacOS|
+|Web 应用服务器|任意符合工业标准的服务器(Tomcat，Jetty，Resin，WebLogic 等)|
+|内存|800 MB|
+|磁盘空间|1 GB(包括 JDK 和 Tomcat)|
+|桌面和移动浏览器|现代浏览器(Chrome, Edge, Firefox, WebView 等)|
+#快速安装
+系统针对X64架构的Window和Linux提供了可一键运行的软件包，详细方法见软件包内的readme文件。针对其他操作系统的软件包可以按以下方法快速安装：
+-下载Linux完全包，下载链接：{#%https://www.geejing.com/site/webbuilder-linux64.zip}
+-根据服务器的操作系统下载匹配的JDK，下载链接：{#%https://www.geejing.com/download}
+-替换 WebBuilder 软件包中的 java-linux64 目录下的 JDK 为下载的 JDK，并按软件包内的 readme 文件说明进行下一步操作。
+#自定义安装
+-安装任意 JDK，如OpenJDK，OracleJDK，GraalVM for JDK 或其他 JDK。例如安装 OpenJDK 21，下载链接：{#%https://openjdk.org}
+-安装 Web 应用服务器并配置 Java 路径为上述 Java 路径。例如安装 Tomcat 10，下载链接：{#%https://tomcat.apache.org}
+-下载 GraalVM JavaScript 的 jar 文件。这些 jar 文件都使用了友好的开源授权协议。下载链接：{#%https://www.geejing.com/site/graal.zip}，如果您需要使用Python语言，请下载该链接：{#%https://www.geejing.com/site/python/graal.zip}
+-在 Tomcat 目录下新建名称为 "graal" 目录，并把 "graal.zip" 解压后的所有 jar 文件复制到该目录。
+-添加以下 Java Options。如在 Windows 下使用 Tomcat 请在 "catalina.bat" 中添加配置，其他操作系统请参照此配置。编辑"tomcat/bin/catalina.bat"，并搜索 JAVA_OPTS，在适当位置添加以下脚本（请注意path可按graal目录的实际路径设置绝对路径或相对路径）：
+
+     $txt: set "JAVA_OPTS=%JAVA_OPTS% -server -Dfile.encoding=UTF-8 -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -XX:+UseJVMCICompiler --module-path=../graal --upgrade-module-path=../graal"
+
+-如果您将 "graal.zip" 解压后的所有 jar 文件复制到 tomcat/lib或WEB-INF/lib 目录，而不是按照上面的说明进行部署，那么它可能会在某些 JRE 中以解释模式运行，此时可以通过添加以下选项使其以编译模式运行：
+
+     $txt: set "JAVA_OPTS=-server -Dfile.encoding=UTF-8 -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -XX:+UseJVMCICompiler"
+
+-对于高级用户，也可以按该文档安装 GraalVM JavaScript：{#%https://www.graalvm.org/latest/reference-manual/js/RunOnJDK}
+-部署 webbuilder 目录到 Web 应用服务器。例如：复制 webbuilder 目录到 Tomcat 的 "webapps" 目录。
+#运行 WebBuilder
+-启动 Web 应用服务器。
+-打开浏览器访问 WebBuilder 索引页。例如：http://localhost:8080/webbuilder，如果应用部署在ROOT目录，可访问http://localhost:8080
+-在该索引页，请输入默认的用户名称 "admin" 和密码 "admin" 以登录WebBuilder。
+-打开菜单"示例"以查看一些WebBuilder的示例。
+-打开菜单"开发套件/文档"以查看WebBuilder文档。
+-打开菜单"管理工具/关于"以查看关于WebBuilder的信息。
+-打开菜单"开发套件/集成开发环境"以运行WebBuilder的集成开发环境。
+-打开菜单"管理工具/数据库配置"添加您的数据库，并点击[默认]按钮，设置该数据库为默认数据库。
+#部署到Java集成开发环境
+部署到Java集成开发环境可以开发和调试Java代码。常用的Java集成开发环境包括IntelliJ IDEA和Eclipse。
+部署的步骤是：
+-新建Web项目。
+-选择项目使用的合适的Java SDK和应用服务器，比如选择WebBuilder{#%软件包|https://www.geejing.com/site/webbuilder-win64.zip}中的Java SDK和Tomcat。
+-复制WebBuilder Java源码到项目的src目录，复制应用目录内的wb和WEB-INF到项目的WebContent目录。
+-引用项目依赖的jar，这些jar包括WEB-INF/lib目录下的所有jar和{#%graal|https://www.geejing.com/site/graal.zip}的所有jar（{#%这些jar在完全软件包|https://www.geejing.com/site/webbuilder-win64.zip}中的apache-tomcat/graal目录下）。
+#本地数据库
+WebBuilder 自带了一个嵌入式的 derby 数据库，可以脱离其他数据库运行。该数据库存储了系统运行依赖的完整的数据库表和其它相关资源，可以通过{#%数据库配置|dbc}模块一键切换到其它数据库中，也可以把其它数据库一键切换到该数据库，适合作为数据库迁移的中间数据库来使用。该数据库位于wb/system/db/derby目录。具体操作说明见{#数据库配置|系统模块.管理工具.数据库配置}文档说明。
+##概述.开发一个入门应用
+本篇我们通过开发一个简单的职员查询应用，来简单了解使用WebBuilder的开发方法。
+#打开集成开发环境
+集成开发环境（IDE）是开发应用的主要功能模块。在系统{#%主页|home}，点击左侧功能菜单栏中的[开发套件]->[{#%集成开发环境|ide}]，就进入了 WebBuilder IDE。
+#创建数据库查询模块
+数据库查询模块的作用为查询数据库数据，并返回获得的数据的JSON脚本到客户端。具体创建步骤如下：
+-在 IDE 左侧的文件浏览器内，选择[模块]根节点，并在工具栏上点击[添加目录]按钮，在添加目录对话框中，在[名称]栏输入[myapp]，然后点击确定按钮以创建目录。
+-在 IDE 左侧的文件浏览器内，选择刚才创建的[myapp]目录，并在工具栏上点击[添加文件]按钮。在添加文件对话框中，在[名称]栏输入[select-staff]，并勾选最下面的[在菜单列表中隐藏]选项，然后点击确定按钮创建模块文件。该文件作为数据库查询模块。
+-在打开的[select-staff.xwl]文件的模块编辑器内，在[对象观察器]中找到[serverScript]属性，双击该属性的编辑框后在打开的[serverScript]选项卡中编写脚本：
+
+     Wb.sendRowx('select * from wb_staff');
+
+按[Ctrl+S]保存[select-staff.xwl]文件。
+#创建主界面模块
+主界面模块是显示数据和提供用户交互操作的模块。具体创建步骤如下：
+-在 IDE 的文件浏览器内，选择 [myapp] 目录，并在工具栏上点击[添加文件]按钮。在新建对话框中，在[名称]栏输入[staff]，然后点击确定按钮创建模块文件。该文件作为主界面模块。
+-在右侧[控件树]中双击[General]->[viewport]控件添加该控件到模块内[module]节点。
+-选择添加的[viewport1]节点，在[对象观察器]中找到[layout]属性，并选择该属性值为[fit]。
+-选择添加的[viewport1]节点，在右侧[控件树]中找到[List View]->[grid]控件，然后按住[Ctrl]键并双击该控件，以添加该控件到[viewport1]节点内。
+-选择添加的[grid1]节点，在[对象观察器]中找到[url]属性。
+-拖动左侧[文件浏览器]内的[select-staff.xwl]文件至[对象观察器]的[url]属性，以把[select-staff.xwl]的url地址设置到[url]属性。
+-按[Ctrl+Q]或点击工具条上的[运行]按钮，将保存并运行[staff.xwl]文件，您可以看到运行的结果。
+刷新系统[{#%主页|home}]页面，在左侧模块列表中可以看到刚才开发的[staff]模块。
+至此，您已经完成了一个简单的职员查询应用的开发。完整的功能请参考{#%staff|ide?openModule=example/crud/staff.xwl}示例模块。
+##概述.常见问题
+#• WebBuilder 同低代码平台和常规软件开发工具有什么区别？
+低代码平台是一种通过可视化界面和少量代码快速构建应用程序的开发工具，旨在降低开发门槛并提高效率。常规软件开发工具包括Java, Python或.net等及其 IDE 开发工具，是比较底层基础的软件开发工具，具有很强的功能性和灵活性。但由于其是基础的开发工具，因此缺乏快速的开发能力。开发复杂应用系统需要重头开发，对开发人员提出了较高要求。WebBuilder 结合了两者的优点，既有低代码平台的灵活性和易用性，同时也具有底层开发工具的功能性和灵活性。
+#• WebBuilder 支持使用第三方框架和包吗？
+WebBuilder支持使用第三方的框架和包，包括Java包，JS包，Java框架/组件，JS框架/组件等。
+#• WebBuilder 支持前后台分离吗？
+WebBuilder支持前后台分离。使用WebBuilder构建的应用包括客户端和服务端，客户端应用和服务端应用可以作为独立应用单独部署，也可以合并到单个应用程序中，例如WebBuilder既可以作为服务平台，也可以作为客户端应用。
+#• WebBuilder 的运行性能怎么样？
+WebBuilder 具有极高的性能：
+-高效的算法和精炼的代码使程序能够以更少的资源运行得更快。
+-最快速的JavaScript并与最新的ECMAScript规范兼容。系统使用Graal JIT编译器使JavaScript以本机代码的速度运行，提供了无与伦比的性能。
+-系统缓存多个优化和预加载的执行上下文，以支持高并发性。
+-与Java、Ruby、Python、LLVM、R等其他语言共享数据和代码。
+#• WebBuilder 支持哪些数据库？
+WebBuilder 支持所有数据库，包括Oracle，SQL Server，MySQL，PostgreSQL等，以及非关系型数据库和其他您想使用的任何数据库。
+#• WebBuilder 符合信创要求吗？
+WebBuilder 是自主研发的软件，具有独立的知识产权，完全符合信创要求。WebBuilder 运行依赖的第三方软件均为使用友好开源授权协议如Apache等的软件，具体名单详见{#%关于|about}模块的第三方软件列表。
+#• 如何获得 WebBuilder 的授权许可。
+WebBuilder 基于商业授权许可证发布，因此任何合法地使用 WebBuilder 均需要获得授权。购买 WebBuilder，请访问{#%https://www.geejing.com/buy}

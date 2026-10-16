@@ -1,0 +1,378 @@
+{
+  "title": "我的项目",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "links": "[\"wb/custom-made/vue/vue.js\",\"wb/custom-made/vue/element.js\",\"wb/custom-made/vue/element.css\"]"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1"
+      },
+      "_expanded": true,
+      "events": {
+        "keydown": "if (e.keyCode == '13') {\n  app.seekBtn.fireClick()\n}"
+      },
+      "items": [
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "border": "false",
+            "layout": "grid3"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "text",
+              "text": "I_USERNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "I_USERNAME",
+                "text": "客户名称",
+                "placeholder": "请输入",
+                "value": "_$sys.username$_",
+                "visible": "false",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "I_PROJNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "I_PROJNAME",
+                "text": "项目名称",
+                "placeholder": "请输入",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "I_KHNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "I_KHNAME",
+                "text": "客户名称",
+                "placeholder": "请输入",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "combo",
+              "text": "I_BUSI_TYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "I_BUSI_TYPE",
+                "text": "业务类型",
+                "placeholder": "请选择",
+                "clearButton": "true",
+                "url": "@xpath + '/operation/search_busitype'",
+                "valueField": "busi_type",
+                "textField": "busi_type"
+              },
+              "hasDupCid": 0
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid1",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid1",
+            "pagingBar": "pageNums",
+            "pageSize": "100",
+            "full": "true",
+            "border": "false",
+            "url": "@xpath + '/perm_conf/select'",
+            "emptyHint": "true",
+            "textSelectable": "true",
+            "columnsSortable": "true",
+            "sorters": "['proj_id','projname','projrole','workno','empname','username','khname','khxycode','projtype','projphase','islx','deptmananame','deptmanamobile','deptname']"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "events": {
+            "itemclick": "console.log(item)\nvar role = item.data.projrole;\nconsole.log(\"item.data.projrole\",item.data.projrole)\napp.reportBtn.setDisabled(role !== '项目负责人');"
+          },
+          "items": [
+            {
+              "_icon": "toolbar",
+              "text": "tbar",
+              "cls": "Wb.Toolbar",
+              "properties": {
+                "cid": "tbar",
+                "gap": "true",
+                "layout": "form-compact",
+                "isProperty": "true",
+                "border": "false"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "button",
+                  "text": "reportBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "reportBtn",
+                    "text": "清单填报",
+                    "type": "primary",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "var s = app.grid1.selection;\nif (!app.grid1.selection) { Wb.info('请选择项目'); return; }\ns = s.data;\n\nvar projId = s.proj_id;\nvar projtype = s.projtype;\nWb.ajax({\n  url: xpath + '/operation/query_isallow',\n  params: {\n    I_PROJ_TYPE: projtype,\n    I_PROJ_ID: projId,\n    I_USERNAME: '_$sys.username$_'\n  },\n  success(resp) {\n    resp = Wb.decode(resp).items[0];\n    var is_allow = resp.is_allow_report; // 是否允许填报清单\n    var error_info = resp.error_info; // 提示信息\n    if (is_allow === '0') {\n      Wb.info(error_info);\n      return;\n    } else if (is_allow === '1') {\n      Wb.ajax({\n        url: xpath + '/../projlist_data/inout_q',\n        params: {\n          i_projid: projId,\n          i_usercode: '_$sys.username$_'\n        },\n        success(resp) {\n          resp = Wb.decode(resp).items[0];\n          console.log('resp', resp);\n          resp.deptname = s.deptname;\n          var flag = resp.projid; // 项目ID\n          var card, encodedParams = flag;\n          if (window.destTabPanel) {\n            window.destTabPanel.items.each(function (item) {\n              console.log('item', item);\n              if (item.detailParams == encodedParams) {\n                card = item;\n                return false;\n              }\n            });\n            if (card) {\n              destTabPanel.setActiveTab(card);\n              return;\n            }\n          }\n          card = Wb.open({\n            url: xpath + '/../projlist/projlist_form_container',\n            params: resp,\n            title: '清单填报 - ' + resp.custname\n          });\n          if (card) {\n            card.detailParams = encodedParams;\n            window.destTabPanel = card.ownerCt;\n          }\n        }\n      });\n    }\n  }\n});\n\n\n"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "maintainBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "maintainBtn",
+                    "text": "标准化票据-反洗钱客户维护",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "var s = app.grid1.selection;\nconsole.log(app.grid1.selection)\nif (!app.grid1.selection) { Wb.info('请选择项目'); return; }\ns = s.data;\n\nvar projId = s.proj_id, proType = s.projtype, empName = s.empname, entName = s.entname, what, card;\n\n//  股权融资_IPO\nif (proType === '标准化票据') {\n  Wb.ajax({\n    url: 'm?xwl=aml_monitor/KYC01010/select',\n    params: {\n      i_entname: entName,\n      i_data_type: 1,\n      i_source_flag: 0,\n      i_usercode: '_$sys.username$_'\n    },\n    success: function (res) {\n      rows = Wb.decode(res.responseText).rows[0];\n      var IS_EXISTS = rows.IS_EXISTS;  // 0-不存在  1-已存在\n      var CUST_ID = rows.CUST_ID;\n      var CUST_NAME = rows.CUST_NAME;\n      var IS_DEPOSITORY_CUS = rows.IS_DEPOSITORY_CUS;\n      encodedParams = CUST_ID;\n      console.log('rows', rows);\n      if (IS_EXISTS == 0) {\n        card = Wb.open({\n          url: 'm?xwl=aml_monitor/KYC01010/client_add',\n          params: {\n            CLIENT_ID: CUST_ID,\n            CLIENT_NAME: CUST_NAME,\n            ORGAN_FLAG: app.ORGAN_FLAG.value,\n            CLIENT_BELONG: app.CLIENT_BELONG.value,\n            FK_FLAG: app.FK_FLAG.value,\n            CLIENT_STATUS: '0',// 首次添加默认正常\n            WHAT: 'insert',\n            I_TYPE: proType,\n            CUST_ID: CUST_ID,\n            projId: projId,\n            empName: empName,\n            CUST_NAME: CUST_NAME,\n            isExcel: '0'  //不导入Excel表\n          },\n          title: '填写客户信息',\n          success() {\n            app.addWin.hide()\n          }\n        });\n      } else if (IS_EXISTS == 1) {\n        Wb.confirm('已填报信息，是否要更改已填报的信息？', function () {\n          card = Wb.open({\n            url: 'm?xwl=aml_monitor/KYC01010/client_edit',\n            title: '编辑客户信息',\n            params: {\n              WHAT: 'updata',\n              I_TYPE: proType,\n              CUST_ID: CUST_ID,\n              projId: projId,\n              empName: empName,\n              CUST_NAME: CUST_NAME,\n              IS_DEPOSITORY_CUS: IS_DEPOSITORY_CUS,\n              CLIENT_ID: rec.client_id,//'_$client_id$_'\n              ORGAN_FLAG: rec.organ_flag,\n              CLIENT_STATUS: rec.client_status,\n              CLIENT_NAME: rec.client_name,\n              CLIENT_BELONG: rec.client_belong,\n              FK_FLAG: fk_flag,\n              DATA_TYPE: rec.data_type\n            }\n          });\n        });\n      }\n\n    }\n  });\n} else {\n  Wb.info('此项目类型无需录入完善');\n  return;\n}\n\nif (window.destTabPanel) {\n  window.destTabPanel.items.each(function (item) {\n    if (item.detailParams == encodedParams) {\n      console.log('card', card);\n      card = item;\n      return false;\n    }\n  });\n  if (card) {\n    console.log('card', card);\n    destTabPanel.setActiveTab(card);\n    return;\n  }\n}\nif (card) {\n  console.log('card', card);\n  card.detailParams = encodedParams;\n  window.destTabPanel = card.ownerCt;\n}\n"
+                  }
+                },
+                {
+                  "_icon": "right1",
+                  "text": "fill1",
+                  "cls": "Wb.Fill",
+                  "properties": {
+                    "cid": "fill1"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "seekBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "seekBtn",
+                    "text": "查询",
+                    "type": "primary",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "let data = Wb.getValue(app.panel1)\nif(Wb.verify(app.panel1)){\n  app.grid1.load({\n    comps:app.panel1,\n    params:{},\n  })\n}\n"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "resetBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "resetBtn",
+                    "text": "重置",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "Wb.reset(app.panel1);\napp.grid1.load()"
+                  }
+                }
+              ]
+            },
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "rownum1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum1_Col",
+                    "rowNum": "true",
+                    "width": "60"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJ_ID_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJ_ID_Col",
+                    "text": "项目编号",
+                    "fieldName": "proj_id",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJNAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJNAME_Col",
+                    "text": "项目名称",
+                    "fieldName": "projname",
+                    "minWidth": "300"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJROLE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJROLE_Col",
+                    "text": "项目角色",
+                    "fieldName": "projrole",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "WORKNO_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "WORKNO_Col",
+                    "text": "员工号",
+                    "fieldName": "workno",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "EMPNAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "EMPNAME_Col",
+                    "text": "员工姓名",
+                    "fieldName": "empname",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "USERNAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "USERNAME_Col",
+                    "text": "用户名",
+                    "fieldName": "username",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "KHNAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "KHNAME_Col",
+                    "text": "客户名称",
+                    "fieldName": "khname",
+                    "minWidth": "300"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "KHXYCODE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "KHXYCODE_Col",
+                    "text": "统一社会信用代码",
+                    "fieldName": "khxycode",
+                    "minWidth": "260"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJTYPE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJTYPE_Col",
+                    "text": "项目类型",
+                    "fieldName": "projtype",
+                    "minWidth": "180"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJPHASE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJPHASE_Col",
+                    "text": "项目阶段",
+                    "fieldName": "projphase"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "ISLX_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ISLX_Col",
+                    "text": "是否立项",
+                    "fieldName": "islx"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPTMANANAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPTMANANAME_Col",
+                    "text": "项目负责人姓名",
+                    "fieldName": "deptmananame"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPTMANAMOBILE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPTMANAMOBILE_Col",
+                    "text": "项目负责人手机号",
+                    "fieldName": "deptmanamobile"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPTNAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPTNAME_Col",
+                    "text": "部门名称",
+                    "fieldName": "deptname"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

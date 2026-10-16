@@ -1,0 +1,34 @@
+.fzjg .w-item {
+  display: flex;
+  padding: 1em;
+}
+.fzjg .w-item .leftbox {
+  width: 8em;
+  height: 8em;
+  margin-right: 1em;
+}
+
+.fzjg .w-item .leftbox .img {
+  width: 100%;
+  height: 100%;
+}
+.fzjg .w-item .rightbox {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+.fzjg .w-item .rightbox .top {
+  display: flex;
+  justify-content: space-between;
+}
+
+.fzjg .w-item .rightbox .top .title {
+  font-weight: 600;
+}
+.fzjg .w-item .rightbox .top .text {
+  color: #999;
+}
+.fzjg .icon-eye {
+  color: #555;
+} 

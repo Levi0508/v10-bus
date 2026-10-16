@@ -1,0 +1,15 @@
+{
+  "title": "KYC01060/del",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRows(`delete from thjs.t_dict_subentry a \n         where a.entry_no = '1040'\n           and a.subentry = {?COUNTRY_CODE?}`);\n"
+  },
+  "_icon": "module",
+  "items": []
+}

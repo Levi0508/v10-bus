@@ -1,0 +1,14 @@
+{
+  "title": "项目清单状态查询",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.apply(app, {\n  getUserInfo: function () {\n    var i_projid = request.getParameter('projid');\n    // var i_userid = request.getParameter('usercode');\n    // var sys_usercode = Wb.get('sys.username');\n    // var sys_user_id = Wb.get('sys.userid')\n\n\n    Wb.log(\"i_projid=\" + i_projid);\n    var outInfo = new JSONObject();\n\n    if (i_projid === null) {\n      outInfo.put(\"code\", \"-2\");\n      outInfo.put(\"resultMsg\", \"传参不能为空\");\n      return outInfo.toString();\n    }\n\n    //保存查询日志-20220524暂取消日志监控\n    //var data1 = Wb.decode(Wb.output('{call THJS.p_projlist_interface_log_s(\\'2\\',\\'' + i_userid + '\\',\\'' + i_projid +  '\\',\\'' + i_userid + '\\',{?@O_RETURN_MSG?},{?@INTEGER.O_RETURN_CODE?})}',null ,true));\n    // Wb.log(data1);\n    //无清单默认未填报\n    var rec = Wb.sql(`select case when {?projid?}='879AEEA2A5C24501B2D58E8F2B83F52F' then '2' else nvl(projlist_status,'0') end as projlist_status from dual left join THJS.VW_PROJLIST_MAIN_TH on projid = {?projid?}`);\n\n    if (rec) {\n      outInfo.put(\"code\", \"0\");\n      outInfo.put(\"resultMsg\", \"执行成功\");\n      outInfo.put(\"data\", {\n        \"status\": rec.items[0].projlist_status\n      });\n      return outInfo.toString();\n    } else {\n      outInfo.put(\"code\", \"-1\");\n      outInfo.put(\"resultMsg\", \"查询失败\");\n      outInfo.put(\"data\", {\n        \"status\": null\n      });\n      outInfo.put(\"success\", false);\n      return outInfo;//.toString();返回JSON格式\n    }\n  }\n});\n\nresponse.setContentType(\"application/json; charset=UTF-8\");\nWebUtil.send(response, app.getUserInfo());\n\n// var i_projid = request.getParameter('projid');\n// var rec = Wb.sql(`select case when {?projid?}='879AEEA2A5C24501B2D58E8F2B83F52F' then '2' else nvl(projlist_status,'0') end as projlist_status from dual left join THJS.VW_PROJLIST_MAIN_TH on projid = {?projid?}`);\n// Wb.send(rec)"
+  },
+  "_icon": "module"
+}

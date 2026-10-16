@@ -1,0 +1,1 @@
+{"text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.File.checkContains('|wb/system/resource', Params.path);\nWb.run('./open');","remark":"Get file content in resource path"},"_icon":"module","title":"","icon":"","img":"","tags":"","hideInMenu":"false"}

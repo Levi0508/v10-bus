@@ -1,0 +1,18 @@
+{
+  "title": "我的清单列表",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.set({\n  i_usercode: Wb.get('i_usercode'),\n  i_projid: Wb.get('i_projid')\n});\n"
+  },
+  "_icon": "module",
+  "events": {
+    "initialize": "// fxqcust接口的i_usercode实际传参为user_id\nif ('_$i_usercode$_' && '_$i_usercode$_' == '_$sys.userid$_') {\n  Wb.open({\n    url: xpath + '/../projlist',\n    params: {\n      i_usercode: '_$i_usercode$_',\n      i_entname: '_$i_projid$_',\n    }\n  });\n} else {\n  Wb.confirm(`检测到全链接登录账号已发生变更，为确保两个系统操作用户一致，点击【确认】按钮<br>系统将自动登出当前投行合规管理系统登录用户`+'_$sys.username$_'+`，请稍后重新从全链接打开该页面。`, () => {\n    Wb.tipInfo(\"即将自动关闭页面...\");\n    Wb.ajax('logout');\n    setTimeout(() => {\n      window.close();\n    }, 3000);\n  },null,true);\n}"
+  },
+  "items": []
+}

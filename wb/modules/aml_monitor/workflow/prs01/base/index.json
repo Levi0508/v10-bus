@@ -1,0 +1,13 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "base.xwl",
+    "base_preview.xwl",
+    "base_edit.xwl",
+    "base_edit_test.xwl",
+    "base_appr.xwl"
+  ]
+}

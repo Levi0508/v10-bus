@@ -1,0 +1,1 @@
+{"title":"限制清单合规导出查询","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let order = Wb.getOrderSql();\nWb.sendRowx(`{call thjs.p_projlist_rl_hg_stk_q({*cursor|result*},'${order}')}`);"},"_icon":"module"}

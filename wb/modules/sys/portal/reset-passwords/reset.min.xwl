@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"function main(){Wb.sql({sql:\"update wb_user set password={?pwd?}, login_times=2\",params:{pwd:Wb.UserUtil.encryptPassword(Params.password)}})}main();","remark":"Reset passwords for all users"},"_icon":"module"}

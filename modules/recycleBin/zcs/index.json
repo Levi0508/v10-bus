@@ -1,0 +1,11 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "notice.xwl",
+    "hg_hggltz.xwl",
+    "notice_crud"
+  ]
+}

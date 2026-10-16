@@ -1,0 +1,10 @@
+{
+  "title": "需求管理",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "rm-actions.xwl",
+    "util.mjs"
+  ]
+}

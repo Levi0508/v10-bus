@@ -1,0 +1,5 @@
+
+alter table FLHGDB.TMP_TREE_FLAT modify ID VARCHAR2(100);
+alter table FLHGDB.TMP_TREE_FLAT modify PARENT_ID VARCHAR2(100);
+
+

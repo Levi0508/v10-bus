@@ -1,0 +1,36 @@
+.gszd .w-tabbar {
+  padding-top: .5em;
+  background: transparent;
+}
+.gszd .w-tabbar .w-btn {
+  font-weight: 600;
+  background: transparent;
+  font-size: 1.1em;
+}
+.gszd .w-tabbar .w-btn:hover {
+  background: transparent !important;
+}
+.gszd .w-tabbar .w-btn.w-btn-active { 
+  background: transparent !important;
+  border-bottom-color: rgb(38, 92, 235) !important; 
+  color: rgb(38, 92, 235) !important;
+}
+.gszd .con {
+  position: relative;
+}
+.gszd .menu {
+  position: absolute;
+  right: 0;
+  top: .5em;
+}
+.gszd-list .w-item {
+  display: flex;
+  padding: 1em;
+  justify-content: space-between;
+}
+.gszd-list .w-item .title {
+  padding-left: 1em;
+}
+.gszd-list .w-item .label {
+  color: #999;
+}

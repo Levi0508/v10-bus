@@ -1,0 +1,1 @@
+{"title":"查询客户进行中项目数量","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({\n  sql: `{call thjs.p_fxq_cust_proj_q({*cursor|result*},{?I_CLIENT_ID?},{?I_CLIENT_NAME?},{?I_USER_NAME?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n});"},"_icon":"module"}

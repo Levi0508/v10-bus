@@ -1,0 +1,1 @@
+{"text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let fs=Wb.load(\"./fs.mjs\");Wb.send(fs.getFileData(Params.path,Params.charset));","remark":"Get file content in any path"},"_icon":"module","title":""}

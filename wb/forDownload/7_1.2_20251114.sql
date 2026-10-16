@@ -1,0 +1,4 @@
+
+alter table SUBSDB.TB_FUND_STOCK_CHG modify MATCH_NO VARCHAR2(80);
+
+

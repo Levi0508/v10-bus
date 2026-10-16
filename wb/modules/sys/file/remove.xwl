@@ -1,0 +1,1 @@
+{"text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let fs = Wb.load('./fs.mjs');\nfs.removeFiles(Wb.getObject('files'));","remark":"Remove file in any path"},"_icon":"module","title":""}

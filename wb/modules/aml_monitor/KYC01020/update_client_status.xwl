@@ -1,0 +1,1 @@
+{"title":"限制措施（失效/强限制/弱限制/解除限制）","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let obj = Wb.sql(`{call thjs.p_fxq_cust_rz_l({?I_CLIENT_ID?},{?I_OP_FLAG?},{?I_USER_NAME?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`);\nWb.send(obj);"},"_icon":"module"}

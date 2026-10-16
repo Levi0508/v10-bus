@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`{call thjs.p_projlist_file_s({?i_projid?},{?i_batch_id?},{?i_inout_id?},{?i_filepath?},{?i_usercode?}, {*O_RETURN_MSG*},{*INTEGER|O_RETURN_CODE*})`);\n"},"_icon":"module"}

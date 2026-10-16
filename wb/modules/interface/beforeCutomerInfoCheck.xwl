@@ -1,0 +1,17 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.set({\n  i_usercode: Wb.get('i_usercode'),\n  i_entname: Wb.get('i_entname'),\n  i_key: Wb.get('i_key'),\n  i_type: Wb.get('i_type'),\n  i_custtype: Wb.get('i_custtype')\n});"
+  },
+  "_icon": "module",
+  "events": {
+    "initialize": "Wb.ajax({\n  url: xpath + '/../customerInfoCheck/check_user',\n  params: {\n    i_usercode: '_$i_usercode$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp);\n    console.log(\"res\", res.user_name)\n    if (res.user_name && res.user_name == '_$sys.username$_') {\n      Wb.open({\n        url: xpath + '/../customerInfoCheck',\n        params: {\n          i_usercode: '_$i_usercode$_',\n          i_entname: '_$i_entname$_',\n          i_key: '_$i_key$_',\n          i_type: '_$i_type$_',\n          i_custtype: '_$i_custtype$_'\n        },\n        success(scope) {\n          setTimeout(() => {\n            window.close();\n          }, 3000);\n        }\n      });\n    } else {\n      Wb.confirm(`检测到全链接登录账号已发生变更，为确保两个系统操作用户一致，点击【确定】按钮<br>系统将自动登出当前投行合规管理系统登录用户` + '_$sys.username$_' + `，请稍后重新从全链接打开该页面。`, () => {\n        Wb.tipInfo(\"即将自动关闭页面...\");\n        Wb.ajax('logout');\n        setTimeout(() => {\n          window.close();\n        }, 3000);\n      }, null, true);\n    }\n  }\n});"
+  }
+}

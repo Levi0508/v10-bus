@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let update = [], user_id;\n\nuser_id = Wb.getBool('include') ? 'admin' : 'default';\nWb.getObject('items').forEach(item => {\n  update.push({ $sid: item.sid, user_id });\n});\nWb.sync({ tableName: 'wb_staff', update });"},"_icon":"module"}

@@ -1,0 +1,14 @@
+{
+  "title": "KYC01030/edit",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "// Wb.sendRows(`update thjs.t_maintainer_info a\n//   set a.maintainer = a.new_maintainer, \n//       a.new_maintainer = {?NEW_MAINTAINER?} \n// where a.client_id = {?CLIENT_ID?}`);\n\nlet obj = Wb.sql({\n  sql: `{call thjs.p_fxq_cust_operator_s({?CLIENT_ID?},{?NEW_MAINTAINER?},'chenhaiyang',{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n});\n\nWb.send(obj);"
+  },
+  "_icon": "module"
+}

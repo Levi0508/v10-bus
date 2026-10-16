@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Delete users","serverScript":"Wb.sendRows(`delete from thjs.t_dict_subentry a \n         where a.entry_no = '1040'\n           and a.subentry = {?COUNTRY_CODE?}`);\n"},"_icon":"module"}

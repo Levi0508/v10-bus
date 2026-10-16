@@ -1,0 +1,13 @@
+{
+  "title": "清单管理数据源",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "select-director.xwl",
+    "select-all-user.xwl",
+    "remind_proj_q.xwl",
+    "remind_q.xwl",
+    "remind_s.xwl"
+  ]
+}

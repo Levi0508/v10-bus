@@ -1,0 +1,1 @@
+{"title":"业务类型查询框下拉列表值查询","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({sql:`SELECT T.PROJ_TYPE BUSI_TYPE\n  FROM THJS.TB_PROJLIST_BUSITYPE T`});"},"_icon":"module"}

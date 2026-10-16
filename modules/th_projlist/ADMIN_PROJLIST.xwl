@@ -1,0 +1,790 @@
+{
+  "title": "我管理的清单列表",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "links": "[\"wb/custom-made/vue/vue.js\",\"wb/custom-made/vue/element.js\",\"wb/custom-made/vue/element.css\",\"wb/custom-made/css/myCss.css\"]",
+    "cls": "w-input-wrap"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "events": {
+    "initialize": "Wb.apply(app, {\n  TaskTodo: function (PROJID, state) {\n    Wb.ajax({\n      url: 'm?xwl=info_query/projlist_data/inout_q',\n      params: {\n        i_projid: PROJID,\n        i_usercode: '_$sys.username$_'\n      },\n      success(resp) {\n        var scope = Wb.decode(resp).items[0];\n        var card, encodedParams = scope.projid;\n        if (state) scope.state = state;\n        if (window.destTabPanel) {\n          window.destTabPanel.items.each(function (item) {\n            if (item.detailParams == encodedParams) {\n              card = item;\n              return false;\n            }\n          });\n          if (card) {\n            destTabPanel.setActiveTab(card);\n            return;\n          }\n        }\n        card = Wb.open({\n          url: 'm?xwl=info_query/projlist/projlist_form_container',//yufang\n          params: scope,\n          title: '清单查看 - ' + scope.custname\n        });\n        if (card) {\n          card.detailParams = encodedParams;\n          window.destTabPanel = card.ownerCt;\n        }\n      }\n    });\n  },\n  reportTask: function (step) {\n    if (step === 0) {\n      var rec = app.grid1.selection;\n      console.log(\"rec\", rec);\n      if (!rec) {\n        Wb.info(\"请先选择一条记录！\");\n        return;\n      }\n      rec = rec.data;\n      this.TaskTodo(rec.projid, 'info');\n    } else if (step === 1) {\n      var recs = app.projlistGrid.selection;\n      if (!recs) {\n        Wb.info(\"请先选择一条记录！\");\n        return;\n      }\n      var data = recs.data;\n      this.TaskTodo(data.proj_id, 'info');\n      app.projlistWin.close();\n    }\n  }\n});"
+  },
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1",
+        "width": "100%",
+        "height": "100%",
+        "full": "true"
+      },
+      "_expanded": true,
+      "events": {
+        "keydown": "if (e.keyCode == '13') {\n  app.seekBtn.fireClick()\n}"
+      },
+      "items": [
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "border": "false",
+            "layout": "form",
+            "minWidth": "200",
+            "gap": "8"
+          },
+          "_expanded": false,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "text",
+              "text": "PROJID",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "PROJID",
+                "text": "项目编号",
+                "placeholder": "请输入",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "CUSTNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "CUSTNAME",
+                "text": "公司全称",
+                "placeholder": "请输入",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "STKCODE",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "STKCODE",
+                "text": "证券代码",
+                "placeholder": "请输入",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "STKNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "STKNAME",
+                "text": "股票简称",
+                "placeholder": "请输入",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "combo",
+              "text": "PROJTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "PROJTYPE",
+                "text": "业务类型",
+                "url": "@xpath + '/operation/p_projlist_projtype_q'",
+                "valueField": "projtype",
+                "textField": "projtype_desc",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0,
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "DIRECTOR",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "DIRECTOR",
+                "text": "项目负责人",
+                "clearButton": "true"
+              },
+              "_expanded": true,
+              "events": {
+                "action": "app.selectUserWin.show();"
+              }
+            },
+            {
+              "_icon": "text",
+              "text": "DEPTNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "DEPTNAME",
+                "text": "部门名称",
+                "placeholder": "请输入",
+                "clearButton": "true"
+              },
+              "hasDupCid": 0,
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "LISTTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "LISTTYPE",
+                "text": "清单类别",
+                "data": "[\n  [\n    '所有', '0',\n  ],\n  [\n    '观察清单', '1'\n  ],\n  [\n    '限制清单', '2'\n  ],\n  [\n    '静默期', '3'\n  ]\n]",
+                "clearButton": "true"
+              }
+            },
+            {
+              "_icon": "combo",
+              "text": "INOUTTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "INOUTTYPE",
+                "text": "出入单类型",
+                "data": "[\n  [\n    '全部', '0'\n  ],\n  [\n    '入单', '1'\n  ],\n  [\n    '出单', '2'\n  ]\n]",
+                "clearButton": "true"
+              },
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "DATETYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "DATETYPE",
+                "text": "日期类型",
+                "data": "[\n  [\n    '全部', '0'\n  ],\n  [\n    '发生日期', '1'\n  ],\n  [\n    '填报日期', '2'\n  ]\n]",
+                "clearButton": "true"
+              },
+              "_expanded": true
+            },
+            {
+              "_icon": "calendar",
+              "text": "BEGINDATE",
+              "cls": "Wb.Date",
+              "properties": {
+                "cid": "BEGINDATE",
+                "text": "起始日期",
+                "format": "y-MM-dd",
+                "clearButton": "true"
+              }
+            },
+            {
+              "_icon": "calendar",
+              "text": "ENDDATE",
+              "cls": "Wb.Date",
+              "properties": {
+                "cid": "ENDDATE",
+                "text": "截止日期",
+                "format": "y-MM-dd",
+                "clearButton": "true"
+              }
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid1",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid1",
+            "pagingBar": "pageNums",
+            "pageSize": "100",
+            "full": "true",
+            "border": "false",
+            "url": "@xpath + '/perm_conf/select'",
+            "emptyHint": "true",
+            "textSelectable": "true",
+            "columnsSortable": "true"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "events": {
+            "itemdblclick": "app.reportTask(0);"
+          },
+          "items": [
+            {
+              "_icon": "toolbar",
+              "text": "tbar",
+              "cls": "Wb.Toolbar",
+              "properties": {
+                "cid": "tbar",
+                "gap": "true",
+                "layout": "form-compact",
+                "isProperty": "true",
+                "border": "false"
+              },
+              "_expanded": false,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "button",
+                  "text": "auditBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "auditBtn",
+                    "text": "清单审核",
+                    "type": "primary",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "// 点击【清单审核】按钮\nvar rec = app.grid1.selection;\nif (!rec) {\n  Wb.info(\"请先选择一条记录！\");\n  return;\n}\nrec = rec.data;\nconsole.log(\"---------reeccccc\", rec);\n\nWb.open({\n  url: 'm?xwl=info_query/projlist/projlist_form_container',\n  params: {\n    piid2: 'beforedraft',  // 手动发起审核页面还未生成流程id，此处参数仅作为有值的判断控制显隐展示\n    projid: rec.projid,\n    nodeCode: 'hgrysh',// hgrysh-合规人员审核  xmfzryz=项目负责人阅知\n    staff_id: rec.staff_id,\n    deptmananame: rec.deptmananame,\n    deptname: rec.deptname\n  },\n  title: '清单审核 - ' + rec.projname\n})"
+                  }
+                },
+                {
+                  "_icon": "right1",
+                  "text": "fill1",
+                  "cls": "Wb.Fill",
+                  "properties": {
+                    "cid": "fill1"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "seekBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "seekBtn",
+                    "text": "查询",
+                    "type": "primary",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "let data = Wb.getValue(app.panel1)\nif(Wb.verify(app.panel1)){\n  app.grid1.load({\n    comps:app.panel1,\n    params:{},\n  })\n}\n"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "resetBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "resetBtn",
+                    "text": "重置",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "Wb.reset(app.panel1);\napp.grid1.load();"
+                  }
+                }
+              ]
+            },
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": true,
+              "hasDupCid": 1,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "rownum1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum1_Col",
+                    "rowNum": "true",
+                    "width": "60"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJID_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJID_col",
+                    "text": "项目编号",
+                    "fieldName": "projid",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJCODE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJCODE_col",
+                    "text": "项目编号",
+                    "fieldName": "projcode",
+                    "draggable": "false",
+                    "width": "100"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "CUSTNAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CUSTNAME_col",
+                    "text": "公司全称",
+                    "fieldName": "custname",
+                    "minWidth": "300",
+                    "render": "if (data.multi_stk) {\n  let a = el.addEl('multi_stk', 'sup');\n  a.setStyle('color', 'red');\n  a.setStyle('font-size', '12px')\n  a.textContent = '[' + data.multi_stk + ']';\n  let b = el.addEl('', 'span')\n  b.textContent = ' '+value;\n\n} else {\n  return value;\n}"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJNAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJNAME_col",
+                    "text": "项目名称",
+                    "fieldName": "projname",
+                    "minWidth": "300"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "STKCODE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "STKCODE_col",
+                    "text": "证券代码",
+                    "fieldName": "stkcode",
+                    "minWidth": "120"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "STKNAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "STKNAME_col",
+                    "text": "证券名称",
+                    "fieldName": "stkname",
+                    "minWidth": "120"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJTYPE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJTYPE_col",
+                    "text": "业务类型",
+                    "fieldName": "projtype",
+                    "minWidth": "180"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "REPORT_USER_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "REPORT_USER_col",
+                    "text": "填报人",
+                    "fieldName": "report_user",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPTMANANAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPTMANANAME_col",
+                    "text": "项目负责人",
+                    "fieldName": "deptmananame"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "STAFFID_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "STAFFID_col",
+                    "text": "项目负责人工号",
+                    "fieldName": "staff_id"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPTNAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPTNAME_col",
+                    "text": "部门名称",
+                    "fieldName": "staff_dept_name"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJLIST_STATUS_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJLIST_STATUS_col",
+                    "fieldName": "projlist_status",
+                    "keyValue": "true",
+                    "render": "const outList = ['出观察清单', '出限制清单', '出静默']\nif (outList.indexOf(value) != -1) {\n  el.parentNode.setStyle('background', '#D9D9D9', 'important');\n}\nreturn value;",
+                    "html": "<div style=\"background-color:rgb(255, 192, 0);padding:20px 20px 22px 10px;margin:-10px -20px -10px -10px;\">状态</div>"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "SOURCE_FLAG_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "SOURCE_FLAG_col",
+                    "text": "数据来源",
+                    "fieldName": "source_flag",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "RO_INOUT_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RO_INOUT_DATE_col",
+                    "fieldName": "ro_inout_date",
+                    "html": "<div style=\"color:#fff;background-color:#1e90ff;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">入观察清单<br/>日期</div>"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "RO_FILL_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RO_FILL_DATE_col",
+                    "fieldName": "ro_fill_date",
+                    "html": "<div style=\"color:#fff;background-color:#1e90ff;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">入观察清单<br/>填报日期</div>"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "RO_INOUT_REASON_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RO_INOUT_REASON_col",
+                    "fieldName": "ro_inout_reason",
+                    "html": "<div style=\"color:#fff;background-color:#1e90ff;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">入观察清单<br/>事由</div>",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "RO_CHECK_RESULT_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RO_CHECK_RESULT_col",
+                    "fieldName": "ro_check_result",
+                    "html": "<div style=\"color:#fff;background-color:#1e90ff;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">入观察清单<br/>检查结果</div>",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "CO_INOUT_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CO_INOUT_DATE_col",
+                    "fieldName": "co_inout_date",
+                    "html": "<div style=\"color:#fff;background-color:#6495ed;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">出观察清单<br/>日期</div>"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CO_FILL_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CO_FILL_DATE_col",
+                    "fieldName": "co_fill_date",
+                    "html": "<div style=\"color:#fff;background-color:#6495ed;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">出观察清单<br/>填报日期</div>"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CO_INOUT_REASON_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CO_INOUT_REASON_col",
+                    "fieldName": "co_inout_reason",
+                    "html": "<div style=\"color:#fff;background-color:#6495ed;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">出观察清单<br/>事由</div>",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "CO_CHECK_RESULT_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CO_CHECK_RESULT_col",
+                    "fieldName": "co_check_result",
+                    "html": "<div style=\"color:#fff;background-color:#6495ed;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">出观察清单<br/>检查结果</div>",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "RL_INOUT_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RL_INOUT_DATE_col",
+                    "fieldName": "rl_inout_date",
+                    "html": "<div style=\"color:#fff;background-color:#4169e1;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">入限制清单<br/>日期</div>"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "RL_FILL_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RL_FILL_DATE_col",
+                    "fieldName": "rl_fill_date",
+                    "html": "<div style=\"color:#fff;background-color:#4169e1;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">入限制清单<br/>填报日期</div>"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "RL_INOUT_REASON_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RL_INOUT_REASON_col",
+                    "fieldName": "rl_inout_reason",
+                    "html": "<div style=\"color:#fff;background-color:#4169e1;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">入限制清单<br/>事由</div>",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "RL_CHECK_RESULT_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RL_CHECK_RESULT_col",
+                    "fieldName": "rl_check_result",
+                    "html": "<div style=\"color:#fff;background-color:#4169e1;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">入限制清单<br/>检查结果</div>",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "CL_INOUT_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CL_INOUT_DATE_col",
+                    "fieldName": "cl_inout_date",
+                    "html": "<div style=\"color:#fff;background-color:#4472c4;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">出限制清单<br/>日期</div>"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CL_FILL_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CL_FILL_DATE_col",
+                    "fieldName": "cl_fill_date",
+                    "html": "<div style=\"color:#fff;background-color:#4472c4;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">出限制清单<br/>填报日期</div>"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CL_INOUT_REASON_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CL_INOUT_REASON_col",
+                    "fieldName": "cl_inout_reason",
+                    "html": "<div style=\"color:#fff;background-color:#4472c4;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">出限制清单<br/>事由</div>",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "CL_CHECK_RESULT_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CL_CHECK_RESULT_col",
+                    "fieldName": "cl_check_result",
+                    "html": "<div style=\"color:#fff;background-color:#4472c4;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">出限制清单<br/>检查结果</div>",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "RQ_INOUT_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RQ_INOUT_DATE_col",
+                    "fieldName": "rq_inout_date",
+                    "html": "<div style=\"color:#fff;background-color:#44546a;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">静默期<br/>起始日期</div>"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CQ_INOUT_DATE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CQ_INOUT_DATE_col",
+                    "fieldName": "cq_inout_date",
+                    "html": "<div style=\"color:#fff;background-color:#44546a;padding:10px 20px 10px 10px;margin:-10px -20px -10px -10px;\">静默期<br/>终止日期</div>"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CHECK_STATUS_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CHECK_STATUS_col",
+                    "fieldName": "check_status",
+                    "text": "检查结果",
+                    "visible": "false"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_icon": "window",
+      "text": "selectUserWin",
+      "cls": "Wb.Window",
+      "_expanded": true,
+      "properties": {
+        "cid": "selectUserWin",
+        "width": "675",
+        "height": "500",
+        "title": "查询负责人",
+        "modal": "true"
+      },
+      "items": [
+        {
+          "_icon": "text",
+          "text": "query",
+          "cls": "Wb.Text",
+          "properties": {
+            "cid": "query",
+            "placeholder": "用户ID或用户名"
+          },
+          "events": {
+            "change": "app.grid2.load({params:{query:value}})"
+          },
+          "_expanded": false
+        },
+        {
+          "_icon": "grid",
+          "text": "grid2",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid2",
+            "url": "@xpath + '/../th_projlist_data/select-director'",
+            "full": "true"
+          },
+          "events": {
+            "itemdblclick": "app.selectUserWin.close();\napp.DIRECTOR.setValue(item.data.display_name);"
+          },
+          "hasDupCid": 0,
+          "_expanded": true,
+          "items": [
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "hasDupCid": 1,
+              "_expanded": true,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "rownum_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum_Col",
+                    "rowNum": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "recvIdCol",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "recvIdCol",
+                    "text": "用户ID",
+                    "fieldName": "user_id"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "recvNameCol",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "recvNameCol",
+                    "text": "用户名",
+                    "fieldName": "user_name"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "recvDisplayNameCol",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "recvDisplayNameCol",
+                    "text": "姓名",
+                    "fieldName": "display_name"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "recvDeptNameCol",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "recvDeptNameCol",
+                    "text": "部门",
+                    "fieldName": "dept_name"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

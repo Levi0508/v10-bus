@@ -1,0 +1,16 @@
+{
+  "title": "功能",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "flow_request_deal.xwl",
+    "upload.xwl",
+    "upload_image.xwl",
+    "get_image.xwl",
+    "download_file.xwl",
+    "download_file1.xwl",
+    "start_selfcheck_mail.xwl",
+    "start_selfcheck_flow.xwl"
+  ]
+}

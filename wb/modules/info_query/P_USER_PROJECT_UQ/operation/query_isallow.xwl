@@ -1,0 +1,1 @@
+{"title":"查询项目类型是否运行清单填报","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`{call THJS.P_PROJ_ISALLOWREPORT({*cursor|return*},{?I_PROJ_ID?},{?I_PROJ_TYPE?},{?I_USERNAME?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`);\n"},"_icon":"module"}

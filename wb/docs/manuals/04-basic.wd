@@ -1,0 +1,194 @@
+##开发基础.基础和模块文件
+WebBuilder 是一个完整的包含前台和后台功能的开发和运行环境。前台使用标准的 JavaScript/CSS/HTML 开发，后台使用Java/JS和其他相关语言开发。后台基于 Java EE 规范开发，同时支持使用多语言进行编程，这些代码均可以高性能地运行。WebBuilder 支持使用最新和最先进的前后台技术进行开发。
+#WebBuilder 目录结构
+系统默认包含2个目录，包括[WEB-INF]和[wb]目录。前者是系统运行依赖的一些jar包，后者由以下目录组成：
+-css：页面的 CSS 文件。
+-docs：文档目录。
+-images：图片目录。图标文件可以添加到该目录下。
+-js：客户端 JavaScript/模块目录。
+-libs：第三方的类库目录。
+-modules：xwl 模块文件目录。除文件名以"$"符号结尾的文件外，所有的文件是受保护的，即文件不能直接被客户端访问。
+-ss：服务端 JavaScript/模块目录。该目录下所有文件是受保护的。
+-system：系统目录，用于存放系统相关的文件。"config.json"文件为系统配置文件，"controls.json"文件为控件库文件，"url.json"为URL捷径配置文件，"db"目录为数据库相关目录，"resource"为系统资源目录。
+系统会自动遍历模块目录modules并提取可访问的模块标题生成应用{#%首页|home}的功能菜单树，可以通过调整模块目录/文件结构和顺序来组织应用结构。
+#模块文件
+WebBuilder 使用一种叫可扩展 Web 语言文件的 JSON 文件(Extensible Web Language)，简称为 xwl 文件，来保存应用的逻辑和代码。xwl文件即可以作为前台模块，也可以作为后台模块，还可以作为同时包含前台和后台功能的模块。前台模块可以直接被编译为JS/CSS/HTML在客户端运行，后台模块可以直接被编译为本地码高性能地在服务器端运行。模块文件除了作为Web服务被客户端直接请求调用外，也可以作为普通的模块使用，比如通过Java调用xwl模块作为计划任务模块。
+部署在模块目录（wb/modules）下的每个xwl文件，都可以作为一个 web 模块被客户端请求调用。每个模块都有唯一的URL，URL地址为"m?xwl=path"，path为基于模块目录的相对路径，例如用户管理模块"admin/user.xwl"，其对应的URL地址"m?xwl=admin/user"，文件扩展名"xwl"省略。另外我们可以给模块设置一个URL捷径如"user"，然后即可通过URL地址"user"来访问到该模块。
+当客户端请求一个模块时，系统会在过滤器中拦截该请求并交由模块执行器去执行该模块。如果模块返回客户端脚本或其他内容，这些内容会被输出到客户端。
+{@wb-arch1}
+xwl 模块的运行流程：
+-客户端请求 xwl 文件，比如通过发起 ajax 请求或在地址栏输入模块文件的url地址，如：m?xwl=admin/user
+-服务器从缓存中读取编译好的 xwl 模块文件。
+-检查当前用户是否需要登录，如果未登录把登录页面发送到客户端。
+-检查当前用户是否具有执行该模块的权限，如果无权限则抛出异常信息。
+-检查模块是否包含服务器端脚本（在"module.serverScript"属性中定义的脚本），如果包含将高性能地执行这些预编译为本地码后的脚本。
+-检查模块是否包含客户端脚本（除"module.serverScript"属性外定义的组件或脚本），如果包含将把预生成并放置在缓存中的客户端脚本一次性发送到客户端。如果客户端脚本未发生变化，将仅发送304状态码。
+-客户端接收到脚本后，如果这些脚本是JavaScript可执行脚本则在客户端执行。
+#创建模块
+下面以创建[人员管理]应用功能为例演示如何创建模块。
+首先进入{#%集成开发环境|ide}，在文件浏览器的模块节点下选择[开发套件]节点，然后在工具栏点击[添加目录]按钮，系统将显示创建目录对话框，在对话框中输入以下信息：
+-名称：test
+-标题：测试
+-图标：选择archive图标{[archive]}
+-勾选[在当前条目前插入]
+点击确定按钮后，即在[开发套件]目录前创建了[测试]目录。
+添加人员模块：
+选择新创建的[测试]目录，然后点击[添加文件]按钮，系统将显示创建模块文件对话框，在对话框中输入以下信息：
+-名称：person
+-标题：人员管理
+-图标：选择user2图标{[user2]}
+点击确定按钮后，即在[测试]目录内创建了[人员管理]模块。
+打开[人员管理]模块后，可以拖动右侧控件箱中的[viewport]控件到该模块内，也可以通过双击[General->viewport]控件来添加该控件。选择模块内的[viewport1]控件，并设置
+其"layout"属性为"fit"。按[Ctrl]键并双击[List View->grid]控件来添加该控件到[viewport1]控件下。
+添加人员目录：
+选择新创建的[测试]目录，然后点击[添加目录]按钮，系统将显示创建目录对话框，在对话框中输入以下信息：
+-名称：person
+-标题：人员管理
+-勾选[在菜单列表中隐藏]
+点击确定按钮后，即在[测试]目录内创建了[人员管理]目录。该目录作为[人员管理]模块的隐藏的子目录将在应用{#%首页|home}中隐藏，用于存放后台模块。
+添加后台查询模块：
+选择新创建的[人员管理]目录，然后点击[添加文件]按钮，系统将显示创建模块文件对话框，在对话框中输入以下信息：
+-名称：select
+-标题：查询
+点击确定按钮后，即在[人员管理]目录内创建了[查询]模块。
+打开[查询]模块后，在[module]节点的"serverScript"属性内添加以下代码：
+
+     Wb.sendRowx('select * from wb_staff');
+
+点击工具栏上的保存按钮以保存该模块。
+编辑和运行人员模块：
+双击[person.xwl]节点，打开该模块，并选择[grid1]控件。拖动文件浏览器中的[select.xwl]节点至模块编辑器内[grid1]控件的url属性，以把[select.xwl]模块的URL设置到[grid1]的url属性。保存[person.xwl]文件后，
+点击工具栏上的[运行]按钮以运行[person.xwl]模块。
+转到系统的{#%首页|home}，将看到新添加的[测试]目录，以及该目录内的[人员管理]模块，点击[人员管理]即可看到以表格方式显示的人员数据。
+#引用js和css文件
+系统提供3种方法来引用js和css文件：
+-全局引用：前端的js/css文件可以在{#%系统配置|config}模块的"sys.app.links"属性中引用，后台的js文件可以在{#%系统配置|config}模块的"sys.ss.files"属性中引用。系统启动后资源全局有效。常用的js/css文件可以通过该方式加载。
+-模块引用：前端的js/css文件可以在xwl模块文件的module节点的links属性中引入。模块执行后引用的资源有效。模块内在使用的js/css文件可以通过该方式加载。
+-代码引用：前端的js/mjs/css文件可以使用方法{#Wb.load}加载，后端的js/mjs/xwl文件可以使用{#Wb.load}，{#Wb.run}，{#Wb.invoke}，{#Wb.execute}加载。该方式可以使用代码进行动态的js/mjs/css/xwl文件的加载和运行。
+#服务器端脚本
+每个模块的module节点都有serverScript属性，该属性用于编写当模块被调用时执行的服务器端脚本，详见{#开发基础.JavaScript 开发}。
+#模块内的app对象
+模块前后端都有名称为"app"的对象变量，用于共享变量和传递参数等。
+在前端该"app"对象是整个模块内可访问的对象，通常把一些全局的属性和方法定义到该对象。前端app对象内的onLoad方法为模块每次加载后执行的方法，该方法同{#finalize|Wb.Module.finalize}的区别为，前者无论模块是否为单例，只要加载该模块该方法均会执行，
+后者单例的模块加载后仅首次执行。前端app对象内的onDestroy方法为模块销毁后执行的方法。
+例如在{#initialize|Wb.Module.initialize}事件中定义以下代码：
+
+     Wb.apply(app, {
+       onLoad(){
+         Wb.tip('Module loaded'); //模块加载后执行的方法
+       },
+       onDestroy(){
+         Wb.tip('Module destroyed'); //模块销毁后执行的方法
+       },
+       myProp: 'abc', // 共享的属性，整个模块可访问
+       myMethod(param){ // 共享的方法，整个模块可访问
+       }
+     });
+     app.myParam = 'foo'; // 自定义整个模块可访问的变量
+
+在后端该"app"对象贯穿整个执行上下文的生命周期，在执行开始时创建该对象，在执行结束后释放该对象，在该执行上下文内的所有模块获得的该"app"对象都是相同的。
+例如以下代码：
+在test1.xwl的serverScript编写以下的代码：
+
+     app.myParam = 'foo';
+
+在test2.xwl的serverScript执行以下的代码：
+
+    Wb.run('test1.xwl'); // 执行test1.xwl的serverScript
+    Wb.log(app.myParam); // 在ide控制台输出"foo"
+
+由于整个执行上下文内的"app"是相同的，因此test2.xwl可以获得在test1.xwl中定义的app.myParam变量。
+请注意无论前端代码还是后端代码尽量不要把变量设置到globalThis，替代的方案是把变量设置到"app"。
+#模块客户端的容器组件
+当模块在客户端的容器内运行时，比如运行在{#%主页|home}的选项卡内，可以通过{{parentContainer}}变量来访问容器，当模块运行在容器外时该变量为{{undefined}}。以下代码将关闭当前模块客户端界面：
+
+     parentContainer ? parentContainer.close() : window.close();
+
+#无需登录访问模块
+默认每个模块都需要登录后才可以被访问，可以设置模块module节点的loginRequired属性为false，使模块无需登录即可访问。请注意，如果模块通过客户端去调用需要登录的模块，例如通过{#Wb.ajax}方法调用需要登录的模块，在调用时依然需要登录。模块访问权限由{#%权限管理|perm}模块进行控制。
+##开发基础.事件和监听器
+在本文档中，“事件”特指Wb类的事件{#events|Wb.Base.events}；“监听器”特指基于页面DOM元素的监听器{#listeners|Wb.Component.listeners}。前端基于DOM元素的类（组件）既有事件又有监听器，比如按钮具有预置的{#click|Wb.Component.click}事件，同时我们也可以对按钮关联的元素{#el|Wb.Component.el}添加click监听器来监听按钮的点击，这两者具有相同的效果。监听器的详细说明请参考{#%Event}。
+#使用事件
+事件可以观察发生在Wb类对象实例上的行为，例如通过view的{#success|Wb.View.success}事件可以在view加载成功后执行相关操作。在IDE设计阶段可以直接设置view的sucess事件，在运行阶段也可以通过{#on|Wb.Base.on}方法来添加事件：
+
+     view.on('success', resp => { doSomething(); }); //观察加载成功事件，当view销毁时事件自动移除。
+     button.on('click', e => console.log('clicked')); //观察点击事件，当button销毁时事件自动移除。
+
+当需要从一个实例或组件上移除事件时，可以通过{#un|Wb.Base.un}方法来移除事件：
+
+     view.un('success', fn); // fn必须指向添加事件时设置的函数，fn不可以重新定义新的函数
+
+#使用监听器
+监听器可以观察发生在DOM元素上的行为，例如通过button的mouseenter监听器可以监听鼠标进入到button时的行为。添加监听器使用{#mon|Wb.Component.mon}方法，比如在button的{#ready|Wb.Configurable.ready}事件内添加以下代码：
+
+     button.mon('mouseenter', e => { doSomething(); }); //监听鼠标进入到button，当button销毁时监听器自动移除。
+     component.mon(el, 'click', e => {doSomething();}, scope, {once: true, capture: true}); //监听指定元素el的click单次事件，当component销毁时el上的监听器自动移除。
+
+当需要从一个组件上显式移除监听器，可以通过{#mun|Wb.Component.mun}方法来移除监听器：
+
+     button.mun('mouseenter', fn); // fn必须指向添加监听时设置的函数，fn不可以重新定义新的函数
+
+##开发基础.JavaScript 开发
+系统的开发分为前端开发和后端开发，前端开发通常使用{#%JavaScript|docs:Web/JavaScript}语言进行开发，后端可以使用包括{#%Java|https://www.w3schools.com/java}，{#%JavaScript|docs:Web/JavaScript}，Python等语言进行开发。由于
+前端使用JavaScript进行开发，因此建议后端也使用JavaScript进行开发，后端使用JavaScript开发有以下优点：
+-前后端共享JavaScript代码，最大限度提升代码的通用性。
+-降低对开发人员的要求，前后端使用同一种开发语言降低学习和使用难度。
+-可以使用JavaScript语法访问Java类库，使用JavaScript的最新特性灵活高效地使用任意Java类库。详见{#%common-usage|ide?openModule=example/coding/server-js/common-usage.xwl}示例。
+#JavaScript类
+通过关键字class可以创建JavaScript类。例如以下的代码：
+
+
+     class myClassName {
+     }
+
+上述代码定义了一个普通类，可以通过类名访问或把该类赋值给一个变量。非全局的类可以把类的定义代码放到代码片断或mjs模块文件内。
+另外可以把类赋值给一个全局变量来创建一个全局类，例如以下的代码：
+
+
+     Cls['My.pack.ClassName'] = class myClassName extends Wb.Base {
+     }
+
+上述代码中"Cls"为Proxy对象，使用Cls['My.pack.ClassName']定义了一个基于globalThis的全局类。当创建该类的代码加载后，可以在任意代码处通过{{My.pack.ClassName}}来访问该类。全局的类可以把类的定义代码
+放到js文件内。
+#快速定义getter和setter
+使用{#Wb.define}方法可以快速定义getter和setter。
+例如通过以下代码扩展"app"的属性和方法。
+
+     Wb.define(app, {
+       /** @property {String} - Setter description. */
+       set$name(value) {
+       },
+       /** @property {String} - Getter description. */
+       get$name() {
+       },
+       /**
+        * Function description.
+        */
+       myMethod() {
+       }
+     });
+
+#扩展的原型属性和方法
+系统对{#String}，{#Number}，{#Date}，{#Object}，{#Array}，{#Map}，{#Set}等类型提供了扩展的原型属性和方法，以提高开发能力和效率。
+如以下的代码：
+
+     date = '2021-03-12 14:19:39.614'.dateValue; // 日期字符串转日期值
+     val = (12345.625).format('$#,##0.00'); // 格式化为 "$12,345.63"
+     val = (1234.5).cny; // 格式化为 "¥1,234.50"
+     date = new Date().addDay(3); // 当前日期增加3天
+
+#判断值的类型
+判断值的类型在开发中较常用，比如通过判断输入参数的不同类型实现不同的功能。
+以下的方法可以判断值的类型：
+-{#Wb.isString}：判断是否为字符串。
+-{#Wb.isNumber}：判断是否为数值。
+-{#Wb.isNumeric}：判断是否可以转换为数值。
+-{#Wb.isDate}：判断是否可以为日期。
+-{#Wb.isBoolean}：判断是否可以为布尔值。
+-{#Wb.isArray}：判断是否为数值。
+-{#Wb.isObject}：判断是否为对象。
+-{#Wb.isFunction}：判断是否为函数。
+-{#Wb.isPrimitive}：判断是否为原始数值类型。
+-{#Wb.isIterable}：判断是否可遍历。
+-{#Wb.isEmpty}：判断是否为空值，null，undefined，空对象或空数组。
+更多示例请参考：{#%coding|ide?openModule=example/coding}

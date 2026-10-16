@@ -1,0 +1,16 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "client_report.xwl",
+    "client_manage.xwl",
+    "maintainer.xwl",
+    "maintainer_query.xwl",
+    "my_clients.xwl",
+    "country.xwl",
+    "beneficial_type.xwl",
+    "audit_type.xwl"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "select.xwl",
+    "edit.xwl",
+    "add.xwl",
+    "del.xwl"
+  ]
+}

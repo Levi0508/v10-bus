@@ -1,0 +1,296 @@
+{
+  "title": "已完成/未完成自查项目",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1"
+      },
+      "_expanded": true,
+      "events": {
+        "keydown": "// if (e.keyCode == '13') {\n//   app.seekBtn.fireClick()\n// }"
+      },
+      "items": [
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "border": "false",
+            "layout": "grid4",
+            "visible": "false"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "text",
+              "text": "PROJID",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "PROJID",
+                "text": "项目编号",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "CUSTNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "CUSTNAME",
+                "text": "公司全称",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "STKCODE",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "STKCODE",
+                "text": "证券代码",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "STKNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "STKNAME",
+                "text": "股票简称",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "combo",
+              "text": "PROJTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "PROJTYPE",
+                "text": "业务类型",
+                "url": "@xpath + '/../ADMIN_PROJLIST/operation/p_projlist_projtype_q'",
+                "valueField": "projtype",
+                "textField": "projtype_desc"
+              },
+              "hasDupCid": 0,
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "DIRECTOR",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "DIRECTOR",
+                "text": "项目负责人"
+              },
+              "_expanded": true,
+              "events": {
+                "click": "app.selectUserWin.show();"
+              }
+            },
+            {
+              "_icon": "text",
+              "text": "DEPTNAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "DEPTNAME",
+                "text": "部门名称",
+                "placeholder": "请输入"
+              },
+              "hasDupCid": 0,
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "LISTTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "LISTTYPE",
+                "text": "清单类别",
+                "data": "[\n  [\n    '所有', '0',\n  ],\n  [\n    '观察清单', '1'\n  ],\n  [\n    '限制清单', '2'\n  ],\n  [\n    '静默期', '3'\n  ]\n]"
+              }
+            },
+            {
+              "_icon": "combo",
+              "text": "INOUTTYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "INOUTTYPE",
+                "text": "出入单类型",
+                "data": "[\n  [\n    '全部', '0'\n  ],\n  [\n    '入单', '1'\n  ],\n  [\n    '出单', '2'\n  ]\n]"
+              },
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "DATETYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "DATETYPE",
+                "text": "日期类型",
+                "data": "[\n  [\n    '全部', '0'\n  ],\n  [\n    '发生日期', '1'\n  ],\n  [\n    '填报日期', '2'\n  ]\n]"
+              },
+              "_expanded": true
+            },
+            {
+              "_icon": "calendar",
+              "text": "BEGINDATE",
+              "cls": "Wb.Date",
+              "properties": {
+                "cid": "BEGINDATE",
+                "text": "起始日期",
+                "format": "y-MM-dd"
+              }
+            },
+            {
+              "_icon": "calendar",
+              "text": "ENDDATE",
+              "cls": "Wb.Date",
+              "properties": {
+                "cid": "ENDDATE",
+                "text": "截止日期",
+                "format": "y-MM-dd"
+              }
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid1",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid1",
+            "pagingBar": "pageNums",
+            "pageSize": "100",
+            "full": "true",
+            "border": "false",
+            "url": "@xpath + '/selfcheck_projlist_query'",
+            "emptyHint": "true",
+            "multiSelect": "true"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "events": {
+            "click": "let link = e.target.closest('.viewBtn');\nif (link) {\n  let row = this.findItemByEl(link);\n  console.log(\"row\", row);\n  Wb.ajax({\n    url: 'm?xwl=info_query/projlist_data/inout_q',\n    params: {\n      i_projid: row.data.projid,\n      i_usercode: '_$sys.username$_'\n    },\n    success(resp) {\n      var scope = Wb.decode(resp).items[0];\n      scope.deptname = row.data.dept_name;\n      var card, encodedParams = scope.projid;\n      scope.state = 'info';\n      if (window.destTabPanel) {\n        window.destTabPanel.items.each(function (item) {\n          if (item.detailParams == encodedParams) {\n            card = item;\n            return false;\n          }\n        });\n        if (card) {\n          destTabPanel.setActiveTab(card);\n          return;\n        }\n      }\n      card = Wb.open({\n        url: 'm?xwl=info_query/projlist/projlist_form_container',//yufang\n        params: scope,\n        title: '清单查看 - ' + scope.custname,\n        success(scope) {\n        }\n      });\n      if (card) {\n        card.detailParams = encodedParams;\n        window.destTabPanel = card.ownerCt;\n      }\n    }\n  });\n}",
+            "itemdblclick": "console.log(\"item\", item);",
+            "beforeload": "params.check_batch_id = '_$check_batch_id$_'\nparams.check_result = '_$check_result$_'"
+          },
+          "items": [
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "rownum1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum1_Col",
+                    "rowNum": "true",
+                    "width": "80",
+                    "text": "序号"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJCODE_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJCODE_col",
+                    "text": "项目编号",
+                    "fieldName": "projcode",
+                    "minWidth": "200"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "KHNAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "KHNAME_col",
+                    "text": "公司全称",
+                    "fieldName": "khname",
+                    "draggable": "false",
+                    "minWidth": "300"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "STAFF_ID_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "STAFF_ID_col",
+                    "text": "项目负责人工号",
+                    "fieldName": "staff_id",
+                    "minWidth": "200"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPTMANANAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPTMANANAME_Col",
+                    "text": "项目负责人姓名",
+                    "fieldName": "deptmananame",
+                    "minWidth": "200"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "DEPT_NAME_col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DEPT_NAME_col",
+                    "text": "部门名称",
+                    "fieldName": "dept_name",
+                    "minWidth": "300"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "OP_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "OP_Col",
+                    "render": "let a = el.addEl('viewBtn', 'a');\nel.cls = 'w-ta-center';\na.textContent = '查看清单详情';"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

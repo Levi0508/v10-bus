@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Get role data","serverScript":"function main(){let e=Wb.load(\"../dialog-util.mjs\");Wb.send(e.getData(Wb.getObject(\"ids\"),\"select sid,role_name from wb_role\"))}main();"},"_icon":"module"}

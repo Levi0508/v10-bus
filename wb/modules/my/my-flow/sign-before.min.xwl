@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Add signature before approval","serverScript":"function main(){const n=Wb.load(\"./util.mjs\");n.doAction(\"signBefore\")}main();"},"_icon":"module"}

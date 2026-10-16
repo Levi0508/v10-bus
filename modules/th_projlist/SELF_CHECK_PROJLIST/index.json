@@ -1,0 +1,17 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "perm_conf",
+    "operation",
+    "SELFCHECK_PROJLIST_HIS1.xwl",
+    "SELFCHECK_PROJLIST_HIS.xwl",
+    "SELFCHECK_PROJLIST_HIS",
+    "SELEFCHECK_PROJLIST_DETAIL1.xwl",
+    "SELEFCHECK_PROJLIST_DETAIL.xwl",
+    "SELFCHECK_PROJLIST_QUERY.xwl",
+    "SELFCHECK_PROJLIST_QUERY"
+  ]
+}

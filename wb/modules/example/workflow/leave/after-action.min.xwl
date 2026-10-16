@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.info(\"after flow action: \"+app.action);Wb.info(\"after flow id: \"+app.flow.flowId);"},"_icon":"module"}

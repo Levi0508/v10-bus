@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"true","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"SELECT  NOTICE_TITLE,NOTIC_CONTENT,TRUNC(CREATE_TIME,'D') AS CREATE_TIME,ORDER_INDEX  FROM  THJS.TB_HG_NOTICE\nwhere status=0\n ORDER BY ORDER_INDEX DESC ,\nCREATE_TIME DESC,\nNOTICE_TITLE\n ;0"},"_icon":"module","_expanded":true}

@@ -1,0 +1,16 @@
+{
+  "title": "@myApp",
+  "icon": "briefcase",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "my-flow.xwl",
+    "my-flow",
+    "home_bak.xwl",
+    "home.xwl",
+    "menu_active",
+    "mod-tb",
+    "mod",
+    "page"
+  ]
+}

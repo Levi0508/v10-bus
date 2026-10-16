@@ -1,0 +1,1 @@
+{"title":"上市公司股票匹配","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`{call THJS.p_projlist_stk_q({*cursor|return*},{?i_comp_name?},{?i_stk_code?},{?i_stk_name?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`)"},"_icon":"module"}

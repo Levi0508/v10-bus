@@ -1,0 +1,16 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "select.xwl",
+    "client_add.xwl",
+    "client_preview.xwl",
+    "client_edit.xwl",
+    "client_edit_test.xwl",
+    "client_appr.xwl",
+    "new_client_id.xwl",
+    "client_appr_test.xwl"
+  ]
+}

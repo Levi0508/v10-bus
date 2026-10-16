@@ -1,0 +1,17 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "select.xwl",
+    "flow_request_deal.xwl",
+    "flow_request_deal1.xwl",
+    "select_client_proj.xwl",
+    "update_client_status.xwl",
+    "select_fk_flag.xwl",
+    "select_his_proj.xwl",
+    "his_proj_table.xwl",
+    "buttons"
+  ]
+}

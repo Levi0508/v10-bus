@@ -1,0 +1,42 @@
+{
+  "title": "编辑客户页面",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "links": "[\"wb/custom-made/vue/vue.js\",\"wb/custom-made/vue/element.js\",\"wb/custom-made/vue/element.css\",\"wb/custom-made/css/prs01.css\"]",
+    "serverScript": "Wb.set({\n  organ_flag: Wb.get('ORGAN_FLAG'),\n  client_belong: Wb.get('CLIENT_BELONG'),\n  client_id: Wb.get('CLIENT_ID'),\n  client_name: Wb.get('CLIENT_NAME'),\n  client_status: Wb.get('CLIENT_STATUS'),\n  fk_flag: Wb.get('FK_FLAG'),\n  data_type: Wb.get('DATA_TYPE'),\n  key: Wb.get('KEY'), // 只有从工作室填报时会传递的参数\n  cur_user: Wb.get('CUR_USER')// 工作室传递的i_usercode\n});\n\nWb.info(\"let object = Wb.get();\")\nWb.info(Wb.get());"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1",
+        "layout": "fit"
+      },
+      "events": {
+        "ready": "app.xwl1.ORGAN_FLAG = '_$organ_flag$_';\napp.xwl1.CLIENT_ID = '_$client_id$_';\n// app.xwl1.CLIENT_BELONG = '_$client_belong$_';\n\nconsole.log(\"organ_flag\",'_$organ_flag$_');\nconsole.log(\"client_id\",'_$client_id$_');\nconsole.log(\"client_belong\",'_$client_belong$_');\n\n"
+      },
+      "_expanded": true,
+      "items": [
+        {
+          "_icon": "module",
+          "text": "xwl1",
+          "cls": "Wb.Xwl",
+          "properties": {
+            "cid": "xwl1",
+            "path": "aml_monitor/workflow/prs01/base/base_edit.xwl"
+          }
+        }
+      ]
+    }
+  ]
+}

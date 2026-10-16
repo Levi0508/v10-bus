@@ -1,0 +1,14 @@
+{
+  "title": "附件预览",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var HttpUtil = Packages.cn.hutool.http.HttpUtil;\nvar Method = Packages.cn.hutool.http.Method;\n\nvar params_file = {\n  \"clientId\": Wb.get('clientId'),\n  \"extension\": Wb.get('extension'),\n  \"fileName\": Wb.get('fileName'),\n  \"fileTypeNo\": Wb.get('fileTypeNo'),\n  \"id\": Wb.get('id')\n};\n\nvar data = JSON.stringify(params_file);\n\nvar url = 'http://10.116.131.13:8094/thfxq/previewFile'; //国泰客户信息审核流程生产环境\n\n//调用接口\n// var resp = Packages.cn.hutool.http.HttpUtil\n//   .createPost(url)\n//   .header('Content-Type', 'application/json;charset=utf-8')\n//   .body(Packages.cn.hutool.json.JSONUtil.toJsonStr(data))\n//   .execute()\n//   .body();\n\n//后端是用requestParam取的数据，需要用form传参。如果是用requestBody取的数据才用body传参\nvar resp = Packages.cn.hutool.http.HttpUtil\n  .createPost(url)\n  // .header('Content-Type', 'application/json;charset=utf-8')\n  .form(\"clientId\", Wb.get('clientId'))\n  .form(\"extension\", Wb.get('extension'))\n  .form(\"fileName\", Wb.get('fileName'))\n  .form(\"fileTypeNo\", Wb.get('fileTypeNo'))\n  .form(\"id\", Wb.get('id'))\n  .execute()\n  .body();\n\nWb.info(\"resp===============\");\nWb.info(resp);\nWb.send(resp);"
+  },
+  "_icon": "module"
+}

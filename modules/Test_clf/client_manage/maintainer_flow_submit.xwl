@@ -1,0 +1,14 @@
+{
+  "title": "下发全链接 客户维护人变更流程",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var HttpUtil = Packages.cn.hutool.http.HttpUtil;\nvar Method = Packages.cn.hutool.http.Method;\n\nvar url = \"http://10.116.131.13:8094/auto/submit\";\n\nlet formDatas = Wb.decode(Wb.get('formDatas')) || [];\nfor (let i = 0; i < formDatas.length; i++) {\n  let formData = {\n    \"CLIENT_ID\": formDatas[i].CLIENT_ID,\n    \"CLIENT_NAME\": formDatas[i].CLIENT_NAME,\n    \"ORGAN_FLAG\": formDatas[i].ORGAN_FLAG,\n    \"OP_FLAG\": '102' // 260720孔娟娟：新系统该流程无需经过合规人员，下发时强制走102条线直接结束\n  }\n  let obj = {\n    \"todoTitle\": formDatas[i].CLIENT_NAME + '维护人变更',\n    \"sysGuid\": 'IBCM',\n    \"flowCode\": 'IBCM004',\n    \"formData\": JSON.stringify(formData),\n    \"templateName\": formDatas[i].CLIENT_NAME + '维护人变更',\n    \"flowVer\": '1',\n    \"nodeCode\": 'draft',\n    \"applyTable\": 'T_TH_MAINTAIN_FLOW',\n    \"candidates\": Wb.get('candidates')\n  };\n  let data = JSON.stringify(obj);\n\n  let resp = Packages.cn.hutool.http.HttpUtil\n    .createPost(url)\n    .header(\"Content-Type\", \"application/json;charset=utf-8\")\n    .header(\"x-flow-systemId\", Wb.get('x-flow-systemId'))\n    .header(\"x-userId\", Wb.get('x-userId'))\n    .header(\"x-userName\", Wb.get('x-userName'))\n    .body(Packages.cn.hutool.json.JSONUtil.toJsonStr(data))\n    .execute()\n    .body();\n\n  const res = Wb.decode(resp);\n\n  // 若中途下发失败 返回错误信息到前台\n  if (res.code != 0) {\n    Wb.send(res);\n  }\n\n  // 若下发到最后一条流程结束 返回成功信息到前台\n  if (i == formDatas.length - 1) {\n    Wb.send(res);\n  }\n}\n\n\n\n"
+  },
+  "_icon": "module"
+}

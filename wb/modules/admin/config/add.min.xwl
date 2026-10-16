@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Add config item","serverScript":"Wb.checkDemo();function main(){let{nameEditor:i,typeEditor:t,valueEditor:e,listEditor:o,descEditor:a}=Params;Config.set(i,e,t,o,a)}main();"},"_icon":"module"}

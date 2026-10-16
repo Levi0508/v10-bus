@@ -1,0 +1,1 @@
+{"title":"查询标题","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let sql = 'select distinct notice_title from thjs.tb_hg_notice n where n.status = 0'\nWb.sendRowx(sql);\n"},"_icon":"module"}

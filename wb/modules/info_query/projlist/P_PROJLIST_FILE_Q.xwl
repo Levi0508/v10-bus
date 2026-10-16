@@ -1,0 +1,372 @@
+{
+  "title": "附件补充",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "links": "[\"wb/custom-made/vue/vue.js\",\"wb/custom-made/vue/element.js\",\"wb/custom-made/vue/element.css\"]"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1"
+      },
+      "_expanded": true,
+      "events": {
+        "ready": "setTimeout(()=>{app.seekBtn.fireClick()},500);"
+      },
+      "items": [
+        {
+          "_icon": "button",
+          "text": "button1",
+          "cls": "Wb.Button",
+          "properties": {
+            "cid": "button1",
+            "text": "附件上传",
+            "type": "primary",
+            "icon": "upload",
+            "width": "150"
+          },
+          "events": {
+            "click": "var record = app.grid1.selection;\n\nif (!record) {\n  Wb.info('请选中一条数据 !');\n  return;\n} else {\n  var data = record.data;\n  Wb.ajax({\n    url: xpath + '/select_xmfzr_info',\n    params: {\n      i_projid: '_$projId$_'\n    },\n    success(resp) {\n      let res = Wb.decode(resp);\n      if (res.items) {\n        Wb.ajax({\n          url: 'm?xwl=th_projlist/my_projlist/operation/select_candidates_hg',\n          params: {\n            i_staff_id: res.items[0]?.staff_id,\n            i_projid: '_$projId$_'\n          },\n          success(resp) {\n            let res1 = Wb.decode(resp);\n            app.addWin.show();\n            if (res.items[0] && res1.items[0]) {\n              res.items[0].candidates = res1.items[0].manager_user_id\n            }\n            app.xmfzrInfo.setValue(JSON.stringify(res.items))\n          }\n        });\n      };\n      app.saveFileData.setValue(JSON.stringify(data));\n    }\n  })\n}\n\n"
+          },
+          "hasDupCid": 0
+        },
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "border": "false",
+            "layout": "fit",
+            "html": "<div style='padding:4px 12px;color:#e74c3c;font-weight: bold'> \n  附件上传注意事项:<br/>\n  &nbsp;&nbsp;1、系统可以多次上传附件，但后一次上传附件会覆盖前一次上传附件。<br/>\n  &nbsp;&nbsp;2、一次上传附件有两个或多个文件，必须做成压缩包上传，否则有覆盖现象。<br/>\n  &nbsp;&nbsp;3、上传附件有先后，先上传一个文件，后期补充上传另一个文件。必须将前一个文件下载后与后一个文件压缩后再上传。\n</div>"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "text",
+              "text": "I_PROJID",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "I_PROJID",
+                "value": "_$projId$_"
+              }
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid1",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid1",
+            "pagingBar": "pageNums",
+            "pageSize": "100",
+            "full": "true",
+            "border": "false",
+            "url": "@xpath + '/select'",
+            "emptyHint": "true"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "events": {
+            "click": "let link = e.target.closest('.my-link');\nif (link) {\n  let row = this.findItemByEl(link);\n  console.log(\"=====row\", row)\n  Wb.download({\n    url: xpath + '/download_file',\n    params: {\n      disk_url: row.data.filepath\n    }\n  })\n}"
+          },
+          "items": [
+            {
+              "_icon": "toolbar",
+              "text": "tbar",
+              "cls": "Wb.Toolbar",
+              "properties": {
+                "cid": "tbar",
+                "gap": "true",
+                "layout": "form-compact",
+                "isProperty": "true",
+                "border": "false",
+                "visible": "false"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "right1",
+                  "text": "fill1",
+                  "cls": "Wb.Fill",
+                  "properties": {
+                    "cid": "fill1"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "seekBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "seekBtn",
+                    "text": "查询",
+                    "type": "primary",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "let data = Wb.getValue(app.panel1)\nconsole.log(\"data=---------\",data)\nif(Wb.verify(app.panel1)){\n  app.grid1.load({\n    comps:app.panel1,\n    params:{\n      I_PROJID:'_$projId$_'\n    },\n  })\n}\n"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "resetBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "resetBtn",
+                    "text": "重置",
+                    "roundBorder": "true"
+                  },
+                  "events": {
+                    "click": "app.CLIENT_NAME.setValue('');\napp.MAINTAINER.setValue('');\napp.grid1.load()"
+                  }
+                }
+              ]
+            },
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "rownum1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum1_Col",
+                    "rowNum": "true",
+                    "width": "60"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "BUSIDATE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "BUSIDATE_Col",
+                    "text": "业务日期",
+                    "fieldName": "busidate",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJID_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJID_Col",
+                    "text": "PROJID",
+                    "fieldName": "projid",
+                    "minWidth": "300",
+                    "visible": "false"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "BATCH_ID_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "BATCH_ID_Col",
+                    "text": "BATCH_ID",
+                    "fieldName": "batch_id",
+                    "minWidth": "250",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "BATCH_DESC_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "BATCH_DESC_Col",
+                    "text": "批次",
+                    "fieldName": "batch_desc"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "INOUT_ID_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "INOUT_ID_Col",
+                    "text": "出入单ID",
+                    "fieldName": "inout_id",
+                    "keyValue": "true",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "INOUT_DESC_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "INOUT_DESC_Col",
+                    "fieldName": "inout_desc",
+                    "keyValue": "true",
+                    "text": "阶段名称"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "FILEPATH_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "FILEPATH_Col",
+                    "fieldName": "filepath",
+                    "keyValue": "true",
+                    "text": "文件路径",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "FILE_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "FILE_NAME_Col",
+                    "fieldName": "file_name",
+                    "text": "文件名称",
+                    "width": "300"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "UPDATE_USER_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "UPDATE_USER_Col",
+                    "fieldName": "update_user_name",
+                    "keyValue": "true",
+                    "text": "操作人"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "UPDATE_TIME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "UPDATE_TIME_Col",
+                    "fieldName": "update_time",
+                    "text": "操作时间",
+                    "width": "200"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "downloadCol",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "downloadCol",
+                    "fieldName": "rl_inout_reason",
+                    "keyValue": "true",
+                    "text": "下载",
+                    "render": "// return `<a href=`+data.filepath+` target=\"_blank\" download>下载</a>`;\n// console.log(\"el----\",el)\n// // this.el = `<td class=\"w-text\">下载</td>`\n// let html = `<a>111</a>`\n// return html;\n\nlet a = el.addEl('my-link', 'a');\nel.cls = 'w-ta-center';\na.textContent = '下载';",
+                    "width": "80"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_icon": "window",
+      "text": "addWin",
+      "cls": "Wb.Window",
+      "_expanded": true,
+      "properties": {
+        "cid": "addWin",
+        "autoScroll": "true",
+        "width": "560",
+        "height": "160",
+        "title": "附件补充",
+        "layout": "form"
+      },
+      "items": [
+        {
+          "_icon": "text",
+          "text": "saveFileData",
+          "cls": "Wb.Text",
+          "properties": {
+            "cid": "saveFileData",
+            "visible": "false",
+            "text": "存放当前选中行数据"
+          }
+        },
+        {
+          "_icon": "text",
+          "text": "xmfzrInfo",
+          "cls": "Wb.Text",
+          "properties": {
+            "cid": "xmfzrInfo",
+            "text": "查询出的项目负责人信息",
+            "visible": "false"
+          }
+        },
+        {
+          "_icon": "label",
+          "text": "label1",
+          "cls": "Wb.Label",
+          "properties": {
+            "cid": "label1",
+            "text": "文件：",
+            "width": "60"
+          },
+          "_expanded": true
+        },
+        {
+          "_icon": "search-file",
+          "text": "file1",
+          "cls": "Wb.FileInput",
+          "properties": {
+            "cid": "file1",
+            "width": "300"
+          }
+        },
+        {
+          "_icon": "button",
+          "text": "uploadBtn",
+          "cls": "Wb.Button",
+          "properties": {
+            "cid": "uploadBtn",
+            "type": "primary",
+            "text": "上 传",
+            "width": "100"
+          },
+          "events": {
+            "click": "var fileRecord = JSON.parse(app.saveFileData.value);\nvar xmfzrInfo = JSON.parse(app.xmfzrInfo.value);\nvar fileData = app.file1.getValue();\nvar nowDate = Wb.format(new Date(), 'yMMdd');\n\nif (fileData && fileData !== \"\") {\n  Wb.ajax({\n    // form: app.form1,\n    uploadProgress: true,\n    url: 'm?xwl=info_query/projlist_data/upload',\n    params: {\n      user: '_$sys.username$_',\n      projId: fileRecord.projid,\n      date: nowDate,\n      file1: fileData\n    },\n    success(resp) {\n      var v = Wb.decode(resp);\n      var filePath = v.path;\n      saveFile(fileRecord, filePath);\n    }\n  });\n} else {\n  Wb.info('请选择文件！');\n  return;\n}\n\n\nfunction saveFile(fileRecord, filePath) {\n  Wb.ajax({\n    url: 'm?xwl=info_query/projlist/P_PROJLIST_FILE_Q/p_projlist_file_s',\n    params: {\n      i_projid: fileRecord.projid,\n      i_batch_id: fileRecord.batch_id,\n      i_inout_id: fileRecord.inout_id,\n      i_filepath: filePath,\n      i_usercode: '_$sys.username$_'\n    },\n    success(resp) {\n      app.grid1.reload();\n      app.addWin.close();\n      app.file1.reset();\n      // Wb.toast({\n      //   html: '上传成功!',\n      //   position: 'bc',\n      //   autoCloseDelay: 2000\n      // });\n      Wb.tipSucc(\"上传成功！\");\n      const now = new Date();\n      // 获取各项时间并补零\n      const year = now.getFullYear();\n      const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份从 0 开始，需要 +1\n      const day = String(now.getDate()).padStart(2, '0');\n      const hours = String(now.getHours()).padStart(2, '0');\n      const minutes = String(now.getMinutes()).padStart(2, '0');\n      const seconds = String(now.getSeconds()).padStart(2, '0');\n\n      const nowTime = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;\n\n      let formData = {\n        PROJ_ID: fileRecord.projid,\n        BATCH_ID: fileRecord.batch_id,\n        DEPTMANANAME: '何川',// xmfzrInfo[0]?.deptmananame || '' ,\n        KHNAME: '_$custname$_',\n        PROJCODE: '_$projcode$_',\n        STOCKCODE: '', // 证券代码（实际未用到）\n        STOCKNAME: '', // 股票简称（实际未用到）\n        STAFF_ID: '120578', // xmfzrInfo[0]?.staff_id || '', // 清单变更触发，项目负责人阅知节点候选人\n        DEPTNAME: xmfzrInfo[0]?.deptname || '',\n        PROJLIST_STATUS: '_$projlist_status$_',\n        OP_CONTENT: `${fileRecord.batch_desc}清单附件变更-${fileRecord.inout_desc}`,\n        OP_TIME: nowTime,\n        CHECK_RESULT: '',\n        CHECK_TIME: '',\n        PROJNAME: '_$projname$_',\n        IS_MANAUL: '0',// 1-合规人员主动触发 0-项目组变更清单内容触发\n        PROJTYPE: '_$projtype$_',\n        DEPT_USER_ID: '038622' //'_$sys.userid$_'\n      };\n\n      Wb.ajax({\n        url: 'm?xwl=th_projlist/ADMIN_PROJLIST/operation/flow_request_deal',\n        params: {\n          'x-flow-systemId': 'IBCM',//当前发送全连接流程类型\n          'x-userId': '_$sys.userid$_',//当前登录人id\n          'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),//当前登录人name\n          'url': 'http://10.116.131.13:8094/auto/submit',\n          'formDatas': formData,\n          \"todoTitle\": '_$projname$_' + '项目清单审核意见反馈',// 工作台待办名称\n          \"sysGuid\": \"IBCM\",\n          \"flowCode\": \"IBCM003\",\n          \"templateName\": '_$projname$_' + '项目清单审核意见反馈',// 待办表单打开后标题\n          \"flowVer\": \"1\",\n          \"nodeCode\": \"draft\",\n          \"applyTable\": \"T_PROJ_CHANGE_FLOW\",\n          \"candidates\": '038622',// xmfzrInfo[0]?.candidates || '',// 项目负责人user_id // TODO\n        },\n        success(resp) {\n          let res = Wb.decode(resp)\n          if (res.code == '0') {\n            Wb.tipSucc(\"清单附件变更，已下发【隔离墙操作变动流程】\")\n          } else {\n            Wb.tipError(\"【隔离墙操作变动流程】下发失败\")\n          }\n        }\n      });\n    }\n  });\n}\n\n"
+          },
+          "hasDupCid": 0
+        }
+      ]
+    }
+  ]
+}

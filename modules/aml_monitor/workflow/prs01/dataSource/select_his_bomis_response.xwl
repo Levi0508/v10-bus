@@ -1,0 +1,14 @@
+{
+  "title": "查询历史bomis实时核验接口记录",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "\n\nvar sql = `\n  select t.*\n  from thjs.th_bomis_response t \n  where t.client_id = {?client_id?}\n  order by t.op_time desc\n`;\nvar res = Wb.getRowx({sql: sql});\n\n// TODO 受益所有人类型bnf_type_str得根据几个字段转一下 \n\nWb.send(res);"
+  },
+  "_icon": "module"
+}

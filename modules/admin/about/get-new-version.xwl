@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"function main() {\n  Wb.send(Wb.submit({ url: 'https://www.geejing.com/get-version', timeout: 8000 }));\n}\nmain();","remark":"Get new version"},"_icon":"module"}

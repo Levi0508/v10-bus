@@ -1,0 +1,14 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let conn = Wb.getConn();\ntry {\n  let sql1 = `INSERT INTO thjs.test260908(FLOW_CODE, BUSI_DATE, PROJID, PROJNAME, CHECK_BATCH, CHECK_BATCH_ID, TITLE,\n      CONTENT, CREATE_USER, CREATE_TIME, SEND_STATUS, CREATE_USER_ID, RECEIVE_USER_ID, RECEIVE_USER_NAME, RECEIVE_DISPLAY_NAME,\n      RECEIVE_STAFF_ID,PROJLIST_STATUS\n      )values('1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1')`;\n  for (let i = 0; i < 2000; i++) {\n    // 1. IBCM002流程下发 进入tb_proj_flow_inst表后由java调度任务调用/auto/submit接口下发流程\n    Wb.sql({\n      sql: sql1,\n      contextParams: false,\n      params: {\n      },\n      trans: true,\n      commit: false\n    });\n  }\n  conn.commit();\n  rs.O_RETURN_CODE = 0;\n  rs.O_RETURN_MSG = \"执行成功\"\n} catch (e) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = \"保存失败：\" + e;\n  conn.rollback();\n} finally {\n  conn.close();\n}\n\nWb.send(Wb.encode(rs));"
+  },
+  "_icon": "module"
+}

@@ -1,0 +1,272 @@
+({
+  cname: "module",
+  cid: "module",
+  links: ["wb/custom-made/vue/vue.js","wb/custom-made/vue/element.js","wb/custom-made/vue/element.css","wb/custom-made/css/self_check.css"],
+  serverScript(){
+    Wb.set({
+      title: Wb.get('title'),
+      content: Wb.get('content'),
+      check_batch_id: Wb.get('check_batch_id')
+    })
+  },
+  items : [{
+    cname: "viewport",
+    cid: "viewport1",
+    layout: "fit",
+    items : [{
+      cname: "container",
+      cid: "mainContainer",
+      full: true,
+      layout: "fit",
+      autoScroll: true,
+      events: {
+        ready(configs, options){
+          let comp = this;
+          
+          // 确保 ElementUI 组件已注册
+          if (typeof Vue !== 'undefined' && typeof ElementUI !== 'undefined') {
+            Vue.use(ElementUI);
+          }
+          
+          comp.vue = new Vue({
+            el: comp.el.addEl(),
+            template: `
+          <el-container>
+            <el-header style="width:100%;text-align:end;padding-top:20px;"><el-button type="primary" size="mini">导出全部</el-button></el-header>
+            <el-main style="width:100%">
+              <div style="width:70%;margin:0 auto;">
+                <!-- 通知正文 -->
+                <div>
+                  <div class="detail-row">
+                    <div style="font-size:18px;font-weight:bold;width:100%;text-align:center">{{ title }}</div>
+                  </div>
+                  <div class="detail-row">
+                    <span v-html="content"></span>
+                  </div>
+                </div>
+                <!-- 项目列表 -->
+                <div>
+                  <div style="font-size:18px;font-weight:bold;padding-bottom:10px;">项目列表</div>
+                  <el-table :data="batchTableData" stripe max-height="500" height="500">
+                    <el-table-column prop="" label="" width="120" align="center">
+                      <template slot-scope="scope">
+                        <div class="operation-buttons">
+                          <el-tooltip content="查看详情">
+                            <el-button type="text" @click="gotoProjForm(scope.row)">查看清单详情</el-button>
+                          </el-tooltip>
+                        </div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="projcode" label="项目编号" width="120"></el-table-column>
+                    <el-table-column prop="khname" label="公司全称" min-width="150"></el-table-column>
+                    <el-table-column prop="deptmanacode" label="项目负责人工号" min-width="150"></el-table-column>
+                    <el-table-column prop="dept_name" label="部门名称" width="250"></el-table-column>
+                  </el-table>
+                  <!-- 分页 -->
+                  <div class="pagination-wrapper" style="height:60px">
+                    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                      :current-page="pagination.pageNum" :page-sizes="[50, 100, 500, 1000]" :page-size="pagination.pageSize"
+                      layout="total, sizes, prev, pager, next, jumper" :total="pagination.total" background
+                      style="text-align: left; margin-top: 15px;">
+                    </el-pagination>
+                  </div>
+                </div>
+                <!-- 附件列表 -->
+                <div style="padding-bottom:20px;">
+                  <div style="font-size:18px;font-weight:bold;padding-bottom:10px;">附件列表</div>
+                  <el-table :data="fileData" border style="max-height:500px;overflow-y:auto;">
+                    <el-table-column type="index" width="50"></el-table-column>
+                    <el-table-column prop="name" label="附件名称" min-width="150"></el-table-column>
+                    <el-table-column prop="display_name" label="上传人" min-width="150"></el-table-column>
+                    <el-table-column prop="create_time" label="上传时间" width="250"></el-table-column>
+                    <el-table-column prop="id" label="ID" width="250" v-show="false"></el-table-column>
+                    <el-table-column label="操作" width="150">
+                        <template slot-scope="scope">
+                          <div class="operation-buttons">
+                            <el-tooltip content="下载">
+                              <el-button type="text" class="el-icon-download" @click="handleDownload(scope.row)"></el-button>
+                            </el-tooltip>
+                          </div>
+                        </template>
+                      </el-table-column>
+                  </el-table>
+                </div>
+              </div>
+            </el-main>
+          </el-container>
+            `,
+            data() {
+              return {
+                historyList: [],
+                dialogVisible: false,
+                title: '_$title$_',
+                content: '_$content$_',
+                check_batch_id: '_$check_batch_id$_',
+                tableData: [],
+                allData: [],
+                batchTableData: [],
+                fileData:[],
+                pagination: {
+                  pageNum: 1,
+                  pageSize: 100,
+                  total: 0
+                }
+              };
+            },
+            computed: {
+            },
+            methods: {
+              formatYearMonth(row, column) {
+                const input = String(row.batch_month);
+                const year = input.substring(0, 4);
+                const month = parseInt(input.substring(4, 6), 10);
+                return `${year}年${month}月`;
+              },
+              queryBatchTableData(id) {
+                let that = this;
+                Wb.ajax({
+                  url: xpath + '/../SELFCHECK_PROJLIST_HIS/select_selfchek_details',
+                  params: {
+                    check_batch_id: id
+                  },
+                  success(resp) {
+                    let res = Wb.decode(resp).items;
+                    that.allData = res;
+                    that.pagination.total = res.length;
+                    that.sliceData();
+                  }
+                })
+              },
+              sliceData() {
+                const start = (this.pagination.pageNum - 1) * this.pagination.pageSize;
+                const end = start + this.pagination.pageSize;
+                this.batchTableData = this.allData.slice(start, end);
+              },
+              handleSizeChange(val) {
+                this.pagination.pageSize = val;
+                this.pagination.pageNum = 1;
+                this.sliceData();
+              },
+              handleCurrentChange(val) {
+                this.pagination.pageNum = val;
+                this.sliceData();
+              },
+              // 查看详情
+              gotoProjForm(row) {
+                console.log("row", row);
+                let that = this;
+                Wb.ajax({
+                  url: 'm?xwl=info_query/projlist_data/inout_q',
+                  params: {
+                    i_projid: row.projid,
+                    i_usercode: '_$sys.username$_'
+                  },
+                  success(resp) {
+                    var scope = Wb.decode(resp).items[0];
+                    var card, encodedParams = scope.projid;
+                    scope.state = 'info';
+                    if (window.destTabPanel) {
+                      window.destTabPanel.items.each(function (item) {
+                        if (item.detailParams == encodedParams) {
+                          card = item;
+                          return false;
+                        }
+                      });
+                      if (card) {
+                        destTabPanel.setActiveTab(card);
+                        return;
+                      }
+                    }
+                    card = Wb.open({
+                      url: 'm?xwl=info_query/projlist/projlist_form_tab_sumbit',//yufang
+                      params: scope,
+                      title: '清单查看 - ' + scope.custname,
+                      success(scope) {
+                        that.dialogVisible = false;
+                      }
+                    });
+                    if (card) {
+                      card.detailParams = encodedParams;
+                      window.destTabPanel = card.ownerCt;
+                    }
+                  }
+                });
+              },
+              selectFileList(check_batch_id){
+                let that = this;
+                Wb.ajax({
+                  url:xpath + '/../SELFCHECK_PROJLIST_HIS/select_selfcheck_file',
+                  params:{
+                    i_check_batch_id:check_batch_id
+                  },
+                  success(resp){
+                    console.log("附件列表查询结果：",Wb.decode(resp));
+                    let res = Wb.decode(resp);
+                    if(res.items){
+                      that.fileData = res.items;
+                    }
+                  }
+                })
+              },
+              // 下载附件
+              handleDownload(row) {
+                Wb.download({
+                  url: xpath + '/../operation/download_file',
+                  params: {
+                    id: row.id,
+                    full_name: row.name + '.' + row.extension
+                  }
+                })
+              },
+              // 附件预览
+              // handlePreview(file) {
+              //   let that = this;
+              //   let params_file = {
+              //     'id': file.id,
+              //     'clientId': file.client_id,
+              //     'fileTypeNo': this.organ_flag == '1' ? '1,2,21,22' : '1,2',
+              //     'fileName': file.name + '.' + file.extension,
+              //     'extension': file.extension
+              //   };
+              //   Wb.ajax({
+              //     url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/files/preview_file',
+              //     params: {
+              //       id: file.id,
+              //       clientId: file.client_id,
+              //       fileTypeNo: this.organ_flag == '1' ? '1,2,21,22' : '1,2',
+              //       fileName: file.name + '.' + file.extension,
+              //       extension: file.extension
+              //     },
+              //     success(resp) {
+              //       console.log("resp", resp);
+              //       let res = Wb.decode(resp);
+              //       let serverIp = '10.116.131.13';
+              //       if (res.code == '200') {
+              //         let previewUrl = res.data.previewUrl;
+              //         if (previewUrl.indexOf(serverIp) != -1) {
+              //           previewUrl = res.data.previewUrl.replace(/10\.116\.131\.13:8090/g, '10.181.135.22:8080/ibcm_flow')
+              //         }
+              //         window.open(previewUrl, '_blank', 'width=800,height=600')
+              //       } else {
+              //         that.$message.error("当前文件类型不支持预览")
+              //       }
+              //     }
+              //   });
+              // },
+            },
+            created: function () {
+              // 页面加载时查询历史记录
+              this.queryBatchTableData(this.check_batch_id);
+              this.selectFileList('_$check_batch_id$_');
+            },
+            beforeDestroy: function () {
+              // 清理工作
+            }
+          });
+        }
+      }
+    }
+    ]
+  }
+  ]
+})

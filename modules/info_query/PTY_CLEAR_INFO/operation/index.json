@@ -1,0 +1,10 @@
+{
+  "title": "功能",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "download_file.xwl",
+    "upload_file.xwl"
+  ]
+}

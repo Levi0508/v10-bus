@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Delete users","serverScript":"Wb.sendRows(`delete from thjs.t_par_err_type a   \n        where a.id = {?ID?}`);\n"},"_icon":"module"}

@@ -1,0 +1,1 @@
+{"title":"保存审核意见","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`insert into thjs.t_th_appr_list(client_id,audit_id,remark,create_user,create_time)values({?CLIENT_ID?},{?AUDIT_ID?},{?REMARK?},{?CREATE_USER?},sysdate)`);"},"_icon":"module"}

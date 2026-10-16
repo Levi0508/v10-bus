@@ -1,0 +1,14 @@
+{
+  "title": "查询所有用户",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx(`SELECT DISTINCT A.USER_ID,A.USER_NAME,A.DISPLAY_NAME FROM BASIC_THJS.WB_USER A INNER JOIN THJS.IB_V_FINANCE_PROJMEMBER B \nON B.WORKNO=A.USER_ID AND B.PROJROLE = '项目负责人' WHERE A.USER_ID LIKE '%'||{?query?}||'%' OR A.USER_NAME LIKE '%'||{?query?}||'%' ORDER BY A.USER_ID`)"
+  },
+  "_icon": "module"
+}

@@ -1,0 +1,23 @@
+{
+  "title": "清单管理（新 该菜单仅测试人员可见）",
+  "icon": "excel",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "my_projlist.xwl",
+    "my_projlist",
+    "ADMIN_PROJLIST.xwl",
+    "ADMIN_PROJLIST",
+    "BUSI_TYPE_ISALLOWREPORT.xwl",
+    "BUSI_TYPE_ISALLOWREPORT",
+    "P_PROJLIST_RL_HG_STK_Q.xwl",
+    "P_PROJLIST_RL_HG_STK_Q",
+    "SELF_CHECK_PROJLIST.xwl",
+    "SELF_CHECK_PROJLIST1.xwl",
+    "SELF_CHECK_PROJLIST",
+    "PROJLIST_REVIEW_CONF.xwl",
+    "PROJLIST_REVIEW_CONF",
+    "th_projlist_data",
+    "test.xwl"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "title": "功能",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "query_isallow.xwl",
+    "search_busitype.xwl"
+  ]
+}

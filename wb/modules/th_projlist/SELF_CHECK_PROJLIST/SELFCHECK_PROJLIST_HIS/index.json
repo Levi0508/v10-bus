@@ -1,0 +1,11 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "selfcheck_history_q.xwl",
+    "select_selfchek_details.xwl",
+    "select_selfcheck_file.xwl"
+  ]
+}

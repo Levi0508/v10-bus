@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"true","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx('select * from wb_staff');"},"_icon":"module"}

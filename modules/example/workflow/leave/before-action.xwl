@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.info('before flow action: ' + app.action); // action name\nWb.info('before flow id: ' + app.flow.flowId); // workflow id\n//return 'value'; // return to client"},"_icon":"module"}

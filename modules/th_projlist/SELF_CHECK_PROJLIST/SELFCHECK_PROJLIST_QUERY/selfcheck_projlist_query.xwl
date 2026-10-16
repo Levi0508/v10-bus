@@ -1,0 +1,14 @@
+{
+  "title": "已完成/未完成自查项目",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let sql = `select t.*,a.projcode,a.khname,a.deptmanacode,a.deptmananame,u.staff_id,a.dept_name1 ||'-'|| a.dept_name2 as dept_name,r.check_result\nfrom thjs.T_PROJ_SELFCHECK_FLOW t \nleft join thjs.TB_IB_CUST_INFO a on a.projid = t.projid\nleft join basic_thjs.wb_user u on a.deptmanacode = u.user_id\nleft join (select projid,check_batch_id,check_result,row_number() over (partition by projid,check_batch_id order by create_time desc) as rn from thjs.TB_PROJLIST_CHECK_RESULT) r on t.projid = r.projid and t.check_batch_id = r.check_batch_id and r.rn = 1\nwhere t.check_batch_id = {?check_batch_id?}`;\nif (Params.check_result === '0') {\n  // 准确数量列表\n  sql += ` AND r.check_result = '0'`\n} else if (Params.check_result === '1') {\n  // 已更正数量列表\n  sql += ` AND r.check_result = '1'`\n} else if (Params.check_result === '-1') {\n  // 未完成自查数\n  sql += ` AND (r.check_result IS NULL OR r.check_result NOT IN('0','1'))`\n}\nWb.sendRowx(sql)"
+  },
+  "_icon": "module"
+}

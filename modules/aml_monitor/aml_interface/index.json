@@ -1,0 +1,12 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "qcc_beneficiary_interface",
+    "T_WSDL_LOG_V2",
+    "T_WSDL_LOG_V2.xwl",
+    "common"
+  ]
+}

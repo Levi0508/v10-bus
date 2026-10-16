@@ -1,0 +1,13 @@
+{
+  "title": "功能",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "select_dept.xwl",
+    "select_manager.xwl",
+    "add.xwl",
+    "edit.xwl",
+    "delete.xwl"
+  ]
+}

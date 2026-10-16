@@ -1,0 +1,15 @@
+{
+  "title": "format图片路径",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var file_path = Wb.get('file_path');\nif (Wb.isNull(file_path) || file_path == '') {\n  Wb.send(Wb.encode({ code: '1', msg: '文件路径不能为空' }));\n} else {\n  // 安全检查：防止路径遍历\n  if (file_path.indexOf('..') >= 0) {\n    Wb.send(Wb.encode({ code: '1', msg: '非法的文件路径' }));\n  } else {\n    var filePath = Base.path + '/' + file_path;\n    var file = new java.io.File(filePath);\n    if (!file.exists()) {\n      Wb.send(Wb.encode({ code: '1', msg: '文件不存在' }));\n    } else {\n      var ext = file_path.substring(file_path.lastIndexOf('.') + 1).toLowerCase();\n      var contentTypeMap = {\n        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',\n        'png': 'image/png', 'gif': 'image/gif',\n        'bmp': 'image/bmp', 'webp': 'image/webp', 'svg': 'image/svg+xml'\n      };\n      var contentType = contentTypeMap[ext] || 'application/octet-stream';\n\n      var fis = new java.io.FileInputStream(file);\n      try {\n        var bytes = org.apache.commons.io.IOUtils.toByteArray(fis);\n        response.setContentType(contentType);\n        response.setContentLength(bytes.length);\n        response.setHeader('Cache-Control', 'max-age=86400');\n        response.getOutputStream().write(bytes);\n        response.getOutputStream().flush();\n      } finally {\n        fis.close();\n      }\n    }\n  }\n}"
+  },
+  "_icon": "module",
+  "items": []
+}

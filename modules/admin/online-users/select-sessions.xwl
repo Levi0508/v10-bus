@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Select online sessions","serverScript":"Wb.checkDemo();\nfunction main() {\n  let fromIndex = Wb.getInt('_from'), toIndex = Wb.getInt('_to');\n  Wb.send(Wb.UserUtil.getSessions(Params.userid, fromIndex, toIndex));\n}\nmain();"},"_icon":"module"}

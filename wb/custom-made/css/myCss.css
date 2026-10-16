@@ -1,0 +1,22 @@
+.w-body {
+  color: #333333;
+}
+
+.w-ctrl .w-input-wrap {
+  display: flex;
+  background: #fff;
+  color: #555;
+  border: 1px solid #dfdfdf;
+  align-items: center;
+  overflow: hidden;
+  flex: 1;
+  max-height: 100%;
+  width: 200px;
+}
+
+.w-menu .w-column .w-menu-item .w-label div {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: #555555 !important;
+}
+

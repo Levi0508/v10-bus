@@ -1,0 +1,1 @@
+{"title":"省键值转换","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({ sql: `select area_name as v from thjs.t_dict_area_code_v2 where area_code={?AREA_CODE?}` });"},"_icon":"module"}

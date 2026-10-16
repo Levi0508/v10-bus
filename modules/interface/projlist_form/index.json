@@ -1,0 +1,13 @@
+{
+  "title": "清单填报",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "error-page.xwl",
+    "inout_callback.xwl",
+    "error-page-inout.xwl",
+    "test.xwl",
+    "projlist_form_tab_sumbit.xwl"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "title": "附件操作",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "upload_file.xwl",
+    "upload_file1.xwl",
+    "delete_file.xwl",
+    "select_file.xwl",
+    "download_file.xwl",
+    "update_file_dir.xwl",
+    "preview_file.xwl"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "title": "KYC01080/del",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRows(`delete from thjs.t_par_err_type a   \n        where a.id = {?ID?}`);\n"
+  },
+  "_icon": "module"
+}

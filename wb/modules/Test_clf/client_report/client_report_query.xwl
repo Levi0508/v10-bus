@@ -1,0 +1,14 @@
+{
+  "title": "KYC01010/select",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx({\n  sql: `{call thjs.p_fxq_cust_report_q({*cursor|result*},{?I_FULL_NAME?},{?I_CLIENT_ID?},{?I_USER_ID?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`\n});\n"
+  },
+  "_icon": "module"
+}

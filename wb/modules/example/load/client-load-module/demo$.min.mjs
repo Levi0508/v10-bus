@@ -1,0 +1,1 @@
+class Demo{static add(o,e){return o+e}}console.log("demo.mjs only load once");export{Demo};

@@ -1,0 +1,1 @@
+{"title":"查询角色","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let sql = 'select distinct role_name, role_id from wb_role'\nWb.sendRowx(sql);"},"_icon":"module"}

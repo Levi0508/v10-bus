@@ -1,0 +1,14 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let order = Wb.getOrderSql();\n\nWb.sendRowx({\n  sql:`{call THJS.P_USER_PROJECT_Q({*cursor|return*},{?sys.username?},{?I_PROJNAME?},{?I_KHNAME?},{?USERPATH?},{?bigint|_from?},{?bigint|_size?},'${order}',{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n  paging:false,\n  total:`WITH \nuser_flag AS (\n  SELECT \n    CASE \n      WHEN EXISTS (\n        SELECT 1 FROM (\n          SELECT to_char(u.user_name) AS user_name \n          FROM basic_thjs.wb_user_role r \n          LEFT JOIN basic_thjs.wb_user u ON u.user_id = r.user_id \n          WHERE r.role_id IN ('thhgz', 'flhgb')\n          UNION ALL\n          SELECT COLUMN_VALUE \n          FROM TABLE(thjs.splitstr('admin,zhangqilong,yangluting,zhangyongyong,chenhaiyang,hechuan', ','))\n        ) t \n        WHERE INSTR(',' || t.user_name || ',', ',' || {?sys.username?} || ',') > 0\n      ) THEN 1 \n      ELSE 0 \n    END AS is_superuser\n  FROM DUAL\n),\nsuperuser_projids AS (\n  SELECT DISTINCT c.projid\n  FROM thjs.tb_ib_cust_info c\n  WHERE c.pro_is_valid = '1'\n    AND {?USERPATH?} IS NOT NULL\n    AND EXISTS (\n      SELECT 1 \n      FROM (\n        SELECT t.CCODE, t.CNAME, t.P_CODE \n        FROM THJS.VW_CUST_INFO_TREE t \n        START WITH t.ccode = (\n          SELECT SUBSTR({?USERPATH?}, INSTR({?USERPATH?}, '/', -1) + 1) \n          FROM DUAL\n        )\n        CONNECT BY PRIOR t.CCODE = t.P_CODE\n      ) t \n      WHERE t.CNAME = c.deptmananame\n    )\n),\nnormaluser_projids AS (\n  SELECT t.proj_id AS projid\n  FROM THJS.IB_V_FINANCE_PROJMEMBER t\n  INNER JOIN thjs.ib_v_gtja_empname e ON e.workno = t.workno\n  WHERE e.username = {?sys.username?}\n)\nSELECT \n  CASE \n    WHEN uf.is_superuser = 0 THEN\n      (SELECT COUNT(1)\n       FROM thjs.tb_ib_cust_info t\n       WHERE t.pro_is_valid = '1'\n         AND ({?I_PROJNAME?} IS NULL OR INSTR(t.projname, {?I_PROJNAME?}) > 0)\n         AND ({?I_KHNAME?} IS NULL OR INSTR(t.khname, {?I_KHNAME?}) > 0)\n         AND t.projid IN (SELECT projid FROM normaluser_projids)\n      )\n    ELSE\n      (SELECT COUNT(1)\n       FROM thjs.tb_ib_cust_info t\n       WHERE t.pro_is_valid = '1'\n         AND ({?I_PROJNAME?} IS NULL OR INSTR(t.projname, {?I_PROJNAME?}) > 0)\n         AND ({?I_KHNAME?} IS NULL OR INSTR(t.khname, {?I_KHNAME?}) > 0)\n         AND ({?USERPATH?} IS NULL OR t.projid IN (SELECT projid FROM superuser_projids))\n      )\n  END AS o_total_count\nFROM user_flag uf;`\n  });"
+  },
+  "_icon": "module"
+}

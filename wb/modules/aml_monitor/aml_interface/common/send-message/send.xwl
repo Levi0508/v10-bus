@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let cls = com.gtja.msg.MessageAction.sendEmailToEmployee;\nWb.send(cls);"},"_icon":"module"}

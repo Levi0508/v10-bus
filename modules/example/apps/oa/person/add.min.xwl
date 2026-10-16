@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"function main(){let a={sid:Wb.getId()};Wb.set(a);Wb.sync({tableName:\"wb_staff\",insert:Params});Wb.send(a)}main();"},"_icon":"module"}

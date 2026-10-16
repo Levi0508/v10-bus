@@ -1,0 +1,1 @@
+{"title":"查询数据是否重复","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`select count(*) as cnt\nfrom thjs.t_par_err_type a \nwhere a.err_type = {?ERR_TYPE?}\nand a.status = {?STATUS?}\nand a.organ_flag = {?ORGAN_FLAG?}`);"},"_icon":"module"}

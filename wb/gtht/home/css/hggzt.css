@@ -1,0 +1,83 @@
+.cardview .card-item {
+  padding: 1em;
+  border-radius: .5em;
+  cursor: pointer;
+}
+.cardview .card-item.blue {
+  background: linear-gradient(to right, #1660ff33, #fff);
+}
+.cardview .card-item.green {
+  background: linear-gradient(to right, #00b22d33, #fff);
+}
+.cardview .card-item.orange {
+  background: linear-gradient(to right, #ff7e0033, #fff);
+}
+.cardview .card-item.blue.w-item-sel {
+  background: #1660ff33;
+}
+.cardview .card-item.green.w-item-sel {
+  background: #00b22d33;
+}
+.cardview .card-item.orange.w-item-sel {
+  background: #ff7e0033;
+}
+.cardview .card-item.blue:hover {
+  background: #1660ff33;
+}
+.cardview .card-item.green:hover {
+  background: #00b22d33;
+}
+.cardview .card-item.orange:hover {
+  background: #ff7e0033;
+}
+/* .cardview .card-item:hover {
+  background: #e4f1ff !important;
+} */
+.card-item .ns-title {
+  margin: .5em 0 .2em 0;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+.card-item .ns-text {
+  color: #999;
+}
+
+.notice-title {
+  font-weight: bold;
+  margin-bottom: .5em;
+  color: #333;
+}
+.notice-desc {
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: .8em;
+}
+.notice-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #999;
+}
+.handle-btn {
+  color: #007bff;
+  text-decoration: none;
+}
+.nt {
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 1em;
+}
+.tag {
+            /* 关键：设置标签倾斜角度 */
+  transform: rotate(45deg);
+  position: absolute;
+  top: 1em;
+  right: -2em;
+  background: orange;
+  color: white;
+  padding: .4em 2em;
+  font-size: .8em;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+}

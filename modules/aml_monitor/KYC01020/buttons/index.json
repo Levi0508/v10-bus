@@ -1,0 +1,14 @@
+{
+  "title": "功能按钮权限",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "add.xwl",
+    "edit.xwl",
+    "invalid.xwl",
+    "recover.xwl",
+    "appr.xwl",
+    "restrictive.xwl"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "title": "清单管理数据源",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "stk_q.xwl",
+    "inout_q.xwl",
+    "inout_s.xwl",
+    "multistk_q.xwl",
+    "multistk_s.xwl",
+    "inout_batch_q.xwl",
+    "upload.xwl",
+    "selfcheck_q.xwl",
+    "selfcheck_s.xwl",
+    "comment_q.xwl",
+    "comment_s.xwl"
+  ]
+}

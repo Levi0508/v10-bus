@@ -1,0 +1,1 @@
+{"title":"查询项目负责人","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`{call thjs.p_projlist_director_q({*cursor|result*},{?query?},{?sys.username?},{*O_RETURN_MSG*},{*INTEGER|O_RETURN_CODE*})}`);"},"_icon":"module"}

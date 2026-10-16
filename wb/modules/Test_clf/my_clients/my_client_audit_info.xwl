@@ -1,0 +1,14 @@
+{
+  "title": "审核信息查询",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx({\n  sql: `SELECT\n    ROW_NUMBER() OVER (PARTITION BY t1.client_id ORDER BY t1.create_time ASC) AS seq,\n    LISTAGG(t2.audit_seq || '-' || t2.audit_desc || '-' || t2.dispose_desc, '; ') WITHIN GROUP (ORDER BY t2.audit_seq) AS comments,\n    t1.remark AS remark,\n    t1.create_user AS create_user,\n    u.display_name AS create_user_name,\n    t1.create_time AS create_time\nFROM\n    thjs.t_th_appr_list t1\nLEFT JOIN\n    thjs.t_th_appr_detail t2\n    ON t1.audit_id = t2.audit_id\n    AND t1.client_id = t2.client_id\nLEFT JOIN\n    basic_thjs.wb_user u\n    ON u.user_name = t1.create_user\nWHERE\n    t1.client_id = {?CLIENT_ID?}\nGROUP BY\n    t1.client_id,\n    t1.create_time,\n    t1.remark,\n    t1.create_user,\n    u.display_name,\n    t1.create_time\nORDER BY\n    t1.create_time ASC`\n});\n\n"
+  },
+  "_icon": "module"
+}

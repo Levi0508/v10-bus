@@ -1,0 +1,1 @@
+{"title":"更改文件目录","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`update thjs.t_th_client_file set file_type_no = {?I_FILE_TYPE_NO?} where id = {?I_ID?};`);"},"_icon":"module"}

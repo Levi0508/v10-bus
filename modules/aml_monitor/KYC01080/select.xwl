@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`select a.*\nfrom thjs.t_par_err_type a \nwhere a.err_type = {?ERR_TYPE?} or {?ERR_TYPE?} is null`+ Wb.getOrderSql());\n"},"_icon":"module","_expanded":true}

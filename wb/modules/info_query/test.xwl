@@ -1,0 +1,28 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "const sysusername = Wb.get('sys.username');\nWb.info(sysusername);\n// server:\n//   port: 8094\n//   tomcat:\n//     max-http-post-size: 10MB  #请求参数长度\n//     max-swallow-size: 10MB\n//     basedir: /tmp/tomcat\n//   servlet:\n//     context-path:\n//   max-http-header-size: 10MB\n// spring:\n//   application:\n//     name: hg-oa-flow\n//   datasource:\n//     url: jdbc:dm://10.116.42.81:5238?schema=THJS\n//     username: BASIC_THJS\n//     password: 'WbThjs#251932'\n//     driverClassName: dm.jdbc.driver.DmDriver\n//   kafka:\n//     bootstrap-servers: 10.189.110.225:9092,10.189.110.226:9092,10.189.110.227:9092\n//   servlet:\n//     multipart:\n//       max-file-size: 10MB # 单个文件最大 10MB\n//       maxRequestSize: 100MB # 单个请求最大 100 MB\n// #流程sdk使用的配置信息\n// flow:\n//   feign:\n//     connectTimeoutMillis: 40000\n//     readTimeoutMillis: 40000\n//   config:\n//     #flowpoc\n//     flowGatewayHost: 10.181.152.99:8055 # 10.168.96.6:8055\n//     #流程租户\n//     tenantCode: gtja\n//     sdkCode: hgpt001\n//     #系统id\n//     systemId: IBCM\n//     Key: e6339c8d-dbb3-4935-b773-8938e32fa908\n//     secretKey: 019f5ecf-9340-4bd2-9b67-9713ec55c31a\n//   datasource:\n//     username: thjs\n// mybatis-plus:\n//   global-config:\n//     banner: false\n//     db-config:\n//       #字段策略 0:\"忽略判断\",1:\"非 NULL 判断\"),2:\"非空判断\"\n//       select-strategy: not-empty\n//       insert-strategy: not-null\n//       update-strategy: not-null\n//       idType: AUTO\n//   mapper-locations: classpath*:/mapper/*.xml\n// #流程起草接口URL\n// link.flow.path: http://10.168.96.10:9059/flowCommon/serviceFlowApi\n// #文号生成接口地址\n// link.wh.path: http://10.168.96.10:9059/flowCommon/flowApi\n// #文件上传地址\n// file.save.path: .\\upload_file\\\n// #文件上传地址\n// file.copy.tmp.path: /home/project/copy_file_tmp/\n// # 共享文件下载地址\n// file.hgpt.local.path: /hgpt_files\n// # 警示函共享文件下载地址\n// file.ycjy.local.path: /ycjy_files\n\n// # 文件预览相关配置\n// libreoffice:\n//   # LibreOffice安装路径\n//   # Windows测试环境地址D:\\LibreOffice\\program\n//   path: /data/libreoffice/program #Linux信创生产环境地址\n// file:\n//   preview:\n//     # 预览文件临时存储路径\n//     temp:\n//       path: ./temp/preview\n\n\n// auto:\n//   applyTitle: '债券交易情况填报表'\n//   creator: '014854'\n//   flowVer: '8'\n//   cron: '0 0/10 9-10 * * ?'\n//   state: 'false'\n//   flowVerBj: '1'\n//   flowVerSz: '1'\n\n// ftp:\n//   port: 8080\n//   server: 10.181.135.25 #10.181.135.25\n//   user: administrator\n//   password: Wsqszdx#080831\n//   down-load-path: /user/loacl\n\n// smb:\n//   #远程 Windows 服务器地址\n//   server: 10.180.110.60\n//   #远程 Windows 服务器的用户名\n//   user: NCadmin\n//   #远程 Windows 服务器的密码\n//   password: NC@gtja685\n//   #远程 共享文件夹名称\n//   share: NCcaiwu\n//   #远程 盘符名称\n//   disk: hgpt\n"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1"
+      },
+      "events": {
+        "ready": "console.log(\"sys.username\",'_$sys.username$_')\nWb.ajax('logout');"
+      }
+    }
+  ]
+}

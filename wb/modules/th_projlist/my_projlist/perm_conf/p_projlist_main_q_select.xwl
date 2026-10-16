@@ -1,0 +1,14 @@
+{
+  "title": "我的清单列表查询",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let order = Wb.getOrderSql();\n\nWb.sendRowx({\n  sql: `{call thjs.p_projlist_main_q({*cursor|result*},{?I_PROJID?},{?sys.username?},{?I_PROJNAME?},{?I_KHNAME?},{?bigint|_from?},{?bigint|_size?},'${order}',{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*INTEGER|O_RETURN_CODE*})}`,\n  kv: {\n    projlist_status: 'projlist_status',\n    ro_inout_reason: 'ro_inout_reason',\n    rl_inout_reason: 'rl_inout_reason',\n    co_inout_reason: 'co_inout_reason',\n    cl_inout_reason: 'cl_inout_reason',\n    check_result: 'check_result'\n  },\n  paging:false,\n  total: `select count(1)\n  from thjs.vw_projlist_main_all p\n  left join thjs.ib_v_finance_projmember t\n  on t.projrole = '项目负责人'\n  and t.proj_id = p.projid\n  left join basic_thjs.wb_user u\n  on u.user_id = t.workno\n  where ({?I_PROJID?} is null or p.projid = {?I_PROJID?})\n  and ({?I_PROJNAME?} is null or instr(p.projname, {?I_PROJNAME?}) > 0)\n  and ({?I_KHNAME?} is null or instr(p.custname, {?I_KHNAME?})>0)\n  and (u.user_name = {?sys.username?} or instr('admin,chenhaiyang,hechuan',{?sys.username?})>0)`\n});\n\n// let res = Wb.sql(`{call thjs.p_projlist_main_q({*cursor|result*},{?I_PROJID?},{?sys.username?},{?I_PROJNAME?},{?I_KHNAME?},'1',{?bigint|_from?},{?bigint|_size?},{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*INTEGER|O_RETURN_CODE*})}`)\n// let re = res.result;\n// re.total = res.O_TOTAL_COUNT;\n// re.kv = {\n//   projlist_status: 'projlist_status',\n//   ro_inout_reason: 'ro_inout_reason',\n//   rl_inout_reason: 'rl_inout_reason',\n//   co_inout_reason: 'co_inout_reason',\n//   cl_inout_reason: 'cl_inout_reason'\n// };\n// re.paging = false;\n// Wb.send(re);"
+  },
+  "_icon": "module"
+}

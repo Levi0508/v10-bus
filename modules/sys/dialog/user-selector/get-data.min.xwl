@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","remark":"Get user data","serverScript":"function main(){let e=Wb.load(\"../dialog-util.mjs\");Wb.send(e.getData(Wb.getObject(\"ids\"),\"select sid,user_name,display_name from wb_user\"))}main();"},"_icon":"module"}

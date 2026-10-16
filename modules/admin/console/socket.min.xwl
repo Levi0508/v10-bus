@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"function main(){switch(event){case\"open\":com.wb.tool.Console.startCapture();break;case\"close\":com.wb.tool.Console.stopCapture();break}}main();","remark":"System console socket monitor"},"_icon":"module"}

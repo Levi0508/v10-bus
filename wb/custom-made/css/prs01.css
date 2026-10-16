@@ -1,0 +1,834 @@
+/* 
+ * 客户基本信息维护页面样式 
+ * base.xwl、 base_edit.xwl
+ */
+.main-container {
+  display: flex;
+  height: 100%;
+  background: #fff;
+}
+
+.main-container .left-panel {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 10px;
+  min-width: 160px;
+  max-width: 160px;
+}
+
+.main-container .right-panel {
+  flex: 8;
+}
+
+.nav-template {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  background-color: #fff;
+}
+
+.nav-template-span {
+  color: #8d8b8b;
+  font-size: 16px;
+  font-weight: bold;
+  display: block;
+  padding: 0 20px 0 10px;
+  text-align: right;
+  height: 60px;
+  line-height: 60px;
+}
+
+.box-card {
+  margin-bottom: 20px;
+}
+
+.files-item {
+  color: #333333;
+  width: 535px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  line-height: 1.8;
+  transform: all .5s cubic-bezier(.55, 0, .1, 1);
+}
+
+.files-item:hover {
+  background: #e6f2ff;
+}
+
+.files-item:hover .files-btns {
+  display: block;
+}
+
+.files-btns {
+  padding: 0 !important;
+  border: none;
+  color: #409EFF!important;
+  margin-right: 4px;
+}
+
+.file-container {
+  display: flex;
+  height: 100%;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.file-container .left-panel {
+  width: 400px;
+  min-width: 100px;
+  max-width: 600px;
+  border-right: 1px solid #e6e6e6;
+  padding: 20px;
+  height: 100%;
+  /* background: #fafafa; */
+  position: relative;
+  resize: horizontal;
+  overflow: auto;
+}
+
+.filter-tree {
+  height: 100%;
+}
+/* 树节点样式修改 - 支持自动换行 */
+.el-tree-node__content {
+  height: auto !important;
+  min-height: 26px;
+  padding: 5px 0;
+  overflow: visible!important;
+  /*确保节点能正确触发*/
+}
+
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.file-container .right-panel {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  overflow-y: auto;
+}
+
+.panel-title {
+  height: 40px;
+  line-height: 40px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #409EFF;
+  border-bottom: 1px solid #ebeef5;
+  margin-bottom: 15px;
+}
+
+.search-box {
+  margin-bottom: 15px;
+}
+
+.attachment-table {
+  flex: 1;
+}
+
+.operation-buttons {
+  display: flex;
+  justify-content: center;
+}
+
+.operation-buttons .el-button {
+  margin: 0 3px;
+}
+/*20251014*/
+.attachment-section {
+  padding: 20px;
+}
+
+.upload-add {
+  border: 1px dashed #d9d9d9;
+  margin-top: 20px;
+  padding: 10px;
+  text-align: center;
+}
+
+.upload-demo-drag {
+  width: 100%;
+  padding-top: 20px;
+  flex: 1;
+}
+
+.org-card {
+  margin: 10px;
+  padding: 0;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.add-btn {
+  color: #409eff;
+  font-size: 14px;
+}
+
+.org-info {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.info-row {
+  margin-bottom: 5px;
+  color: #8d8b8b;
+  display: flex;
+}
+
+.info-row .info-row-flex {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  padding: 10px 0;
+}
+
+.info-row .info-row-flex label {
+  display: inline-block;
+  flex-shrink: 0;
+  min-width: 80px;
+  /* width: 130px; */
+  text-align: right;
+  padding-right: 10px;
+  font-weight: bold;
+  color: #303133;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.info-row .info-row-flex div {
+  flex: 1;
+  text-align: left;
+  min-width: 120px;
+}
+
+.section-title {
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.attachment-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+/* 调整分隔线样式 */
+.resize-handle {
+  position: absolute;
+  right: -5px;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.feedBack .el-form-item__label {
+  text-align: right;
+  width: 140px;
+}
+
+.qcc_check {
+  color: red;
+  /* padding-left: 10px; */
+}
+/* 审核弹窗 */
+.table-wrapper {
+  padding: 20px;
+}
+
+.add-btn-container {
+  margin-top: 16px;
+  text-align: left;
+}
+/* 导出pdf表单 */
+/* 标题样式 */
+.pdf-section-title {
+  width: 100%;
+  text-align: center;
+  color: #303133;
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.pdf-section-sub-title {
+  width: 100%;
+  text-align: center;
+  color: #303133;
+  font-size: 36px;
+  font-weight: bold;
+}
+/* 表格容器 */
+.info-div {
+  margin-bottom: 25px;
+  border: 2px solid #343434;
+  border-radius: 4px;
+  font-size: 24px;
+  overflow: hidden;
+}
+/* 使用 table 布局修复边框问题 */
+.table-row {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+/* 表头单元格 */
+.cell-label {
+  display: table-cell;
+  font-weight: bold;
+  color: #303133;
+  text-align: center;
+  vertical-align: middle;
+  border-right: 2px solid #343434;
+  border-bottom: 2px solid #343434;
+  padding: 12px 15px;
+  white-space: nowrap;
+}
+/* 数据单元格 */
+.cell-value {
+  display: table-cell;
+  color: #606266;
+  vertical-align: middle;
+  border-right: 2px solid #343434;
+  border-bottom: 2px solid #343434;
+  padding: 12px 15px;
+}
+/* 移除最后一行的下边框 */
+.table-row:last-child .cell-label,
+.table-row:last-child .cell-value {
+  border-bottom: none;
+}
+/* 移除最后一列的右边框 */
+.table-row .cell-value:last-child,
+.table-row .cell-label:last-child {
+  border-right: none;
+}
+/* 长文本处理 */
+.long-text {
+  word-break: break-all;
+  line-height: 1.6;
+  text-align: left;
+}
+/* 列宽定义 - 基于24栅格系统 */
+.col-2 {
+  width: 8.33%;
+  /* 2/24 */
+}
+
+.col-3 {
+  width: 12.5%;
+  /* 3/24 */
+}
+
+.col-5 {
+  width: 20.83%;
+  /* 5/24 */
+}
+
+.col-13 {
+  width: 54.17%;
+  /* 13/24 */
+}
+
+.col-21 {
+  width: 87.5%;
+  /* 21/24 */
+}
+/* 修复后的边框样式 */
+.cell-border-left {
+  border-left: 1px solid #343434;
+}
+
+.cell-border-top {
+  border-top: 1px solid #343434;
+}
+/* 分隔每个人员信息 */
+.person-divider {
+  border-top: 2px solid #909399;
+}
+/* 空数据样式 */
+.empty-data {
+  color: #c0c4cc;
+  font-style: italic;
+}
+
+.note {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #ecf5ff;
+  border-radius: 4px;
+  border-left: 4px solid #409EFF;
+}
+
+.note h4 {
+  color: #409EFF;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+/* 响应式信息网格布局 */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 15px;
+  padding: 8px 0;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+.info-item label {
+  font-weight: bold;
+  color: #303133;
+  font-size: 13px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.info-item span {
+  color: #8d8b8b;
+  font-size: 13px;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.info-item .text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+/* 表格响应式包装器 */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper .el-table {
+  min-width: 800px;
+}
+/* 附件区域响应式 */
+.attachment-section {
+  padding: 15px;
+  overflow-x: auto;
+}
+
+.relat-card .el-card__body {
+  padding: 10px 20px!important;
+  margin-bottom: 10px;
+}
+
+.highlight-border {
+  border: 1px solid #F56C6C !important;
+  /* 使用 !important 是为了防止被 Element UI 组件内部样式覆盖 */
+}
+/* 客户端信息卡片响应式 */
+.client-info {
+  padding: 10px 10px 0 10px;
+}
+
+.client-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ebeef5;
+  display: flex;
+  justify-content: space-between;
+}
+/* ============ 客户基本信息模块响应式优化 ============ */
+/* 基础表单布局优化 */
+.basic-info-form {
+  padding: 20px !important;
+}
+
+.basic-info-form .el-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10px;
+  padding: 10px 0;
+}
+/* 表单项布局 */
+.basic-info-form .el-form-item {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.basic-info-form .client-label {
+  flex-shrink: 0;
+  text-align: left;
+  padding-right: 10px;
+  color: #606266;
+  white-space: nowrap;
+  min-width: 100px;
+  max-width: 140px;
+}
+/* 响应式断点 - 高DPI和缩放适配 */
+@media screen and (min-resolution: 120dpi),
+screen and (-webkit-min-device-pixel-ratio: 1.25),
+screen and (max-width: 1280px) {
+  .basic-info-form {
+    padding: 12px !important;
+  }
+  .basic-info-form .info-row-flex {
+    width: 50%;
+    min-width: 200px;
+  }
+}
+/* 中等屏幕 */
+@media screen and (max-width: 1024px) {
+  .basic-info-form .info-row-flex {
+    width: 50%;
+    min-width: 180px;
+  }
+}
+/* 小屏幕 */
+@media screen and (max-width: 768px) {
+  .basic-info-form {
+    padding: 10px !important;
+  }
+  .basic-info-form .info-row-flex {
+    width: 100%;
+    min-width: 100%;
+  }
+  .basic-info-form .el-form-item {
+    flex-direction: column;
+  }
+}
+/* 超小屏幕 */
+@media screen and (max-width: 480px) {
+  .basic-info-form .el-row {
+    margin: 0 -5px;
+  }
+  .basic-info-form .info-row-flex {
+    padding: 0 5px;
+    margin-bottom: 8px;
+  }
+}
+/* 工商核查信息样式优化 */
+.qcc_check {
+  margin-top: 4px;
+  /* font-size: 12px; */
+}
+/* ============ 响应式优化 - 针对原有的el-row/el-col布局 ============ */
+/* 默认布局：大屏幕 */
+.client-info .el-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -5px;
+}
+
+.client-info .info-row-flex {
+  flex: 0 0 auto;
+  width: 33.3333%;
+  padding: 0 5px;
+  margin-bottom: 8px;
+  min-width: 200px;
+}
+/* 证件号码等长文本处理 */
+.client-info .info-row-flex:last-child {
+  word-break: break-all;
+}
+/* 高DPI屏幕和缩放适配 (125%+) */
+@media screen and (min-resolution: 120dpi),
+screen and (-webkit-min-device-pixel-ratio: 1.25),
+screen and (max-width: 1280px) {
+  /* 调整字体大小 */
+  .client-title {
+    font-size: 15px;
+  }
+  .info-row .info-row-flex label {
+    font-size: 13px;
+    width: 100px;
+    min-width: 70px;
+    padding-right: 8px;
+  }
+  .info-row {
+    font-size: 13px;
+  }
+  /* 调整列宽度 */
+  .client-info .info-row-flex {
+    width: 50%;
+    min-width: 160px;
+  }
+  /* 紧凑间距 */
+  .client-info {
+    padding: 8px;
+  }
+  .client-title {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+  }
+  .client-info .el-row {
+    margin: 0 -4px;
+  }
+  .client-info .info-row-flex {
+    padding: 0 4px;
+    margin-bottom: 6px;
+  }
+}
+/* 中等屏幕 */
+@media screen and (max-width: 1024px) {
+  .client-info .info-row-flex {
+    width: 50%;
+    min-width: 140px;
+  }
+  .info-row .info-row-flex label {
+    width: 80px;
+    min-width: 60px;
+    font-size: 11px;
+  }
+  .info-row {
+    font-size: 11px;
+  }
+}
+/* 小屏幕 - label 和 value 改为上下排列 */
+@media screen and (max-width: 768px) {
+  .client-info .info-row-flex {
+    width: 100%;
+    min-width: 100%;
+  }
+  .info-row .info-row-flex {
+    flex-direction: column;
+  }
+  .info-row .info-row-flex label {
+    width: auto;
+    min-width: auto;
+    text-align: left;
+    padding-right: 0;
+    padding-bottom: 2px;
+    font-size: 11px;
+    color: #909399;
+  }
+  .info-row .info-row-flex div {
+    text-align: left;
+  }
+}
+/* 超小屏幕 */
+@media screen and (max-width: 480px) {
+  .client-title {
+    font-size: 15px;
+  }
+  .info-row .info-row-flex label {
+    font-size: 11px;
+  }
+  .info-row {
+    font-size: 11px;
+  }
+}
+/* 文本溢出处理 */
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+/* 长文本换行处理 */
+.text-break {
+  word-break: break-all;
+  line-height: 1.4;
+}
+/* 
+ *element样式重写 
+ */
+.el-card__header {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.el-tabs__item:hover {
+  color: #004C86;
+  cursor: pointer;
+}
+
+.el-tabs__item.is-active {
+  color: #004C86;
+}
+
+.el-tabs__active-bar {
+  background-color: #004C86;
+}
+/* 树节点图标调整 */
+.el-tree-node__expand-icon {
+  margin-top: 3px;
+}
+/* 主体人登记 */
+.register-form {
+  padding: 10px 20px;
+}
+
+.tag-section {
+  margin-top: 20px;
+}
+
+.tag-buttons {
+  margin-top: 10px;
+}
+
+.el-button--primary.is-plain {
+  color: #409EFF;
+  background: #fff;
+  border-color: #409EFF;
+}
+
+.el-button--primary.is-plain.active {
+  color: #fff;
+  background: #409EFF;
+}
+
+.el-form-item .el-form-item__content {
+  color: #8d8b8b;
+}
+
+.el-form--label-top .el-form-item__label {
+  float: none;
+  display: inline-block;
+  text-align: left;
+  padding: 0;
+}
+/* 反洗钱特殊情况时隐藏必填标记 */
+.hide-required-mark .el-form-item.is-required:not(.is-no-asterisk):not(.always-show-required)>.el-form-item__label:before {
+  content: '' !important;
+  margin-right: 0 !important;
+}
+
+.file-container .el-upload,
+.el-upload-dragger {
+  width: 100%;
+  flex: 1;
+}
+
+.el-upload__tip {
+  color: #999;
+  font-size: 12px;
+}
+
+.el-select-dropdown,
+.el-poper {
+  z-index: 999999999 !important;
+}
+
+.input-with-select .el-input-group__prepend {
+  background-color: #fff;
+}
+
+.id_enddate .el-form-item.is-required:not(.is-no-asterisk)>.el-form-item__label:before {
+  content: '';
+  color: #F56C6C;
+  margin-right: 4px;
+}
+/*
+ *webbuilder样式重写
+ */
+.tabcls .w-tabbar > .w-sc-body > .w-void-close,
+.tabcls .w-tabbar > .w-sc-body > .w-void-close:hover,
+.tabcls .w-tabbar > .w-sc-body > .w-void-close:focus {
+  padding: 1em 1em;
+}
+
+.tabcls .w-btn-active {
+  color: #555;
+  background: #fff;
+  border-bottom: 2px solid #004c86!important;
+}
+
+.tabcls .w-tabbar > .w-sc-body > .w-btn > .w-label {
+  text-overflow: ellipsis;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.tabcls .w-desktop .w-btn:hover,
+.w-desktop .w-btn:focus {
+  color: #004c86!important;
+  background: #fff;
+  border-color: #004c86!important;
+}
+
+.el-dialog.related_dialog .el-dialog__body {
+  max-height: 70vh;
+  overflow-y: scroll;
+}
+
+.el-dialog.related_dialog .el-select-dropdown__item.is-disabled {
+  display: none;
+}
+
+.el-dialog {
+  margin-top: 5vh!important;
+}
+
+.el-date-editor.el-input,
+.el-date-editor.el-input__inner {
+  width: 150px;
+}
+
+.fxqSpecial .el-upload-list__item:hover .el-icon-close {
+  display: none;
+}
+
+.wrap-option-select .el-select-dropdown__item {
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.4;
+  height: auto;
+  padding: 8px 20px;
+}
+
+.benefit-scroll-dialog {
+  max-height: 88vh;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+}
+.benefit-scroll-dialog .el-dialog__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto; 
+}
+.benefit-scroll-dialog .formitem-full-width {
+  width: 100%;
+}
+.benefit-scroll-dialog .formitem-max-width {
+  max-width: 345px;
+}
+.benefit-scroll-dialog .formitem-16-max-width {
+  max-width: 830px;
+}
+.benefit-scroll-dialog .formitem-24-max-width {
+  max-width: 1320px;
+}
+.benefit-scroll-dialog .el-form-item.is-error .el-radio-group {
+  border: 1px solid #f56c6c;
+  border-radius: 4px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  width: 100%;
+}

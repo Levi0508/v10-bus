@@ -1,0 +1,9 @@
+{
+  "title": "功能",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "get_userinfo.xwl"
+  ]
+}

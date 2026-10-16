@@ -1,0 +1,14 @@
+{
+  "title": "更新流程主表字段值",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let check_result_flag = Wb.get('check_result_flag');\nlet check_result = Wb.get('check_result');\nlet piid = Wb.get('piid2');\nlet user_name = Wb.get('sys.username');\n\nlet rs = {};\nlet msg = '';\n\nif (!check_result_flag || !piid) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = \"没有获取到参数\";\n} else {\n  let conn = Wb.getConn();\n\n  try {\n    let sql1 = `update thjs.T_PROJ_CHANGE_FLOW set check_result_flag = {?check_result_flag?} where sys_piid = {?piid?}`;\n    let sql2 = `update thjs.T_PROJ_CHANGE_FLOW set check_result = {?check_result?} where sys_piid = {?piid?}`;\n\n    Wb.sql({\n      sql: sql1,\n      contextParams: false,\n      params: {\n        check_result_flag: check_result_flag,\n        piid: piid\n      },\n      trans: true,\n      commit: false\n    });\n\n    Wb.sql({\n      sql: sql2,\n      contextParams: false,\n      params: {\n        check_result: check_result,\n        piid: piid\n      },\n      trans: true,\n      commit: false\n    });\n\n    conn.commit();\n    rs.O_RETURN_CODE = 0;\n    rs.O_RETURN_MSG = \"执行成功\"\n  } catch (e) {\n    rs.O_RETURN_CODE = -1;\n    rs.O_RETURN_MSG = \"保存失败：\" + e;\n    conn.rollback();\n  } finally {\n    conn.close();\n  }\n}\n\nWb.send(Wb.encode(rs));"
+  },
+  "_icon": "module"
+}

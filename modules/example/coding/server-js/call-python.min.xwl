@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"true","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let result=Polyglot.evalFile(\"python\",\"wb/modules/example/coding/server-js/demo.py\");Wb.send(result);"},"_icon":"module"}

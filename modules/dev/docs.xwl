@@ -1,0 +1,1 @@
+{"text":"module","cls":"Wb.Module","properties":{"cid":"module","links":"['wb/docs/wb-docs.css', 'wb/docs/data.js', 'wb/js/monaco.js', 'wb/docs/wb-docs.js']","remark":"Documents reader"},"events":{"initialize":"Wb.docs.App.initDocs(app);"},"_icon":"module","title":"@docs","icon":"book1","img":"","hideInMenu":"false"}

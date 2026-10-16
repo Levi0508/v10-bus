@@ -1,0 +1,25 @@
+{
+  "title": "反洗钱Test",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "client_report.xwl",
+    "client_report",
+    "client_manage.xwl",
+    "client_manage",
+    "my_clients.xwl",
+    "my_clients",
+    "country.xwl",
+    "country",
+    "beneficial_type.xwl",
+    "beneficial_type",
+    "audit_type.xwl",
+    "audit_type",
+    "common",
+    "maintainer.xwl",
+    "maintainer",
+    "maintainer_query.xwl",
+    "maintainer_query"
+  ]
+}

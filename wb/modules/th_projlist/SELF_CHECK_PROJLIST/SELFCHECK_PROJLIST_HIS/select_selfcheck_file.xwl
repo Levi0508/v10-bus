@@ -1,0 +1,1 @@
+{"title":"查询通知附件列表","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let rs = Wb.sql(`select f.*,u.display_name from thjs.t_proj_selfcheck_file f \nleft join basic_thjs.wb_user u\non u.user_name = f.create_by\nwhere f.check_batch_id = {?i_check_batch_id?}`);\nWb.send(rs);"},"_icon":"module"}

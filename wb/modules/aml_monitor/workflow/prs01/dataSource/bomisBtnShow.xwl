@@ -1,0 +1,12 @@
+{
+  "title": "实时核验功能按钮",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module"
+  }
+}

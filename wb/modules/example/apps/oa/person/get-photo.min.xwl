@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"function main(){let e=Wb.getRow({sql:\"select photo from wb_staff where sid={?sid?}\",blob:true});if(e?.photo)Wb.exportData(e.photo);else Wb.exportData(new Wb.File(true,\"wb/images/null.png\").stream)}main();"},"_icon":"module"}

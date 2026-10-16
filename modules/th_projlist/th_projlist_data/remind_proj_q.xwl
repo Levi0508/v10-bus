@@ -1,0 +1,1 @@
+{"title":"清单提醒项目明细查询","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`{call thjs.p_projlist_remind_proj_q({*cursor|result*},{?i_remind_id?},{?i_proj_status?},{?sys.username?},{*O_RETURN_MSG*},{*INTEGER|O_RETURN_CODE*})}`);"},"_icon":"module"}

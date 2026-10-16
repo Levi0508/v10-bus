@@ -1,0 +1,74 @@
+/***Manager***/CREATE OR REPLACE VIEW "THJS"."VW_FXQ_CUST_CERTEND"
+("CUST_FLAG","CUST_ID","CUST_NAME","REMIND_NAME","CERT_ENDDATE","CERT_ORDER","CERT_FLAG","OP_USER","STATUS")  
+AS 
+select c.organ_flag as cust_flag, --反洗钱客户证件到期日视图
+       c.client_id as cust_id,
+       c.client_name as cust_name,
+       t.remind_name,
+       t.cert_enddate,
+       t.cert_order,
+       t.cert_flag,
+       nvl(p.new_maintainer, c.update_user) as op_user,
+       c.status
+  from THJS.vw_fxq_cust_info c
+ inner join (select r.client_id as cust_id,
+                    r.client_name as remind_name,
+                    r.id_enddate as cert_enddate,
+                    0 as cert_order,
+                    '客户证件有效截止' as cert_flag
+               from THJS.vw_fxq_cust_info r
+             union all
+             select r.client_id as cust_id,
+                    r.related_name as chair_man,
+                    r.id_enddate as chair_certend,
+                    1 as cert_order,
+                    '法人代表证件有效截止' as cert_flag
+               from THJS.t_th_relat_info r
+              where r.related_name is not null
+                and r.id_enddate is not null
+                and r.related_type = '1'
+             union all
+             select c.client_id as cust_id,
+                    c.related_name,
+                    c.id_enddate,
+                    2 as cert_order,
+                    '控股股东证件有效截止' as cert_flag
+               from THJS.t_th_relat_info c
+              where c.related_name is not null
+                and c.id_enddate is not null
+                and c.related_type = '2'
+             union all
+             select c.client_id as cust_id,
+                    c.related_name,
+                    c.id_enddate,
+                    3 as cert_order,
+                    '实际控制人证件有效截止' as cert_flag
+               from THJS.t_th_relat_info c
+              where c.related_name is not null
+                and c.id_enddate is not null
+                and c.related_type = '3'
+             union all
+             select c.client_id as cust_id,
+                    c.related_name,
+                    c.id_enddate,
+                    4 as cert_order,
+                    '授权代表人证件有效截止' as cert_flag
+               from THJS.t_th_relat_info c
+              where c.related_name is not null
+                and c.id_enddate is not null
+                and c.related_type = '4'
+             union all
+             select c.client_id as cust_id,
+                    c.related_name,
+                    c.id_enddate,
+                    5 as cert_order,
+                    '受益所有人证件有效截止' as cert_flag
+               from THJS.t_th_relat_info c
+              where c.related_name is not null
+                and c.id_enddate is not null
+                and c.related_type = '5') t
+    on t.cust_id = c.client_id
+  left join THJS.t_maintainer_info p
+    on p.client_id = c.client_id
+ where c.status = '0';
+

@@ -1,0 +1,14 @@
+{
+  "title": "",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRow(`SELECT COALESCE(\n    (SELECT b.user_name\n     FROM basic_thjs.wb_user_hg a\n     JOIN basic_thjs.wb_user b ON a.staff_id = b.staff_id\n     WHERE a.user_name = {?i_usercode?}\n     FETCH FIRST 1 ROWS ONLY),\n    (SELECT user_name\n     FROM basic_thjs.wb_user\n     WHERE user_name = {?i_usercode?}\n     FETCH FIRST 1 ROWS ONLY)\n) AS user_name\nFROM DUAL`);\n\n"
+  },
+  "_icon": "module"
+}

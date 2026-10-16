@@ -1,0 +1,1 @@
+{"title":"市键值转换","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({sql:`select area_code as k, area_name as v from thjs.t_dict_area_code_v2 t where t.pro_code != t.area_code and t.area_code like '%00'`});"},"_icon":"module"}

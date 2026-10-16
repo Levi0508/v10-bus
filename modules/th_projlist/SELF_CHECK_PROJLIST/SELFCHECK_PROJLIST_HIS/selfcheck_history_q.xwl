@@ -1,0 +1,14 @@
+{
+  "title": "自查历史查询",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "// Wb.sendRowx({sql:`SELECT \n//     t.check_batch_id,\n//     MAX(t.title) AS title,       -- 同一批次标题通常相同，使用MAX或MIN获取\n//     MAX(t.content) AS content,   -- CLOB字段在部分版本需聚合函数包裹\n//     TO_CHAR(MAX(t.sys_create_time), 'yyyymm') AS BATCH_MONTH,\n//     MAX(t.sys_create_time) AS sys_create_time,\n    \n//     -- 1. 下发总数量 (proj_cnt)\n//     COUNT(DISTINCT t.projid) AS proj_cnt,\n    \n//     -- 2. 准确数量 (correct_cnt): check_result = '0'\n//     SUM(CASE WHEN r.check_result = '0' THEN 1 ELSE 0 END) AS correct_cnt,\n    \n//     -- 3. 已更正数量 (edit_cnt): check_result = '1'\n//     SUM(CASE WHEN r.check_result = '1' THEN 1 ELSE 0 END) AS edit_cnt,\n    \n//     -- 4. 未完成数量 (undo_cnt)\n//     COUNT(DISTINCT t.projid) - \n//     SUM(CASE WHEN r.check_result = '0' THEN 1 ELSE 0 END) - \n//     SUM(CASE WHEN r.check_result = '1' THEN 1 ELSE 0 END) AS undo_cnt\n\n// FROM thjs.T_PROJ_SELFCHECK_FLOW t\n// LEFT JOIN (\n//     -- 【关键步骤】子查询：对结果表进行预处理，按 projid 分组取最新一条\n//     SELECT \n//         projid,\n//         check_result,\n//         ROW_NUMBER() OVER (PARTITION BY projid ORDER BY create_time DESC) as rn\n//     FROM thjs.TB_PROJLIST_CHECK_RESULT\n// ) r ON t.projid = r.projid AND r.rn = 1\n\n// -- 如果只需要查询特定批次，可以在这里添加 WHERE 条件\n// -- WHERE t.check_batch_id = '你的批次ID'\n// GROUP BY t.check_batch_id ORDER BY MAX(t.sys_create_time) DESC;`});\n\nWb.sendRowx({sql:`SELECT \n    t.check_batch_id,\n    MAX(t.title) AS title,\n    MAX(t.content) AS content,\n    TO_CHAR(MAX(t.sys_create_time), 'yyyymm') AS BATCH_MONTH,\n    MAX(t.sys_create_time) AS sys_create_time,\n    MAX(t.sys_create_user) AS sys_create_user,\n    COUNT(DISTINCT t.projid) AS proj_cnt,\n    SUM(CASE WHEN r.check_result = '0' THEN 1 ELSE 0 END) AS correct_cnt, \n    SUM(CASE WHEN r.check_result = '1' THEN 1 ELSE 0 END) AS edit_cnt,\n    COUNT(DISTINCT t.projid) - \n    SUM(CASE WHEN r.check_result = '0' THEN 1 ELSE 0 END) - \n    SUM(CASE WHEN r.check_result = '1' THEN 1 ELSE 0 END) AS undo_cnt\nFROM thjs.T_PROJ_SELFCHECK_FLOW t\nLEFT JOIN (\n    SELECT \n        projid,\n        check_batch_id,\n        check_result,\n        ROW_NUMBER() OVER (PARTITION BY projid, check_batch_id ORDER BY create_time DESC) as rn\n    FROM thjs.TB_PROJLIST_CHECK_RESULT\n) r ON t.projid = r.projid \n     AND t.check_batch_id = r.check_batch_id \n     AND r.rn = 1\nGROUP BY t.check_batch_id \nORDER BY MAX(t.sys_create_time) DESC;`});"
+  },
+  "_icon": "module"
+}

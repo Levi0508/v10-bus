@@ -1,0 +1,14 @@
+{
+  "title": "查询bomis受益人信息",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var sql = `\nselect t.*, bomis_key as ntlty from (\n  select a.* from thjs.t_th_relat_info a \nwhere a.client_id = {?client_id?} \nand a.related_type = '5'\nand (a.data_status = {?DATA_TYPE?} OR {?DATA_TYPE?} IS NULL)\nunion all\nselect b.* from thjs.t_th_relat_info_tmp b \nwhere b.client_id = {?client_id?} \nand b.related_type = '5'\n)  t\nleft join thjs.t_bomis_dict_subentry ntlty_t on ntlty_t.entry_no = 'nationality' and t.nationality = ntlty_t.th_key\n`;\nvar res = Wb.getRowx({sql: sql});\nres.items.forEach(function (item) {\n  item.bnf_type_str = item.bnf_type;\n  item.bnf_type = item.bnf_type === '' || item.bnf_type === null ? [] : item.bnf_type.split(',');\n  item.actctrltype_str = item.actctrltype;\n  item.actctrltype = item.actctrltype === '' || item.actctrltype === null ? [] : item.actctrltype.split(',');\n  item.seniormgrpos_str = item.seniormgrpos;\n  item.seniormgrpos = item.seniormgrpos === '' || item.seniormgrpos === null ? [] : item.seniormgrpos.split(',');\n  item.seniormgrposcn_str = item.seniormgrposcn;\n  item.seniormgrposcn = item.seniormgrposcn === '' || item.seniormgrposcn === null ? [] : item.seniormgrposcn.split(',');\n});\nWb.send(res);"
+  },
+  "_icon": "module"
+}

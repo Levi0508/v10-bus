@@ -1,0 +1,9 @@
+{
+  "title": "表转换管理包",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "actions.xwl"
+  ]
+}

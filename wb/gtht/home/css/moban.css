@@ -1,0 +1,60 @@
+.moban .navBox {
+  border-right: 4px solid #ccc;
+}
+.moban .tbar .leftbox .title {
+  letter-spacing: 4px;
+  font-size: 1.5em;
+}
+.moban .tbar .rightbox {
+  font-size: .8em;
+}
+.moban .tbar .rightbox .search .w-input-wrap {
+  padding: .4em;
+  width: 22em;
+  background: transparent;
+  color: #fff;
+}
+.moban .tbar .rightbox .search .gnitem {
+  border: 1px solid rgb(66, 66, 166);
+  border-radius: .5em;
+}
+
+.navtobox {
+  position: absolute;
+}
+.navbox .box {
+  position: absolute;
+  right: 8em;
+  bottom: 10em;
+}
+.navbox .nav {
+  position: absolute;
+  right: 2em;
+  bottom: 8em;
+}
+.navbox .nav .navlist .item .w-icon {
+  color: rgb(38, 92, 235);
+  font-size: 1.2em;
+}
+
+.navlist .item {
+  color: rgb(38, 92, 235);
+  margin: .2em 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: .5em;
+  width: 4em;
+  height: 4em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.navlist .item:hover {
+  cursor: pointer;
+  background: #f1f8ff;
+}
+.navlist .item .title {
+  font-size: .8em;
+  padding: .5em 0;
+}

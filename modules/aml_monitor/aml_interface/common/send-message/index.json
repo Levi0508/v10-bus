@@ -1,0 +1,9 @@
+{
+  "title": "发送邮件",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "send.xwl"
+  ]
+}

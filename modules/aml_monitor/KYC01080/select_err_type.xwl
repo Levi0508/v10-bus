@@ -1,0 +1,1 @@
+{"title":"查询审核类型","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`select distinct a.err_type\nfrom thjs.t_par_err_type a \norder by a.err_type`);\n"},"_icon":"module","_expanded":true}

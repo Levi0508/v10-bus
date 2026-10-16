@@ -1,0 +1,14 @@
+{
+  "title": "KYC01030/select",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx({\n  sql: `{call thjs.p_fxq_cust_rz_self_q({*cursor|return*},{?CLIENT_NAME?},{?WORK_TYPE?},{?CLIENT_STATUS?},{?sys.username?},{?MAINTAINER?},{?bigint|_from?},{?bigint|_size?},{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n  kv: {\n    client_status: 'client_status'\n  },\n  paging: false,\n  total: `select count(0) from thjs.t_th_client_info b \n  left join thjs.t_maintainer_info a \n    on a.client_id = b.client_id \n  left join basic_thjs.wb_user c \n    on a.new_maintainer = c.SID\n  LEFT JOIN basic_thjs.wb_user_hg c1\n    on a.new_maintainer = c1.user_name\n  where (b.client_name like '%'||{?CLIENT_NAME?}||'%' or {?CLIENT_NAME?} is null)\n  and (b.work_type = {?WORK_TYPE?} or {?WORK_TYPE?} is null)\n  and (a.new_maintainer = {?sys.userid?} or {?sys.userid?} = 'admin')\n  and (instr(a.NEW_MAINTAINER, {?MAINTAINER?}) > 0 \n\t\t\t\t\t                  or instr(nvl(c.DISPLAY_NAME,c1.display_name),{?MAINTAINER?}) > 0\n                            or {?MAINTAINER?} is null)\n  and (b.client_status = {?CLIENT_STATUS?} or {?CLIENT_STATUS?} is null)`\n});"
+  },
+  "_icon": "module"
+}

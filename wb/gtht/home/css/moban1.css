@@ -1,0 +1,137 @@
+.moban .navBox {
+  border-right: 4px solid #ccc;
+}
+.moban .tbar {
+  padding: 0;
+}
+.moban .tbar .leftbox .title {
+  letter-spacing: 4px;
+  font-size: 1.5em;
+}
+.moban .tbar .rightbox {
+  font-size: .8em;
+}
+.moban .tbar .rightbox .search .w-input-wrap {
+  padding: .4em;
+  width: 22em;
+  background: transparent;
+  color: #fff;
+}
+.moban .tbar .rightbox .search .gnitem {
+  border: 1px solid rgb(66, 66, 166);
+  border-radius: .5em;
+}
+
+.dh-btn {
+  border-top: 4px solid transparent !important;
+  border-bottom: 4px solid transparent !important;
+}
+.dh-btn.w-btn-active {
+  font-weight: 600;
+  border-bottom: 4px solid rgb(255, 255, 255) !important;
+  background: none !important;
+}
+.dh-btn:hover {
+  border-bottom: 4px solid rgb(255, 255, 255) !important;
+  background: none !important;
+}
+.qjdhMenu {
+  padding: 0;
+  min-width: calc(90%);
+}
+.gt-dhk {
+  width: 14em;
+  max-height: 30em;
+  border-right: 1px solid #dfdfdf;
+}
+.gt-dhk .gt-dhk-item {
+  cursor: pointer;
+  padding: .2em .5em;
+}
+.gt-dhk .gt-dhk-item:hover {
+  border-left: 4px solid #001c8c;
+  background-color: #e4f1ff;
+}
+.gt-dhk-itembg {
+  border-left: 4px solid #001c8c;
+  background-color: #e4f1ff;
+}
+.gt-dhv {
+  font-size: .9em;
+  position: relative;
+  flex: 1;
+  max-height: 30em;
+}
+.gt-dhv-itembg {
+  background:#e4f1ff;
+}
+.gtItem {
+  align-items: center;
+  white-space: nowrap;
+}
+.gt-dhv .gtItem .text:hover {
+  color: #3b9aff;
+}
+.gt-dhv .gtItem:hover .w-icon {
+  visibility: visible;
+  color: #ccc;
+}
+.gt-dhv .gtItem .text {
+  cursor: pointer;
+}
+.gt-dhv .gtItem .w-icon:hover {
+  color: #3b9aff;
+}
+.gt-dhv .gtItem .w-icon {
+  padding-left: .3em;
+  cursor: pointer;
+  visibility: hidden;
+}
+.iicon {
+  display: block;
+}
+.gt-dhv .w-row:hover {
+  background: #e4f1ff;
+}
+
+
+
+.navtobox {
+  position: absolute;
+}
+.navbox .box {
+  position: absolute;
+  right: 8em;
+  bottom: 10em;
+}
+.navbox .nav {
+  position: absolute;
+  right: 2em;
+  bottom: 8em;
+}
+.navbox .nav .navlist .item .w-icon {
+  color: rgb(38, 92, 235);
+  font-size: 1.2em;
+}
+
+.navlist .item {
+  color: rgb(38, 92, 235);
+  margin: .2em 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: .5em;
+  width: 4em;
+  height: 4em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.navlist .item:hover {
+  cursor: pointer;
+  background: #f1f8ff;
+}
+.navlist .item .title {
+  font-size: .8em;
+  padding: .5em 0;
+}

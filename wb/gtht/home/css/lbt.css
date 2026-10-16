@@ -1,0 +1,45 @@
+.labels .w-label {
+  font-weight: 600;
+  color: #fff;
+}
+
+.gtht-lbt .carousel .w-icon {
+  color: #fff;
+}
+.gtht-lbt .lbt-items {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.gtht-lbt .lbt-items .lbt-item {
+  width: 18em;
+  height: 12em;
+  background: #fff;
+  border-radius: 1em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.gtht-lbt .lbt-items .lbt-item .img {
+  border-radius: 1em 1em 0 0;
+  width: 100%;
+  height: 6.5em;
+  background: orchid;
+}
+.gtht-lbt .lbt-items .lbt-item .content {
+  padding: 0 1em;
+  color: #333;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 1em;
+}
+.gtht-lbt .w-cs-list {
+  padding-top: 3em;
+}
+.gtht-lbt .lbt-items .lbt-item .datetime {
+  font-size: .8em;
+  padding: 0 0 1em 2em;
+  color: #666;
+}

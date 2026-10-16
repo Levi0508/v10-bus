@@ -1,0 +1,10 @@
+{
+  "title": "接口日志查询",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "select.xwl",
+    "export.xwl"
+  ]
+}

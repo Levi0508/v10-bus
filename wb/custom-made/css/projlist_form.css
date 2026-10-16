@@ -1,0 +1,638 @@
+.projlist-form-input {
+  padding: 20px;
+}
+
+.projlist-card {
+  margin-bottom: 20px;
+}
+
+.company-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.projlist-file-tips {
+  font-size: 13px;
+  color: #e74c3c;
+  ;
+  line-height: 1.0;
+}
+
+.projlist-btns {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.projlist-btns .el-button {
+  min-width: 100px;
+}
+
+.company-table-wrapper {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.company-delete-btn,
+.company-add-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.company-delete-btn:hover,
+.company-add-btn:hover {
+  background-color: #fef0f0;
+}
+
+.company-delete-btn i,
+.company-add-btn i {
+  font-size: 22px;
+  color: #0287cb;
+  transition: color 0.3s;
+}
+
+.company-delete-btn:hover i {
+  color: #f56c6c;
+}
+
+.company-table {
+  flex: 1;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.company-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.company-row:last-child {
+  border-bottom: none;
+}
+
+.company-label {
+  min-width: 140px;
+  padding: 12px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+  background: rgba(2, 135, 203, .04);
+  border-right: 1px solid #ebeef5;
+}
+
+.company-cell {
+  padding: 8px 12px;
+  border-right: 1px solid #ebeef5;
+  min-width: 120px;
+}
+
+.company-cell:last-child {
+  border-right: none;
+}
+/* 匹配按钮列 */
+.company-match-btn {
+  min-width: 70px;
+  padding: 8px 12px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 输入框样式调整 */
+.company-cell .el-input__inner {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0 8px;
+}
+
+.company-cell .el-input__inner:focus {
+  border-color: #0287cb;
+  background: #fff;
+}
+
+.company-cell .el-input__inner:hover {
+  border-color: #c0c4cc;
+}
+/* select样式 */
+.company-cell .el-select {
+  width: 100%;
+}
+
+.company-cell .el-input--small .el-input__inner {
+  height: 32px;
+  line-height: 32px;
+}
+/* 表格容器 */
+.info-div-basic {
+  margin-bottom: 25px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+/* 使用 table 布局 */
+.table-row {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+/* 表头单元格（标签列） */
+.cell-label-basic {
+  display: table-cell;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #ebeef5;
+  /* background: linear-gradient(135deg, #0287cb 0%, #03a9f4 100%); */
+  padding: 14px 16px;
+  white-space: nowrap;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+/* 数据单元格 */
+.cell-value-basic {
+  display: table-cell;
+  color: #333;
+  vertical-align: middle;
+  /* background: #fff; */
+  padding: 14px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid #e8e8e8;
+  border-right: 1px solid #f0f0f0;
+}
+/* 隔行变色 - 偶数行 */
+.table-row:nth-child(even) .cell-label-basic {
+  /* background: linear-gradient(135deg, #027ab8 0%, #0298d4 100%); */
+}
+
+.table-row:nth-child(even) .cell-value {
+  background: #fafafa;
+}
+/* 移除最后一行的下边框 */
+.table-row:last-child .cell-value {
+  border-bottom: none;
+}
+/* 移除最后一列的右边框 */
+.table-row .cell-value:last-child,
+.table-row .cell-label:last-child {
+  border-right: none;
+}
+/* 长文本处理 */
+.long-text {
+  word-break: break-all;
+  line-height: 1.6;
+  text-align: left;
+}
+/* 列宽定义 - 基于24栅格系统 */
+.col-3 {
+  width: 12.5%;
+}
+
+.col-4 {
+  width: 16.17%;
+}
+
+.col-5 {
+  width: 20.83%;
+}
+
+.col-8 {
+  width: 33.33%;
+}
+
+.col-13 {
+  width: 54.17%;
+}
+
+.col-21 {
+  width: 87.5%;
+}
+/* 空数据样式 */
+.empty-data {
+  color: #c0c4cc;
+  font-style: italic;
+}
+/* 清单类型表格样式 */
+.bill-table {
+  /* border: 1px solid #dcdfe6; */
+  border-radius: 4px;
+  padding: 0 0 0 50px;
+}
+
+.bill-header {
+  display: flex;
+  background: linear-gradient(135deg, #0287cb 0%, #03a9f4 100%);
+  color: #fff;
+  font-weight: 500;
+}
+
+.bill-row {
+  display: flex;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.bill-row:last-child {
+  border-bottom: none;
+}
+
+.bill-row:nth-child(even) {
+  background: #fafafa;
+}
+
+.bill-cell {
+  padding: 12px 10px;
+  font-size: 14px;
+  border-right: 1px solid #ebeef5;
+  display: flex;
+  align-items: center;
+}
+
+.bill-cell:last-child {
+  border-right: none;
+}
+/* 列宽定义 */
+.bill-type-header,
+.bill-type-cell {
+  width: 140px;
+  min-width: 140px;
+  background: rgba(2, 135, 203, 0.06);
+  font-weight: 500;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+/* 对勾图标样式 */
+.type-label {
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* 默认状态 - 灰色对勾 */
+.type-label::before {
+  content: '✓';
+  color: #c0c4cc;
+  font-size: 18px;
+  font-weight: bold;
+  transition: color 0.3s;
+  margin-bottom: 4px;
+}
+/* 选中状态 - 绿色对勾 */
+.bill-row.selected .type-label::before {
+  color: #67c23a;
+}
+/* 提示文字 - 单元格内显示 */
+.type-hint {
+  font-size: 12px;
+  color: #E74C3C;
+  line-height: 1.4;
+  text-align: center;
+  white-space: normal;
+  word-break: break-all;
+}
+/* 禁用行样式 - 更浅的灰色对勾 */
+.bill-row.disabled-row .type-label {
+  cursor: not-allowed;
+}
+
+.bill-row.disabled-row .type-label::before {
+  color: #e4e7ed;
+}
+
+.bill-row.disabled-except-first .bill-type-cell {
+  cursor: pointer;
+}
+
+.bill-row.disabled-except-first .bill-reason-cell,
+.bill-row.disabled-except-first .bill-date-cell
+/* ,.bill-row.disabled-except-first .bill-remark-cell */ /*260918备注说明支持修订*/
+{
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.6;
+}
+
+/* 折叠按钮在禁用行中仍可点击 */
+.audit-collapse-btn {
+  pointer-events: auto !important;
+}
+/* 禁用行中的下载按钮仍可点击 */
+.bill-row.disabled-row .bill-file-cell .download-btn {
+  pointer-events: auto !important;
+}
+
+.bill-reason-header,
+.bill-reason-cell {
+  width: 180px;
+  min-width: 180px;
+}
+
+.bill-date-header,
+.bill-date-cell {
+  width: 160px;
+  min-width: 160px;
+}
+
+.bill-remark-header,
+.bill-remark-cell {
+  width: 160px;
+  min-width: 160px;
+}
+
+.field-required,
+.remark-required {
+  position: relative;
+}
+
+.field-required::after,
+.remark-required::after {
+  content: '*';
+  position: absolute;
+  top: 8px;
+  left: 5px;
+  color: rgb(248, 88, 88);
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.bill-file-header,
+.bill-file-cell {
+  flex: 1;
+  min-width: 180px;
+}
+/* 输入框样式 */
+.bill-cell .el-input,
+.bill-cell .el-select {
+  width: 100%;
+}
+/* 通用文本溢出与选中样式 */
+.full-text-select {
+  /* 关键属性：允许在 disabled/readonly 状态下选中文本 */
+  user-select: text !important;
+  cursor: text !important;
+  /* 鼠标变为文字光标，提示可选中 */
+}
+
+.bill-cell .el-date-editor.el-input {
+  width: 100%;
+}
+/* 文件上传区域 */
+.file-upload-wrapper {
+  display: flex;
+  align-items: center;
+  /* gap: 8px; */
+  width: 100%;
+}
+
+.file-name-input {
+  flex: 1;
+}
+
+.file-upload-btn {
+  flex-shrink: 0;
+  padding-left: 8px;
+}
+
+.file-upload-btn .el-button--small,
+.el-button--small.is-round {
+  border-right: none;
+}
+
+.file-download-btn {
+  flex-shrink: 0;
+  padding: 0;
+  margin-left: 4px;
+}
+/* 批次切换按钮 */
+.projlist-tab-btn {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.projlist-tab-add,
+.projlist-tab-del {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 20px;
+  font-size: 14px;
+  color: #0287cb;
+  transition: all 0.3s;
+}
+
+.projlist-tab-add:hover,
+.projlist-tab-del:hover {
+  color: #03a9f4;
+}
+
+.projlist-tab-add i,
+.projlist-tab-del i {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.projlist-tab-del {
+  color: #f56c6c;
+}
+
+.projlist-tab-del:hover {
+  color: #f78989;
+}
+/* 批次标签页 */
+.projlist_tab_header {
+  margin: 0 0 20px 0;
+  box-shadow: rgba(182, 186, 189, 0.2) 0px 2px 8px 0px;
+}
+
+.projlist_tab_header ul {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 32px;
+  display: flex;
+  line-height: 22px;
+  background: #fff;
+  list-style: none;
+}
+
+.projlist_tab_header ul li {
+  float: left;
+  list-style: none;
+  margin: 0px 22px 0px 10px;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.projlist_tab_header ul li:hover {
+  color: #0287cb;
+}
+
+.projlist_active {
+  border-bottom: solid 2px #1283d5;
+  color: #0287cb;
+  font-weight: 500;
+}
+/* =========================
+   审核意见区域（新版）
+========================= */
+.audit-wrapper {
+  position: relative;
+  margin-bottom: 8px;
+  padding-left: 0;
+  border: 1px solid #eee;
+}
+/* 左侧新增按钮 */
+.audit-add-btn {
+  position: absolute;
+  left: -35px;
+  top: -20px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #fff;
+  z-index: 2;
+  transition: .2s;
+}
+
+.audit-add-btn i {
+  font-size: 18px;
+  color: #0287cb;
+}
+
+.audit-add-btn:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+  transform: scale(1.05);
+}
+/* 表格主体 */
+.audit-table {
+  width: 100%;
+  background: #fff;
+}
+/* 表头 */
+.audit-header {
+  background: linear-gradient(135deg, #c0e6fa 0%, #e7f5fc 100%);
+  color: rgb(6, 83, 134);
+}
+/* 每条记录 */
+.audit-row-wrapper {
+  position: relative;
+}
+/* 删除按钮 */
+.audit-delete-btn {
+  position: absolute;
+  left: -35px;
+  top: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #fff;
+  z-index: 2;
+  transition: .2s;
+}
+
+.audit-delete-btn i {
+  font-size: 18px;
+  color: #F56C6C;
+}
+
+.audit-delete-btn:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+  transform: scale(1.05);
+}
+/* 审核行 */
+.audit-row {
+  display: flex;
+  border-top: 1px solid #ebeef5;
+  background: #fff;
+}
+
+.audit-row:nth-child(even) {
+  background: #fafafa;
+}
+/* 折叠/展开按钮容器 - 绝对定位到行左侧外 */
+.audit-collapse-btn {
+  position: absolute;
+  /* left: 20px; */
+  left: -33px;
+  /* top: 50%; */
+  /* transform: translateY(-50%); */
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.audit-collapse-btn:hover {
+  background-color: rgba(2, 135, 203, 0.08);
+}
+
+.audit-collapse-btn i {
+  font-size: 18px;
+  color: #0287cb;
+  transition: transform 0.3s;
+}
+/*elementui样式重写*/
+.el-input.is-disabled .el-input__inner {
+  background-color: #F5F7FA;
+  border-color: #E4E7ED;
+  color: #555;
+  cursor: text!important;
+}
+
+.el-tabs__item.is-active {
+  color: #0287cb;
+}
+/* 历史批次入/出单事由 tooltip 样式 */
+.bill-reason-tooltip {
+  max-width: 360px !important;
+  padding: 5px !important;
+  font-size: 13px !important;
+  line-height: 1.0 !important;
+  color: #303133 !important;
+  background-color: #fff !important;
+  border: 1px solid #303133 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  word-break: break-all !important;
+}
+
+.bill-reason-tooltip .popper__arrow,
+.bill-reason-tooltip .popper__arrow::after {
+  border-top-color: transparent !important;
+}
+/* elementui样式重写 */
+.bill-audit-remark-cell .el-textarea__inner {
+  padding: 5px 38px 5px 15px;
+  color: #555555!important;
+}

@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sql({\n  sql: 'delete from wb_user_menu where menu_id = {?menu_id?} and user_menu_type = {?user_menu_type?}',\n  params: {\n    menu_id: Params.menu_id,\n    user_menu_type: Params.user_menu_type\n  }\n})"},"_icon":"module"}

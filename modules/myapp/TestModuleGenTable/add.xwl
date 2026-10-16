@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","_expanded":true,"properties":{"cid":"module","serverScript":"let rec = { sid: Params.sid || Wb.getId() };\n\nWb.set(rec);\nWb.sync({ tableName: 'WB_DICT', insert: Params });\nWb.send(rec);"},"_icon":"module"}

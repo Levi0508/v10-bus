@@ -1,0 +1,13 @@
+{
+  "title": "国家或地区维护",
+  "icon": "",
+  "img": "",
+  "tags": "{url: 'https://localhost:3002/#/aml/country', frame: true}",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module"
+  },
+  "items": []
+}

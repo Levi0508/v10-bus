@@ -1,0 +1,18 @@
+{
+  "title": "页面外链接口",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "false",
+  "items": [
+    "beforeFxqcust.xwl",
+    "fxqcust.xwl",
+    "beforeProjlist.xwl",
+    "projlist.xwl",
+    "beforeMprojlist.xwl",
+    "mprojlist.xwl",
+    "beforeProjlistInoutView.xwl",
+    "projlistInoutView.xwl",
+    "beforeProjlistInout.xwl",
+    "projlistInout.xwl"
+  ]
+}

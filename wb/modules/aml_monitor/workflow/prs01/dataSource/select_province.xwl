@@ -1,0 +1,1 @@
+{"title":"查询省","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({\n  sql: `select * from thjs.t_dict_area_code_v2 where pro_code = area_code order by pro_code`,\n});"},"_icon":"module"}

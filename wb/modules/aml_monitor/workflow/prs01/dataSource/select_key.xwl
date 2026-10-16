@@ -1,0 +1,1 @@
+{"title":"查询下拉框","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`select a.map_k as k,a.map_v as v from wb_key a inner join WB_KEY_TYPE b on a.rid = b.sid where b.key_name = {?I_KEY_NAME?} order by a.sid`);"},"_icon":"module"}

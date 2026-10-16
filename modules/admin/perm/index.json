@@ -1,0 +1,16 @@
+{
+  "title": "@permMng",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "items": [
+    "select-roles.xwl",
+    "select-roles-gn.xwl",
+    "select-roles-sj.xwl",
+    "select-modules.xwl",
+    "set-permissions.xwl",
+    "set-permissions-sj.xwl",
+    "clean-invalid.xwl",
+    "select-dept.xwl"
+  ]
+}

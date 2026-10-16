@@ -1,0 +1,14 @@
+{
+  "title": "查询项目负责人user_id",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx(`select user_id,dept_name as deptname from basic_thjs.wb_user where staff_id = {?i_staff_id?}`);"
+  },
+  "_icon": "module"
+}

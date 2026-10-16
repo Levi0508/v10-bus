@@ -1,0 +1,1 @@
+{"title":"","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let actions={getHtml(){Wb.send(Wb.submit(\"https://developer.mozilla.org\"))},postParams(){},postPayload(){},postFiles(){},loginAndLogout(){}};actions[Params.xaction]();"},"_icon":"module"}

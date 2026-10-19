@@ -1975,13 +1975,12 @@ comp.vue = new Vue({
                   受益人信息不规范</el-radio>
               </el-radio-group>
               <div v-if="bomisParams.editBomisForm.full_info_flag === '01'" style="color:#F56C6C;font-size:14px;line-height:22px;">
-                <div>透明度较高、信息披露充分的客户（如上市公司、国有企业）</div>
                 <div>1、国有企业为经官方信息验证并确认属于国有独资公司、国有控股公司、全民所有制企业。</div>
                 <div>2、勾选后，仅需填写姓名、性别、国籍、出生年月，出生日期处需手动输入，格式为“1999-01”。</div>
-                <div>3、底稿6-1 受益所有人身份证明文件的复印件请上传用于身份识别的照片。</div>
+                <div>3、受益所有人身份证明文件的复印件请上传用于身份识别的照片。</div>
               </div>
               <div v-if="bomisParams.editBomisForm.full_info_flag === '02'" style="color:#F56C6C;font-size:14px;line-height:22px;">
-                受益人信息暂不规范勾选后，新客户仍为草稿状态，不进入审核流程；老客户自动设为强限制客户。
+                勾选后，新客户仍为草稿状态，不进入审核流程；老客户自动设为强限制客户。
               </div>
             </el-form-item>
           </el-col>

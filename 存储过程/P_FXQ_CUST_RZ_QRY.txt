@@ -1,0 +1,560 @@
+CREATE OR REPLACE PROCEDURE "THJS"."P_FXQ_CUST_RZ_QRY" (rt_cursor       out sys_refcursor, --返回游标结果集
+                                                   --i_cust_sno      in integer, --客户序号
+                                                   --i_cust_biz      in varchar2, --客户业务分类
+                                                   i_client_name     in varchar2, --客户名称
+                                                   i_client_belong   in varchar2, --客户归属：1-融资端,2-投资端
+                                                   --i_status        in varchar2, --状态：0-正常 1-删除
+                                                   i_rsk           in varchar2, --风险筛查：0-不涉及 1-涉及
+                                                   i_is_risk       in varchar2, --是否风险名单：0-否 1-是
+                                                   i_usercode      in varchar2, --查询人
+                                                   i_grade_value   in varchar2, --风险等级
+                                                   i_client_status in varchar2, --客户状态：0-正常 1-失效 2-强限制 3-弱限制
+                                                   i_maintainer	   in varchar2, --维护人
+                                                   i_page_num      in number default 0, --默认值0,
+                                                   i_page_size     in number default 0, --默认值0  如果i_page_num，i_page_size都为0 则不分页，查询全部
+                                                   i_order		   in char,
+                                                   o_total_count   out integer,
+                                                   o_return_msg    out varchar2,
+                                                   o_return_code   out integer)
+AS
+  --版    权：GTJA
+  --版    本：1.0.0
+  --开发人员：CZC@GTJA
+  --创建日期：20190603
+  --模块编号：
+  --模块名称：投行反洗钱 - 客户基本信息（融资端）查询
+  --功能名称：
+  ----------------------------------------------------------------------------------
+  --v101 YLT@GTJA  20200623 反洗钱客户填报加上了自然人的数据，故查询时要加上此部分数据
+  --v102 YLT@GTJA  20201029 ‘失效’状态的客户也要查询
+
+  --==============================================================================
+  --固定变量
+  v_userexp exception; -- 用户定义错
+  v_tradedate    varchar2(8); -- 任务执行时间(业务日期)
+  v_exec_func_id integer default '0'; -- 任务id
+  v_func_own     varchar2(20) default 'thjs'; -- 任务归属用户（schema）
+  v_func_name    varchar2(2000) default 'p_fxq_cust_rz_qry'; -- 任务名称(存储过程的名字)
+  v_sqlerrm      varchar2(4000); -- 错误提示信息
+  v_sqlcode      number; -- 错误代码
+  v_sqlerrl      varchar2(4000); -- 错误行号
+  --==============================================================================
+  ---------------------------------------------------------------------------------------
+  --业务变量
+  v_page_num  number default 0;
+  v_page_size number;
+
+  v_fk_flag char(1) default '0'; --反馈结果查看权限标识
+  v_order	varchar2(500);
+  v_sql     varchar2(32767);
+  --=============================================================
+  -- 业务处理过程
+  --=============================================================
+
+BEGIN
+
+  v_tradedate := to_char(sysdate, 'yyyyMMdd');
+
+  --v102+ start
+  insert into thjs.tb_exec_log
+    (log_id, proc_name, proc_param, exec_time)
+  values
+    (thjs.tb_exec_log_id_seq.nextval,
+     'p_fxq_cust_rz_qry',
+     'i_client_name:' || i_client_name || ' -' || 'i_client_belong:' || i_client_belong || 
+     'i_usercode:' || i_usercode || ' -' || 'i_page_num:' || i_page_num || ' -' ||
+     'i_page_size:' || i_page_size,
+     sysdate);
+  commit;
+  --v102+ end
+
+  if i_page_num is not null then
+    v_page_num := i_page_num;
+  end if;
+
+  --统计记录条数
+  if v_page_num < 1 then
+  
+    SELECT sum(cnt)
+      into o_total_count
+      FROM (select /*+parallel(4)*/count(1) cnt
+              from thjs.vw_fxq_cust_info r
+              left join thjs.vw_fxq_cust_rsk cr
+                on cr.client_id = r.client_id
+              left join (select f.*,
+                               row_number() over(partition by f.cust_id order by f.busi_date desc) as rn
+                          from thjs.tb_fxq_risk_flow f) f --取最新核查结果
+                on f.cust_id = r.client_id
+               and f.flow_staus = '1' --流程已结束
+               and f.rn = 1
+              left join (select a.*,
+                               row_number() over(partition by a.client_id order by a.update_time desc) as rn
+                          from thjs.T_MAINTAINER_INFO a) a
+                on r.client_id = a.client_id
+               and a.rn = 1
+              LEFT JOIN basic_thjs.wb_user c
+                on a.new_maintainer = c.user_name
+              LEFT JOIN basic_thjs.wb_user_hg c1
+                on a.new_maintainer = c1.user_name
+             where (r.cust_biz <> '测试' or i_usercode = 'admin' or i_usercode = 'huangzhichang')
+               and r.client_belong = '融资端'
+               and r.data_status='1'--正式数据
+               and(i_client_belong is null or
+                   r.client_belong = i_client_belong)
+               --and (i_cust_sno is null or r.cust_sno = i_cust_sno)
+               --and (i_cust_biz is null or r.cust_biz = i_cust_biz)
+               and (i_client_name is null or
+                   instr(r.client_name, trim(i_client_name)) > 0)
+               and (i_rsk is null or nvl(cr.screen_name, '不涉及') =
+                   decode(i_rsk, '1', '涉及', '不涉及'))
+               and (i_is_risk is null or nvl(f.is_riskcust, '否') =
+                   decode(i_is_risk, '1', '是', '否'))
+               and (i_grade_value is null or cr.grade_value = i_grade_value)
+               and (instr(a.NEW_MAINTAINER, i_maintainer) > 0 or instr(nvl(c.display_name,c1.display_name),i_maintainer) > 0
+                or i_maintainer is null));
+  
+  end if;
+  
+  if i_order is null or trim(i_order)='' then
+    v_order := ' order by update_time';
+  else
+    v_order := ' ' || i_order;
+  end if;
+
+  if i_page_size is not null and i_page_size <> 0 then
+    v_page_size := i_page_size;
+  else
+    v_page_size := o_total_count;
+  end if;
+
+  --检查反洗钱客户是否具有查看风险信息权限
+  select case
+           when count(1) > 0 then
+            '1'
+           else
+            '0'
+         end
+    into v_fk_flag
+    from basic_thjs.wb_user u
+   inner join basic_thjs.wb_user_role r
+      on u.staff_id = r.user_id
+     and r.role_id = 'fxqrisk-th' --反洗钱风险等级划分及筛查结果查询权限
+   where u.user_name = i_usercode
+   	  or i_usercode = 'admin';
+  
+  delete from thjs.t_th_client_info_tmp;
+  v_sql := 'insert into thjs.t_th_client_info_tmp
+    select /*+parallel(4)*/client_status, --状态：0-正常 1-删除
+           r.client_belong, --融资端/投资端
+           decode(r.client_status,
+                  ''0'',
+                  ''正常'',
+                  ''1'',
+                  ''失效'',
+                  ''2'',
+                  ''强限制'',
+                  ''3'',
+                  ''弱限制'') client_status_desc, --状态显示      
+           r.cust_sno, --客户序号
+           r.cust_biz, --客户业务分类
+           r.client_id, --客户id
+           r.client_name, --客户名称
+           r.id_type,
+           r.id_no,
+           r.id_begindate,
+           r.id_enddate,
+           r.update_user, --更新人
+           r.update_user_name,
+           nvl(c.fir_deptname, c.sec_deptname) as updater_deptname,
+           r.update_time, --更新时间
+           r.create_user,
+           r.create_user_name,
+           r.create_time,
+           r.data_type, --0-草稿/1-正式  
+           r.grade_value,         
+           r.if_risk_client, --风险名单筛查描述 不涉及/涉及
+           decode('||v_fk_flag||', ''1'', nvl(r.grade_name, ''低风险''), '''') as grade_name, --风险等级描述 低/较低/中/较高/高
+           r.if_risk_list, --是否涉及风险名单 否/是
+           r.risk_list_type, --风险名单类型： A1-A6
+           --r.cust_type, --客户类型:0-机构，1-自然人
+           --decode(r.cust_type, ''1'', ''自然人'', ''机构'') cust_type_val, --客户类型中文展示
+           r.organ_flag,
+           r.work_no,
+           r.new_maintainer_id, --填报人代码
+           r.new_maintainer, --填报人名称
+           r.op_user_desc,
+           r.staff_id,
+           r.related_name1,
+           r.id_type1,
+           r.id_no1,
+           r.birthday1,
+           r.id_begindate1,
+           r.id_enddate1,
+           r.related_name21,
+           r.id_type21,
+           r.id_no21,
+           r.id_begindate21,
+           r.id_enddate21,
+           r.related_name22,
+           r.id_type22,
+           r.id_no22,
+           r.id_begindate22,
+           r.id_enddate22,
+           r.birthday22,
+           r.related_name31,
+           r.id_type31,
+           r.id_no31,
+           r.id_begindate31,
+           r.id_enddate31,
+           r.related_name32,
+           r.id_type32,
+           r.id_no32,
+           r.id_begindate32,
+           r.id_enddate32,
+           r.birthday32,
+           r.related_name4,
+           r.id_type4,
+           r.id_no4,
+           r.id_begindate4,
+           r.id_enddate4,
+           r.birthday4,
+           r.related_name5,
+           r.id_type5,
+           r.id_no5,
+           r.id_begindate5,
+           r.id_enddate5,
+           r.nationality5,
+           r.address5,
+           r.shareholding_ratio5,
+           r.beneficiary5,
+		   r.op_user,
+		   r.op_time,
+		   r.op_user_name,
+		   r.projname,
+		   r.createtime,
+		   r.projtype,
+		   r.rn,
+		   r.industry_name
+      from (
+            --v101+ start
+            --客户类型为''机构''
+            select t.*,
+                    row_number() over(partition by null ' || v_order || '/* order by t.update_time desc*/) as rn
+              from (select r.status as client_status, --状态：0-正常 1-删除
+                            r.cust_sno, --客户序号
+                            r.cust_biz, --客户业务分类
+                            r.client_belong, --融资端/投资端-ecm/dcm
+                            r.client_id, --客户id
+                            r.client_name, --客户名称
+                            r.id_type,
+                            r.id_no,
+                            r.id_begindate,
+                            r.id_enddate,
+                            r.update_user, --更新人
+                            coalesce(uu.display_name, h2.display_name, r.update_user)  as update_user_name,
+                            r.update_time, --更新时间
+                            r.create_user,--初始填报人
+                            coalesce(cu.display_name, h1.display_name, r.create_user) as create_user_name,
+                            --r.create_time,--初始填报时间
+                            nvl(his.his_time,r.create_time) as create_time,
+                            r.data_status as data_type,
+                            decode(r.organ_flag, ''机构'', ''1'', ''0'') as organ_flag, --客户类型:0-机构，1-自然人
+                            u.user_id as work_no,
+                            u.staff_id,
+                            o.new_maintainer as new_maintainer_id,--维护人
+                            nvl(u.display_name,h.display_name) as new_maintainer, --填报人名称
+                            nvl(u.user_name,h.user_name) || ''-'' || nvl(u.display_name,h.display_name) as op_user_desc,
+                            cr.screen_name,
+                            cr.grade_name,
+                            cr.grade_value,
+                            decode('||v_fk_flag||', ''1'', nvl(cr.screen_name, ''不涉及''), '''') as if_risk_client,
+                            decode('||v_fk_flag||', ''1'', nvl(f.is_riskcust, ''否''), '''') as if_risk_list,
+                            decode('||v_fk_flag||', ''1'', f.risk_type, '''') as risk_list_type,
+                            nvl(f.is_riskcust, ''否'') as is_riskcust,
+                            f.risk_type,
+                            i1.related_name as related_name1,
+                            i1.id_type as id_type1,
+                            i1.id_no as id_no1,
+                            i1.birthday as birthday1,
+                            i1.id_begindate as id_begindate1,
+                            i1.id_enddate as id_enddate1,
+                            i21.related_name21,
+                            i21.id_type21,
+                            i21.id_no21,
+                            i21.id_begindate21,
+                            i21.id_enddate21,
+                            i22.related_name22,
+                            i22.id_type22,
+                            i22.id_no22,
+                            i22.id_begindate22,
+                            i22.id_enddate22,
+                            i22.birthday22,
+                            i31.related_name31,
+                            i31.id_type31,
+                            i31.id_no31,
+                            i31.id_begindate31,
+                            i31.id_enddate31,
+                            i32.related_name32,
+                            i32.id_type32,
+                            i32.id_no32,
+                            i32.id_begindate32,
+                            i32.id_enddate32,
+                            i32.birthday32,
+                            i4.related_name4,
+                            i4.id_type4,
+                            i4.id_no4,
+                            i4.id_begindate4,
+                            i4.id_enddate4,
+                            i4.birthday4,
+                            i5.related_name5,
+                            i5.id_type5,
+                            i5.id_no5,
+                            i5.id_begindate5,
+                            i5.id_enddate5,
+                            i5.nationality5,
+                            i5.address5,
+                            i5.shareholding_ratio5,
+                            i5.beneficiary5,
+							l.op_user,
+							l.op_time,
+							l.op_user_name,
+							ib.projname,
+							ib.createtime,
+							ib.projtype,
+							r.industry_name
+                       from thjs.vw_fxq_cust_info r --thjs.vw_fxq_cust_info r
+                       left join (select * from (select his.*,
+                    row_number() over( 
+                         partition by his.client_id 
+                             order by his.his_time desc) as rn
+               from thjs.t_th_client_info_his his 
+              where his.data_status=''0'' ) WHERE rn=1) his
+                       		on his.client_id = r.client_id
+                       left join (select o.*,
+                                        row_number() over(partition by o.client_id order by o.update_time desc) as rn
+                                   from thjs.t_maintainer_info o) o  --thjs.Tb_Fxq_Cust_Operator o
+                         on o.client_id = r.client_id
+                        and o.rn = 1
+                       left join basic_thjs.wb_user u
+                         on o.new_maintainer = u.user_name
+                       left join basic_thjs.wb_user_hg h
+                         on o.new_maintainer = h.user_name
+                       left join thjs.vw_fxq_cust_rsk cr
+                         on cr.client_id = r.client_id
+                       left join (select f.*,
+                                        row_number() over(partition by f.cust_id order by f.busi_date desc) as rn
+                                   from thjs.tb_fxq_risk_flow f) f --取最新核查结果
+                         on f.cust_id = r.client_id
+                        and f.flow_staus = ''1'' --流程已结束
+                        and f.rn = 1
+                       left join (select i.*,row_number() over(partition by i.client_id,i.related_type order by i.data_status desc) as rn
+                                    from thjs.t_th_relat_info i) i1
+                       	 on i1.related_type = ''1''
+                       	and i1.client_id = r.client_id
+                       	and i1.rn = 1
+                       left join (select listagg(i21.related_name,'','') within group(order by i21.related_id) as related_name21,
+                       					 listagg(s.COMMENTS,'','') within group(order by i21.related_id) as id_type21,
+                       					 listagg(i21.id_no,'','') within group(order by i21.related_id) as id_no21,
+                       					 listagg(i21.id_begindate,'','') within group(order by i21.related_id) as id_begindate21,
+                       					 listagg(i21.id_enddate,'','') within group(order by i21.related_id) as id_enddate21,
+                       					 i21.client_id
+                       				from thjs.t_th_relat_info i21
+                       				left join thjs.t_dict_subentry s 
+                       				  on s.ENTRY_NO = ''CERT_TYPE''
+                       				 and s.SUBENTRY = i21.ID_TYPE
+                       			   where i21.related_type = ''2''
+                       			     and i21.organ_flag = ''1''
+                       			   group by i21.client_id) i21
+                         on r.client_id = i21.client_id
+                       left join (select listagg(i22.related_name,'','') within group(order by i22.related_id) as related_name22,
+                       					 listagg(s.COMMENTS,'','') within group(order by i22.related_id) as id_type22,
+                       					 listagg(i22.id_no,'','') within group(order by i22.related_id) as id_no22,
+                       					 listagg(i22.id_begindate,'','') within group(order by i22.related_id) as id_begindate22,
+                       					 listagg(i22.id_enddate,'','') within group(order by i22.related_id) as id_enddate22,
+                       					 listagg(i22.birthday,'','') within group(order by i22.related_id) as birthday22,
+                       					 i22.client_id
+                       				from thjs.t_th_relat_info i22
+                       				left join thjs.t_dict_subentry s 
+                       				  on s.ENTRY_NO = ''CERT_TYPE''
+                       				 and s.SUBENTRY = i22.ID_TYPE
+                       			   where i22.related_type = ''2''
+                       			     and i22.organ_flag = ''0''
+                       			   group by i22.client_id) i22
+                         on r.client_id = i22.client_id
+                       left join (select listagg(i31.related_name,'','') within group(order by i31.related_id) as related_name31,
+                       					 listagg(s.COMMENTS,'','') within group(order by i31.related_id) as id_type31,
+                       					 listagg(i31.id_no,'','') within group(order by i31.related_id) as id_no31,
+                       					 listagg(i31.id_begindate,'','') within group(order by i31.related_id) as id_begindate31,
+                       					 listagg(i31.id_enddate,'','') within group(order by i31.related_id) as id_enddate31,
+                       					 i31.client_id
+                       				from thjs.t_th_relat_info i31
+                       				left join thjs.t_dict_subentry s 
+                       				  on s.ENTRY_NO = ''CERT_TYPE''
+                       				 and s.SUBENTRY = i31.ID_TYPE
+                       			   where i31.related_type = ''3''
+                       			     and i31.organ_flag = ''1''
+                       			   group by i31.client_id) i31
+                         on r.client_id = i31.client_id
+                       left join (select listagg(i32.related_name,'','') within group(order by i32.related_id) as related_name32,
+                       					 listagg(s.COMMENTS,'','') within group(order by i32.related_id) as id_type32,
+                       					 listagg(i32.id_no,'','') within group(order by i32.related_id) as id_no32,
+                       					 listagg(i32.id_begindate,'','') within group(order by i32.related_id) as id_begindate32,
+                       					 listagg(i32.id_enddate,'','') within group(order by i32.related_id) as id_enddate32,
+                       					 listagg(i32.birthday,'','') within group(order by i32.related_id) as birthday32,
+                       					 i32.client_id
+                       				from thjs.t_th_relat_info i32
+                       				left join thjs.t_dict_subentry s 
+                       				  on s.ENTRY_NO = ''CERT_TYPE''
+                       				 and s.SUBENTRY = i32.ID_TYPE
+                       			   where i32.related_type = ''3''
+                       			     and i32.organ_flag = ''0''
+                       			   group by i32.client_id) i32
+                         on r.client_id = i32.client_id
+                       left join (select listagg(i4.related_name,'','') within group(order by i4.related_id) as related_name4,
+                       					 listagg(s.COMMENTS,'','') within group(order by i4.related_id) as id_type4,
+                       					 listagg(i4.id_no,'','') within group(order by i4.related_id) as id_no4,
+                       					 listagg(i4.id_begindate,'','') within group(order by i4.related_id) as id_begindate4,
+                       					 listagg(i4.id_enddate,'','') within group(order by i4.related_id) as id_enddate4,
+                       					 listagg(i4.birthday,'','') within group(order by i4.related_id) as birthday4,
+                       					 i4.client_id
+                       				from thjs.t_th_relat_info i4
+                       				left join thjs.t_dict_subentry s 
+                       				  on s.ENTRY_NO = ''CERT_TYPE''
+                       				 and s.SUBENTRY = i4.ID_TYPE
+                       			   where i4.related_type = ''4''
+                       			     --and i4.organ_flag = ''0''
+                       			   group by i4.client_id) i4
+                         on r.client_id = i4.client_id
+                       left join (select listagg(i5.related_name,'','') within group(order by i5.related_id) as related_name5,
+                       					 listagg(i5.nationality,'','') within group(order by i5.related_id) as nationality5,
+                       					 listagg(s.COMMENTS,'','') within group(order by i5.related_id) as id_type5,
+                       					 listagg(i5.id_no,'','') within group(order by i5.related_id) as id_no5,
+                       					 listagg(i5.id_begindate,'','') within group(order by i5.related_id) as id_begindate5,
+                       					 listagg(i5.id_enddate,'','') within group(order by i5.related_id) as id_enddate5,
+                       					 listagg(i5.address,'','') within group(order by i5.related_id) as address5,
+                       					 listagg(i5.beneficiary,'','') within group(order by i5.related_id) as beneficiary5,
+                       					 listagg(i5.shareholding_ratio,'','') within group(order by i5.related_id) as shareholding_ratio5,
+                       					 i5.client_id
+                       				from thjs.t_th_relat_info i5
+                       				left join thjs.t_dict_subentry s 
+                       				  on s.ENTRY_NO = ''CERT_TYPE''
+                       				 and s.SUBENTRY = i5.ID_TYPE
+                       			   where i5.related_type = ''5''
+                       			     --and i5.organ_flag = ''0''
+                       			   group by i5.client_id) i5
+                         on r.client_id = i5.client_id
+					   left join (select l.*,coalesce(u.display_name,u1.display_name,l.op_user)||''(''||coalesce(u.sid,u1.staff_id)||'')'' as op_user_name,
+										 row_number() over(partition by l.cust_id order by l.op_time desc) as rn
+									from thjs.tb_fxq_cust_active_log l
+								    left join basic_thjs.wb_user u 
+									  on l.op_user = u.user_name
+									left join basic_thjs.wb_user_hg u1 
+									  on l.op_user = u1.user_name) l 
+						 on r.client_id = l.cust_id
+						and l.rn = 1
+					   left join (select ib.projname,ib.createtime,replace(replace(ib.khname,''('',''（''),'')'',''）'') as client_name,ib.projtype,
+					                     row_number() over(partition by replace(replace(ib.khname,''('',''（''),'')'',''）'') order by ib.createtime desc) as rn
+					   			    from thjs.ib_v_cust_info ib) ib
+			             on r.client_name = ib.client_name
+			            and ib.rn = 1
+      left join basic_thjs.wb_user_hg h2 
+        on h2.user_name = r.update_user
+      left join basic_thjs.wb_user uu
+        on uu.user_name = r.update_user
+      left join basic_thjs.wb_user_hg h1
+        on h1.user_name = r.create_user
+      left join basic_thjs.wb_user cu
+        on cu.user_name = r.create_user
+                      where (r.cust_biz <> ''测试'' or ''' || i_usercode || '''= ''chenhaiyang'' or '''|| i_usercode || '''= ''admin'' or ''' || i_usercode || '''=''huangzhichang'')
+                        and r.client_belong = ''融资端''
+                        and r.data_status=''1'' --正式数据 
+                        and (''' || i_client_belong || ''' is null or
+                            r.client_belong = ''' || i_client_belong ||''')
+						and r.data_status <> ''0'' --edit by chengjing260331 客户管理页面不展示草稿数据
+                        and (''' || i_client_name || ''' is null or
+                            instr(r.client_name, trim(''' || i_client_name ||''')) > 0)
+                        and (''' || i_rsk  || ''' is null or
+                            nvl(cr.screen_name, ''不涉及'') =
+                            decode(''' || i_rsk || ''', ''1'', ''涉及'', ''不涉及''))
+                        and (''' || i_is_risk || ''' is null or
+                            nvl(f.is_riskcust, ''否'') =
+                            decode(''' || i_is_risk || ''', ''1'', ''是'', ''否''))
+                        and (''' || i_grade_value || ''' is null or
+                            cr.grade_value = ''' || i_grade_value || ''')
+                        and (''' || i_client_status || ''' is null or
+                            instr(''' || i_client_status || ''', r.status) > 0)
+               			and (instr(o.NEW_MAINTAINER, ''' || i_maintainer || ''') > 0 or instr(nvl(u.display_name,h.display_name),''' || i_maintainer || ''') > 0
+                		 or ''' || i_maintainer || ''' is null)) t
+            --v101+ end
+            ) r
+    /*left join thjs.tb_dict_entry d
+     on d.entry_code = ''INDUSTRY_TYPE''
+    and d.entry_value = r.industry_id*/
+      left join thjs.ib_v_userinfo c
+        on c.username = r.update_user
+      /*left join basic_thjs.wb_user_hg h 
+        on h.user_name = r.update_user
+      left join basic_thjs.wb_user uu1
+        on uu1.user_id = h.user_id
+      left join basic_thjs.wb_user uu
+        on uu.user_name = r.update_user
+      left join basic_thjs.wb_user_hg h1
+        on h1.user_name = r.create_user*/
+      /*left join basic_thjs.wb_user cu1
+        on cu1.user_id = h1.user_id
+      left join basic_thjs.wb_user cu
+        on cu.user_name = r.create_user*/';
+  
+  --dbms_output.put_line(v_sql);
+  execute immediate v_sql;
+  
+  open rt_cursor for
+    select *
+      from thjs.t_th_client_info_tmp r
+     where r.rn > v_page_num
+       and r.rn <= v_page_num + v_page_size
+     order by r.rn;
+
+  commit;
+
+  o_return_msg  := '执行成功';
+  o_return_code := 0;
+
+exception
+  -- 非预定义异常处理
+  when v_userexp then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+    -- 预定义异常处理
+  when others then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+END;

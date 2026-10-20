@@ -1,0 +1,353 @@
+Create or Replace procedure "THJS"."P_FXQ_OP_LOG_S" (i_op_type     in varchar2, --操作类型：0-确认 1-弹出客户已存在提示页面，并且点击“查看”按钮
+                                                i_cust_id     in integer, --客户id
+                                                i_usercode    in varchar2, --操作员
+                                                o_return_msg  out varchar2,
+                                                o_return_code out integer) is
+  ----------------------------------------------------------------------------------
+  --版    权：GTJA
+  --版    本：1.0.0
+  --开发人员：CZC@GTJA
+  --创建日期：20190731
+  --模块编号：
+  --模块名称：反洗钱客户管理 - 客户信息确认修改记录保存
+  --功能名称：客户信息确认修改记录保存
+  ----------------------------------------------------------------------------------
+  --v101 2020/11/04 YLT@GTJA 填报人发起反洗钱客户查询，对于提示页面中的‘查看’按钮做数据更新（激活失效客户，自动保存条保人为该客户的最新更新人）
+  --v102 20210317 项目组人员变更为最新更新人时，客户维护人员同时变更
+  --==============================================================================
+  --固定变量
+  v_userexp exception; -- 用户定义错
+  v_tradedate    varchar2(8); -- 任务执行时间(业务日期)
+  v_exec_func_id integer default '0'; -- 任务id
+  v_func_own     varchar2(20) default 'thjs'; -- 任务归属用户（schema）
+  v_func_name    varchar2(2000) default 'p_fxq_op_log_s'; -- 任务名称(存储过程的名字)
+  v_sqlerrm      varchar2(4000); -- 错误提示信息
+  v_sqlcode      number; -- 错误代码
+  v_sqlerrl      varchar2(4000); -- 错误行号
+  --==============================================================================
+  ---------------------------------------------------------------------------------------
+  --业务变量
+  v_count  integer default 0;
+  v_his_id varchar2(100);
+  v_status char(1); --客户状态
+  v_user_name varchar2(50);
+  --=============================================================
+  -- 业务处理过程
+  --=============================================================
+
+begin
+
+  v_tradedate := to_char(sysdate, 'yyyyMMdd');
+  select sys_guid() into v_his_id from dual;
+
+  insert into thjs.tb_fxq_op_log
+    (busi_date, cust_id, cust_name, op_type, op_user)
+    select v_tradedate, r.client_id, r.client_name, i_op_type, i_usercode
+      from thjs.t_th_client_info r -- thjs.tb_fxq_cust_rz r
+     where r.client_id = i_cust_id;
+
+  if i_op_type = 0 then
+    --【反洗钱客户填报】页面数据客户名称返回提示后点击‘确认’，将数据存一份到历史表中 v101+ 
+    --确认操作时，将数据存一份到历史表中
+    insert into thjs.t_th_client_info_his  -- thjs.tb_fxq_cust_rz_his
+      (client_id,
+       client_name,
+       organ_flag,
+       id_type,
+       id_no,
+       id_begindate,
+       id_enddate,
+       client_belong,
+       nationality,
+       birthday,
+       office_address,
+       province,
+       city,
+       district,
+       register_country,
+       register_money_type,
+       register_fund,
+       industry_type,
+       tel,
+       setup_date,
+       busi_scope,
+       is_object_report,
+       associated_date,
+       remark,
+       create_user,
+       create_time,
+       update_user,
+       update_time,
+       is_special,
+       client_type,
+       client_type_other,
+       special_matters,
+       missing_information,
+       missing_draft,
+       special_matters_other,
+       special_reason,
+       completed_cdd,
+       low_risk_explanation,
+       take_measures,
+       communication_records,
+       agree_records,
+       other_records,
+       industry_type1,
+       work_type,
+       client_status,
+       data_status,
+       related_proj,
+       if_risk_client,
+       risk_list_type,
+       problem_desc,
+       grade_value,
+       gender,
+       income,
+       profession_code,
+       position,
+       work_place,
+       zipcode,
+       fillin_date,
+       id_address,
+       province1,
+       city1,
+       district1,
+       address,
+       province2,
+       city2,
+       district2,
+       if_risk_list,
+       cust_biz)
+      SELECT client_id,
+       client_name,
+       organ_flag,
+       id_type,
+       id_no,
+       id_begindate,
+       id_enddate,
+       client_belong,
+       nationality,
+       birthday,
+       office_address,
+       province,
+       city,
+       district,
+       register_country,
+       register_money_type,
+       register_fund,
+       industry_type,
+       tel,
+       setup_date,
+       busi_scope,
+       is_object_report,
+       associated_date,
+       remark,
+       create_user,
+       create_time,
+       update_user,
+       update_time,
+       is_special,
+       client_type,
+       client_type_other,
+       special_matters,
+       missing_information,
+       missing_draft,
+       special_matters_other,
+       special_reason,
+       completed_cdd,
+       low_risk_explanation,
+       take_measures,
+       communication_records,
+       agree_records,
+       other_records,
+       industry_type1,
+       work_type,
+       client_status,
+       data_status,
+       related_proj,
+       if_risk_client,
+       risk_list_type,
+       problem_desc,
+       grade_value,
+       gender,
+       income,
+       profession_code,
+       position,
+       work_place,
+       zipcode,
+       fillin_date,
+       id_address,
+       province1,
+       city1,
+       district1,
+       address,
+       province2,
+       city2,
+       district2,
+       if_risk_list,
+       cust_biz
+        FROM thjs.t_th_client_info r -- thjs.tb_fxq_cust_rz r
+       where r.client_id = i_cust_id;
+       
+    insert into thjs.t_th_relat_info_his(CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,HIS_ID,HIS_TIME)
+      SELECT CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE, v_his_id, sysdate
+        FROM thjs.t_th_relat_info t
+       WHERE client_id = i_cust_id;
+    /*--控股股东
+    insert into thjs.tb_fxq_cust_shareholder_his
+      SELECT t.*, v_his_id, sysdate
+        FROM thjs.t_th_relat_info t -- thjs.tb_fxq_cust_shareholder t
+       WHERE cust_id = i_cust_id;
+    --实际控制人
+    insert into thjs.tb_fxq_cust_controller_his
+      SELECT t.*, v_his_id, sysdate
+        FROM thjs.tb_fxq_cust_controller t
+       WHERE cust_id = i_cust_id;
+    --授权代表人
+    insert into thjs.tb_fxq_cust_authorizer_his
+      SELECT t.*, v_his_id, sysdate
+        FROM thjs.tb_fxq_cust_authorizer t
+       WHERE cust_id = i_cust_id;
+    --受益所有人
+    insert into thjs.tb_fxq_cust_beneficiary_his
+      SELECT t.*, v_his_id, sysdate
+        FROM thjs.tb_fxq_cust_beneficiary t
+       WHERE cust_id = i_cust_id;*/
+    commit;
+  
+    --v101+ start
+    --点击查看，激活失效客户；自动保存填报人为该客户的最新更新人
+  elsif i_op_type = 1 then
+  
+    --非admin及投行合规组成员时 更新
+    select count(1)
+      into v_count
+      from (select u.user_id, u.user_name as user_name, u.display_name --edit by chengjing260803
+              from basic_thjs.wb_user_role r
+             left join basic_thjs.wb_user u
+                on u.staff_id = r.user_id
+              left join  basic_thjs.wb_user_hg u1
+                on u1.staff_id = u.staff_id
+             where r.role_id = 'thhgz'
+             and (u.user_name is not null or u1.user_name is not null)
+            union all
+            select u.user_id, u.user_name, u.display_name
+              from basic_thjs.wb_user u 
+             where u.user_id = 'admin'
+             ) t
+     where t.user_name = i_usercode;
+  
+    if v_count = 0 then
+         
+         select u.user_name into v_user_name
+         from  basic_thjs.wb_user u
+         left join  basic_thjs.wb_user_hg u1
+          on u1.staff_id = u.staff_id
+          where u.user_name=i_usercode;
+         -- where nvl(u1.user_name,u.user_name)=i_usercode;-- edit by chengjing260803
+                
+      --机构客户，通过投行项目工作室 查看时，
+      --如激活了失效客户，则插入流水表
+      insert into thjs.tb_fxq_cust_active_log
+        (busi_date, cust_type, cust_id, cust_name, status, op_user)
+        select v_tradedate,
+               2 as cust_type,
+               r.client_id,
+               r.client_name,
+               '0',
+               v_user_name
+          from thjs.t_th_client_info r -- thjs.tb_fxq_cust_rz r
+         where r.client_id = i_cust_id
+           and r.client_status = '1';
+      commit;
+    
+      if i_usercode <> 'admin' then
+        --激活失效客户
+        update thjs.t_th_client_info t --thjs.tb_fxq_cust_rz t
+           set t.client_status      = '0',
+               t.update_user = v_user_name,
+               t.update_time = sysdate
+         where t.client_id = i_cust_id
+           and t.client_status = '1'
+           and not exists
+         (select 1
+                  from thjs.tb_fxq_cust_limit l
+                 where l.cust_id = t.client_id
+                   and v_tradedate between l.begin_date and l.end_date); --状态限制表中客户不作更新
+        commit;
+      
+        --v102+ start
+      
+        merge into thjs.t_maintainer_info t --thjs.tb_fxq_cust_operator t
+        using (select i_cust_id      as cust_id,
+                      u.user_name    as user_code,
+                      u.display_name as user_name,
+                      u.user_id      as work_no
+                 from basic_thjs.wb_user u 
+                 left join basic_thjs.wb_user_hg u1
+                 on u.staff_id=u1.staff_id
+                where u.user_name = i_usercode) u --edit by chengjing260803
+        on (t.client_id = u.cust_id)
+        when matched then
+          update
+             set t.new_maintainer   = u.user_code,
+                 --t.user_name   = u.user_name,
+                 --t.work_no     = u.work_no,
+                 t.update_user = u.user_code,
+                 t.update_time = sysdate
+                 --t.op_flag     = '1' --项目工作室接口
+                 ;
+        commit;
+      end if;
+      --v102+ end
+    end if;
+  end if;
+  --v101+ end
+
+  --然后将反洗钱客户主表中的work_type更新为2-确认
+  update thjs.t_th_client_info r -- thjs.tb_fxq_cust_rz r
+     set r.work_type = '2'
+   where r.client_id = i_cust_id;
+  commit;
+
+  o_return_msg  := '执行成功';
+  o_return_code := 0;
+
+exception
+  -- 非预定义异常处理
+  when v_userexp then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+    -- 预定义异常处理
+  when others then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+end;

@@ -1,0 +1,250 @@
+Create or Replace procedure "THJS"."P_FXQ_APPR_FLOW_TASK" (i_tradedate in varchar2) is
+  ----------------------------------------------------------------------------------
+  --版    权：GTJA
+  --版    本：1.0.0
+  --开发人员：CZC@GTJA
+  --创建日期：20221102
+  --模块编号：
+  --模块名称：投行反洗钱 - 反洗钱审核流程任务 -自动生成
+  --功能名称：
+  ----------------------------------------------------------------------------------
+  /*v101 CZC@GTJA 20240918 调整证件到期自动审核流程，审核限制由3个月改为90个自然日，调整备注描述。
+  */
+  --==============================================================================
+  --固定变量
+  v_userexp exception; -- 用户定义错
+  v_tradedate    varchar2(8); -- 任务执行时间(业务日期)
+  v_exec_func_id integer default '0'; -- 任务id
+  v_func_own     varchar2(20) default 'thjs'; -- 任务归属用户（schema）
+  v_func_name    varchar2(2000) default 'p_fxq_appr_flow_task'; -- 任务名称(存储过程的名字)
+  v_sqlerrm      varchar2(4000); -- 错误提示信息
+  v_sqlcode      number; -- 错误代码
+  v_sqlerrl      varchar2(4000); -- 错误行号
+  --==============================================================================
+  ---------------------------------------------------------------------------------------
+  --业务变量
+  v_audit_id    varchar2(80);
+  v_appr_num    integer default 1;
+  v_return_msg  varchar2(1000);
+  v_return_code number;
+  --=============================================================
+  -- 业务处理过程
+  --=============================================================
+
+begin
+
+  --反洗钱客户证件到期邮件提醒=======================
+  /*增加限制功能：
+  ①非自然人客户中客户本身、法定代表人、受益所有人证照/证件过期3个月，即设置限制标签，并发送待办，
+  待办标题为：“xxxx反洗钱审核意见及扣分情况”，
+  审核备注：已设置限制状态，完善后请发邮件到合规管理组邮箱（cm_ibd@gtjas.com）抄送反洗钱专员，申请解限。
+  
+  ②自然人客户证件过期，即设置限制标签，并发送待办，
+  待办标题为：“xxxx反洗钱审核意见及扣分情况”，
+  审核备注：已设置限制状态，完善后请发邮件到合规管理组邮箱（cm_ibd@gtjas.com）抄送反洗钱专员，申请解限。
+  
+  
+  20240830
+  统一判断，证照/证件过期90个自然日后，设置限制标签，发送代办。
+  */
+
+  --自动生成审核记录信息
+  --机构客户只审核 客户证照，法人代表，受益所有人；过期三个月， 每个类型一条审核记录
+  delete from thjs.tb_fxq_cert_remind t where t.busi_date = i_tradedate;
+  insert into thjs.tb_fxq_cert_remind
+    (busi_date,
+     cust_flag,
+     cust_id,
+     cust_name,
+     remind_name,
+     cert_enddate,
+     cert_flag,
+     cert_order,
+     op_user,
+     remind_date,
+     email)
+    select i_tradedate,
+           t.cust_flag,
+           t.cust_id,
+           t.cust_name,
+           t.remind_name,
+           t.cert_enddate,
+           t.cert_flag,
+           t.cert_order,
+           t.op_user,
+           t.remind_date,
+           u.email
+      from (select t.cust_flag,
+                   t.cust_id,
+                   t.cust_name,
+                   t.remind_name,
+                   t.cert_enddate,
+                   t.cert_flag,
+                   t.cert_order,
+                   t.op_user,
+                   t.status,
+                   --v101+
+                   case
+                     when t.cert_enddate = '9999-12-31' then
+                      '99991231'
+                     else
+                      to_char(to_date(decode(t.cert_enddate,'9999-12-31',null,t.cert_enddate), 'yyyy-MM-dd') + 90, --90天                                        
+                              'yyyyMMdd')
+                   end as remind_date
+            /* case
+              when t.cert_enddate = '9999-12-31' then
+               '99991231'
+              when t.cust_flag = '机构' then --机构过期三个月触发流程
+               to_char(add_months(to_date(t.cert_enddate, 'yyyy-MM-dd') + 1, --一个月
+                                  3),
+                       'yyyyMMdd')
+              else --个人过期即触发流程
+               to_char(to_date(t.cert_enddate, 'yyyy-MM-dd') + 1,
+                       'yyyyMMdd')
+            end as remind_date*/
+            --v101+
+              from thjs.vw_fxq_cust_certend t) t --视图已过滤，只查正常非测试客户--状态：0-正常 1-失效 2-限制
+      left join BASIC_THJS.wb_user u
+        on u.user_name = t.op_user
+     where t.remind_date <= i_tradedate
+       and t.cert_flag in ('客户证件有效截止',
+                           '法人代表证件有效截止',
+                           '受益所有人证件有效截止')
+     order by t.cert_enddate desc;
+
+  commit;
+
+  for cust in (select t.cust_flag, t.cust_id
+                 from thjs.tb_fxq_cert_remind t
+                where t.busi_date = i_tradedate
+                group by t.cust_flag, t.cust_id
+                order by t.cust_id) loop
+  
+    --设置客户状态为限制  
+    thjs.p_fxq_cust_rz_l(cust.cust_id,
+                         '2', --操作标识：0-正常（解除限制) 1-失效 2-限制
+                         'admin', --操作人
+                         v_return_msg,
+                         v_return_code);
+  
+    --生成审核记录
+    select sys_guid into v_audit_id from dual;
+    insert into thjs.t_th_appr_list
+      (client_id, audit_id, remark)
+    values
+      (cust.cust_id,
+       v_audit_id,
+       --v101+
+       --'已设置限制状态，请及时联系客户更新反洗钱表单信息和底稿，完善后请发邮件到合规管理组邮箱（cm_ibd@gtht.com）抄送反洗钱专员，申请解限。'
+       '已将该客户设置为限制状态，请及时联系客户更新反洗钱表单信息和底稿，完善后将待办提回来，申请解限。');
+       --'已设置限制状态，完善后请发邮件到合规管理组邮箱（cm_ibd@gtht.com）抄送反洗钱专员，申请解限。');
+       --v101+
+  
+    insert into thjs.t_th_appr_detail
+      (client_id, audit_id, audit_seq, audit_desc, dispose_desc)
+      select t.cust_id,
+             v_audit_id,
+             rownum,
+             case
+               when t.cert_flag = '客户证件有效截止' then
+                '客户信息错误'
+               when t.cert_flag = '法人代表证件有效截止' then
+                '客户信息错误'
+               when t.cert_flag = '受益所有人证件有效截止' then
+                '受益所有人信息错误'
+             end as audit_desc,
+             case
+               when t.cert_flag = '客户证件有效截止' then
+                '客户证照有效期截止过期90个自然日'--'客户证照有效期截止过期三个月'--v101+
+               when t.cert_flag = '法人代表证件有效截止' then
+                '法人代表' || t.dispose_desc || '证件有效截止过期90个自然日'--'证件有效截止过期三个月'--v101+
+               when t.cert_flag = '受益所有人证件有效截止' then
+                '受益所有人' || t.dispose_desc || '证件有效截止过期90个自然日'--'证件有效截止过期三个月'--v101+
+             end as dispose_desc
+        from (select t.cust_id,
+                     t.cert_flag,
+                     min(t.cert_order) as cert_order,
+                     listagg(t.remind_name, '、') within group(order by t.cust_id) dispose_desc
+                from thjs.tb_fxq_cert_remind t
+               where t.busi_date = i_tradedate
+                 and t.cust_id = cust.cust_id
+               group by t.cust_id, t.cert_flag) t
+       order by t.cert_order;
+  
+    commit;
+  
+    --每次审核，将发起客户确认流程
+    --保存全连接流程代办记录至待发送表
+  
+    select t.rn
+      into v_appr_num
+      from (select l.*,
+                   row_number() over(partition by l.client_id order by l.create_time) as rn
+              from thjs.t_th_appr_list l) t
+     where t.audit_id = v_audit_id;
+  
+    insert into thjs.tb_flow_inst
+      (busi_date,
+       flow_code,
+       raise_code,
+       biz_key,
+       title,
+       param_info,
+       send_status)
+      select i_tradedate,
+             decode(t.organ_flag,'0','fxq_zrr','fxq_jg') as flow_code,
+             'fxq_khsh' as raise_code, --客户审核
+             t.client_id,
+             t.client_name || ' 反洗钱审核意见情况' as title,
+             'cust_id:' || t.client_id || ',cust_name:' || t.client_name ||
+             ',appr_num:' || v_appr_num as param_info,
+             '0' as send_status --未发送
+        from thjs.t_th_client_info t
+       where t.client_id = cust.cust_id
+         and not exists
+       (select *
+                from thjs.tb_flow_inst i
+               where i.biz_key = t.client_id
+                 and instr(i.param_info, 'appr_num:' || v_appr_num) > 0);
+    commit;
+  
+  end loop;
+
+exception
+  -- 非预定义异常处理
+  when v_userexp then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+    -- 预定义异常处理
+  when others then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+end;

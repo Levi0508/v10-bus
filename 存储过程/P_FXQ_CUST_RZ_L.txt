@@ -1,0 +1,264 @@
+CREATE OR REPLACE PROCEDURE "THJS"."P_FXQ_CUST_RZ_L" (i_client_id     in integer, --客户id
+                                                 i_opflag      in varchar2, --操作标识：0-正常（解除限制) 1-失效 2-强限制 3-弱限制
+                                                 i_usercode    in varchar2, --操作人
+                                                 o_return_msg  out varchar2,
+                                                 o_return_code out integer)
+AS
+  ----------------------------------------------------------------------------------
+  --版    权：GTJA
+  --版    本：1.0.0
+  --开发人员：CZC@GTJA
+  --创建日期：20210728
+  --模块编号：
+  --模块名称：投行反洗钱 - 客户基本信息（融资端+自然人）填报限制、解除限制
+  --功能名称：
+  ----------------------------------------------------------------------------------
+  --==============================================================================
+  --固定变量
+  v_userexp exception; -- 用户定义错
+  v_tradedate    varchar2(8); -- 任务执行时间(业务日期)
+  v_exec_func_id integer default '0'; -- 任务id
+  v_func_own     varchar2(20) default 'thjs'; -- 任务归属用户（schema）
+  v_func_name    varchar2(2000) default 'p_fxq_cust_rz_l'; -- 任务名称(存储过程的名字)
+  v_sqlerrm      varchar2(4000); -- 错误提示信息
+  v_sqlcode      number; -- 错误代码
+  v_sqlerrl      varchar2(4000); -- 错误行号
+  --==============================================================================
+  ---------------------------------------------------------------------------------------
+  --业务变量
+  v_count       integer default 0;
+  v_zr_count    integer default 0;
+  v_tz_count    integer default 0;
+  v_tz_zr_count integer default 0;
+  --=============================================================
+  -- 业务处理过程
+  --=============================================================
+
+BEGIN
+
+  v_tradedate := to_char(sysdate, 'yyyyMMdd');
+
+  insert into thjs.tb_exec_log
+    (log_id, proc_name, proc_param, exec_time)
+  values
+    (thjs.tb_exec_log_id_seq.nextval,
+     'p_fxq_cust_rz_l',
+     'i_cust_id:' || i_client_id || ' -' || 'i_opflag:' || i_opflag || ' -' ||
+     'i_usercode:' || i_usercode,
+     sysdate);
+  commit;
+  
+  --检查是否保存过此客户
+  select count(1)
+    into v_count
+    from thjs.t_th_client_info r
+   where r.client_id = i_client_id;
+  
+
+  /*--检查是否保存过此客户（机构）
+  select count(1)
+    into v_count
+    from thjs.tb_fxq_cust_rz r
+   where r.cust_id = i_cust_id;
+
+  ----检查是否保存过此客户（自然人）
+  select count(1)
+    into v_zr_count
+    from thjs.tb_fxq_cust_zr r
+   where r.cust_id = i_cust_id;
+
+  --检查是否保存过此客户（机构）-投资端
+  select count(1)
+    into v_tz_count
+    from thjs.tb_fxq_cust_tz r
+   where r.cust_id = i_cust_id;
+
+  --v101+ start
+  ----检查是否保存过此客户（自然人）-投资端
+  select count(1)
+    into v_tz_zr_count
+    from thjs.tb_fxq_cust_tz_zr r
+   where r.cust_id = i_cust_id;
+  --v101+ end*/
+  
+  if v_count = 0 then
+    o_return_msg  := '未找到此客户，请重新查询！';
+    o_return_code := -1;
+    return;
+  elsif v_count > 0 then
+    --机构 保存过此客户信息 
+    --更新状态
+    update thjs.t_th_client_info r
+       set r.client_status = i_opflag, r.update_time = sysdate
+     where r.client_id = i_client_id
+       and not exists
+     (select *
+              from thjs.tb_fxq_cust_limit l
+             where l.cust_id = r.client_id
+               and v_tradedate between l.begin_date and l.end_date); --状态限制表中客户不作更新
+  
+    --插入流水表
+    insert into thjs.tb_fxq_cust_active_log
+      (busi_date, cust_type, cust_id, cust_name, status, op_user)
+      select v_tradedate,
+             2 as cust_type,
+             r.client_id,
+             r.client_name,
+             i_opflag,
+             nvl(a.user_name,i_usercode)
+        from thjs.t_th_client_info r
+        left join basic_thjs.wb_user a
+          on a.user_id = i_usercode
+       where r.client_id = i_client_id;
+    commit;
+  end if;
+
+  /*if v_count = 0 and v_zr_count = 0 and v_tz_count = 0 and
+     v_tz_zr_count = 0 then
+    o_return_msg  := '未找到此客户，请重新查询！';
+    o_return_code := -1;
+    return;
+  elsif v_count > 0 then
+    --机构 保存过此客户信息 
+    --更新状态
+    update thjs.tb_fxq_cust_rz r
+       set r.status = i_opflag, r.update_time = sysdate
+     where r.cust_id = i_cust_id
+       and not exists
+     (select *
+              from thjs.tb_fxq_cust_limit l
+             where l.cust_id = r.cust_id
+               and v_tradedate between l.begin_date and l.end_date); --状态限制表中客户不作更新
+  
+    --插入流水表
+    insert into thjs.tb_fxq_cust_active_log
+      (busi_date, cust_type, cust_id, cust_name, status, op_user)
+      select v_tradedate,
+             2 as cust_type,
+             r.cust_id,
+             r.cust_name,
+             i_opflag,
+             i_usercode
+        from thjs.tb_fxq_cust_rz r
+       where r.cust_id = i_cust_id;
+    commit;
+  
+  elsif v_zr_count > 0 then
+    --自然人 保存过此客户信息
+    --更新状态
+    update thjs.tb_fxq_cust_zr r
+       set r.status = i_opflag, r.update_time = sysdate
+     where r.cust_id = i_cust_id
+       and not exists
+     (select *
+              from thjs.tb_fxq_cust_limit l
+             where l.cust_id = r.cust_id
+               and v_tradedate between l.begin_date and l.end_date); --状态限制表中客户不作更新
+  
+    --插入流水表
+    insert into thjs.tb_fxq_cust_active_log
+      (busi_date, cust_type, cust_id, cust_name, status, op_user)
+      select v_tradedate,
+             1 as cust_type,
+             r.cust_id,
+             r.cust_name,
+             i_opflag,
+             i_usercode
+        from thjs.tb_fxq_cust_zr r
+       where r.cust_id = i_cust_id;
+    commit;
+  elsif v_tz_count > 0 then
+    --机构 保存过此客户信息 
+    --更新状态
+    update thjs.tb_fxq_cust_tz r
+       set r.status = i_opflag, r.update_time = sysdate
+     where r.cust_id = i_cust_id
+       and not exists
+     (select *
+              from thjs.tb_fxq_cust_limit l
+             where l.cust_id = r.cust_id
+               and v_tradedate between l.begin_date and l.end_date); --状态限制表中客户不作更新
+  
+    --插入流水表
+    insert into thjs.tb_fxq_cust_active_log
+      (busi_date, cust_type, cust_id, cust_name, status, op_user)
+      select v_tradedate,
+             2 as cust_type,
+             r.cust_id,
+             r.cust_name,
+             i_opflag,
+             i_usercode
+        from thjs.tb_fxq_cust_tz r
+       where r.cust_id = i_cust_id;
+    commit;
+  
+  elsif v_tz_zr_count > 0 then
+    --自然人 保存过此客户信息
+    --更新状态
+    update thjs.tb_fxq_cust_tz_zr r
+       set r.status = i_opflag, r.update_time = sysdate
+     where r.cust_id = i_cust_id
+       and not exists
+     (select *
+              from thjs.tb_fxq_cust_limit l
+             where l.cust_id = r.cust_id
+               and v_tradedate between l.begin_date and l.end_date); --状态限制表中客户不作更新
+  
+    --插入流水表
+    insert into thjs.tb_fxq_cust_active_log
+      (busi_date, cust_type, cust_id, cust_name, status, op_user)
+      select v_tradedate,
+             1 as cust_type,
+             r.cust_id,
+             r.cust_name,
+             i_opflag,
+             i_usercode
+        from thjs.tb_fxq_cust_tz_zr r
+       where r.cust_id = i_cust_id;
+    commit;
+  end if;*/
+
+  commit;
+
+  o_return_msg  := '执行成功';
+  o_return_code := 0;
+
+exception
+  -- 非预定义异常处理
+  when v_userexp then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+    -- 预定义异常处理
+  when others then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+
+END;

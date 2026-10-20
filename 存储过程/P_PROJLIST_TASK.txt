@@ -1,0 +1,109 @@
+Create or Replace PROCEDURE "THJS"."P_PROJLIST_TASK" (i_tradedate in char)
+/*==============================================================================
+  版 本    : 1.0.0
+  创建人   : czc
+  模块编号 : 0
+  日 期    : 2019-10-22
+  功能描述 : 合规数据平台 清单管理每日任务
+  ==============================================================================*/
+ as
+  v_sqlcode  integer default 0;
+  v_sqlstate char(5) default '';
+  --v_errcode        integer default 0;
+  --v_errstate       char(5) default '';
+  v_err_msg varchar2(128) default '';
+  --v_not_found      integer default 0;
+  --v_last_time      char(8);
+  v_function_id    integer default 0; --定义存储过程模块编号
+  v_error_line_num integer default 0; --错误行号
+  --v_error_level    integer default 0; --错误级别
+  v_function_desc varchar2(50) default '清单管理每日任务'; --功能描述
+  v_program_name  char(40) default 'p_projlist_task'; --程序名
+  v_pr_task_id    number default 0; --任务标示
+  -- =======================================================================================================================
+  -- 定义业务变量
+  -- =======================================================================================================================
+  -- =======================================================================================================================
+  -- 业务开始
+  -- =======================================================================================================================
+begin
+
+  --自动阶段修正-20240702新增;thjs.p_projlist_inout_s2
+  --1、出观察转限制；2、出观察转静默；3、出限制+价格利率确定；4、入静默
+  thjs.p_projlist_inout_fix(i_tradedate => i_tradedate);
+
+  --每日8点检查,更新清单状态
+  --由于实际操作日期与出入单发生日期（页面输入）不一定一致，需根据清单各阶段日期取值，重新计算状态字段
+  merge into thjs.tb_projlist_main p
+  using (select t.projid,
+                t.projname,
+                t.ro_inout_date,
+                t.co_inout_date,
+                t.rl_inout_date,
+                t.cl_inout_date,
+                t.rq_inout_date,
+                t.cq_inout_date,
+                case
+                  when (t.ro_inout_date is not null and
+                       t.ro_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.co_inout_date is null or
+                       t.co_inout_date > to_char(sysdate, 'yyyy-MM-dd')) and
+                       t.rl_inout_date is null and t.rq_inout_date is null then
+                   'ro'
+                  when (t.rl_inout_date is null or
+                       t.rl_inout_date > to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.co_inout_date is not null and
+                       t.co_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.rq_inout_date is null or
+                       t.rq_inout_date > to_char(sysdate, 'yyyy-MM-dd')) then
+                   'co'
+                  when (t.rl_inout_date is not null and
+                       t.rl_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.cl_inout_date is null or
+                       t.cl_inout_date > to_char(sysdate, 'yyyy-MM-dd')) then
+                   'rl'
+                  when (t.rq_inout_date is null or
+                       t.rq_inout_date > to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.cl_inout_date is not null and
+                       t.cl_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       t.rq_inout_date is null then
+                   'cl'
+                  when (t.rq_inout_date is not null and
+                       t.rq_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.cq_inout_date is null or
+                       t.cq_inout_date > to_char(sysdate, 'yyyy-MM-dd')) then
+                   'rq'
+                  when t.cq_inout_date is not null and
+                       t.cq_inout_date <= to_char(sysdate, 'yyyy-MM-dd') then
+                   'cq'
+                  else
+                   '0'
+                end as calc_status,
+                t.projlist_status
+           from THJS.VW_PROJLIST_MAIN_INOUT t) t
+  on (p.projid = t.projid)
+  when matched then
+    update set p.projlist_status = t.calc_status;
+
+  commit;
+
+  ------------------------
+exception
+  when others then
+    v_sqlcode := -1 * sqlcode;
+    v_err_msg := sqlerrm;
+    rollback;
+    --记录错误日志
+    thjs.pr_audit_write_errlog(v_pr_task_id, -- 任务标识
+                                   0, -- 单位编号
+                                   i_tradedate, -- 业务日期
+                                   v_function_id, -- 功能标识
+                                   v_program_name, -- 程序名
+                                   v_error_line_num, -- 程序行号
+                                   v_err_msg, -- 错误信息
+                                   v_sqlcode, -- SQLCODE
+                                   v_sqlstate -- SQLSTATE
+                                   );
+    commit;
+    raise;
+end;

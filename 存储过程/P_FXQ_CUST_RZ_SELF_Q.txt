@@ -1,0 +1,243 @@
+CREATE OR REPLACE
+PROCEDURE "THJS"."P_FXQ_CUST_RZ_SELF_Q" (rt_cursor out sys_refcursor,     --返回游标结果集
+                                              i_client_name in varchar2,       --客户名称
+                                              i_work_type in varchar2,         --工作类型
+                                              i_client_status in varchar2,     --客户状态
+                                              i_usercode in varchar2,          --查询人
+											  i_maintainer in varchar2,        --填报人
+                                              i_page_num in number default 0,  --默认值0,
+                                              i_page_size in number default 0, --默认值0  如果i_page_num，i_page_size都为0 则不分页，查询全部
+                                              i_order in char,
+                                              o_total_count out integer,
+                                              o_return_msg out varchar2,
+                                              o_return_code out integer)
+AS
+    --版    权：GTJA
+    --版    本：1.0.0
+    --开发人员：
+    --创建日期：20251205
+    --模块编号：
+    --模块名称：投行反洗钱 - 我填报的反洗钱客户查询
+    --功能名称：
+    ----------------------------------------------------------------------------------
+    --==============================================================================
+    --固定变量
+    v_userexp      exception;                                  -- 用户定义错
+    v_tradedate    varchar2(8);                                -- 任务执行时间(业务日期)
+    v_exec_func_id integer default '0';                        -- 任务id
+    v_func_own     varchar2(20) default 'thjs';           -- 任务归属用户（schema）
+    v_func_name    varchar2(2000) default 'p_fxq_cust_rz_qry'; -- 任务名称(存储过程的名字)
+    v_sqlerrm      varchar2(4000);                             -- 错误提示信息
+    v_sqlcode      number;                                     -- 错误代码
+    v_sqlerrl      varchar2(4000);                             -- 错误行号
+    --==============================================================================
+    ---------------------------------------------------------------------------------------
+    --业务变量
+    v_page_num  number default 0;
+    v_page_size number;
+    --=============================================================
+    -- 业务处理过程
+    v_order     varchar2(200);
+    v_sql       varchar2(32767);
+    --=============================================================
+BEGIN
+  dbms_output.enable();
+    v_tradedate := to_char(sysdate, 'yyyyMMdd');
+    --v102+ start
+    insert into thjs.tb_exec_log (log_id,
+           proc_name,
+           proc_param,
+           exec_time)
+           values (thjs.tb_exec_log_id_seq.nextval,
+           'p_fxq_cust_rz_self_q',
+           'i_client_name:' || i_client_name || ' -' || 'i_work_type:' || i_work_type || 'i_client_status' || i_client_status || '-' || 'i_usercode:' || i_usercode || ' -' || 'i_page_num:' || i_page_num || ' -' || 'i_page_size:' || i_page_size,
+           sysdate);
+    
+    commit;
+    --v102+ end
+    if i_page_num is not null then
+        v_page_num := i_page_num;
+    end if;
+    
+    --统计记录条数
+    if v_page_num < 1 then
+        SELECT sum(cnt)
+          into
+               o_total_count
+          FROM (select count(1) cnt
+                    from （select * from thjs.t_th_client_info b
+                          union
+                          select * from thjs.t_th_client_info_draft b) b
+               left join thjs.T_MAINTAINER_INFO a
+                      on a.client_id = b.client_id
+               LEFT JOIN basic_thjs.wb_user c
+                      on a.new_maintainer = c.user_name
+               LEFT JOIN basic_thjs.wb_user_hg c1
+                      on a.new_maintainer = c1.user_name
+                   where (b.CLIENT_NAME like '%'|| i_client_name || '%'
+                                or i_client_name is null)
+                     and (b.WORK_TYPE = i_work_type
+                                or i_work_type is null)
+                     and (a.NEW_MAINTAINER = i_usercode or b.update_user = i_usercode
+                                or i_usercode = 'admin')
+                     and (instr(a.NEW_MAINTAINER, i_maintainer) > 0 or instr(nvl(c.display_name,c1.display_name),i_maintainer) > 0
+                                or i_maintainer is null)
+                     and (b.client_status = i_client_status
+                                or i_client_status is null));
+    
+    end if;
+    
+    if i_page_size is not null and i_page_size <> 0 then
+        v_page_size := i_page_size;
+    else
+        v_page_size := o_total_count;
+    end if;
+  
+    if i_order is null or trim(i_order)='' then
+      v_order := ' order by update_time desc';
+    else
+      v_order := ' ' || i_order;
+    end if;
+    
+  dbms_output.put_line(i_client_name);
+    delete from thjs.t_th_client_info_self_tmp;
+    v_sql := 'insert into thjs.t_th_client_info_self_tmp
+    select r.CLIENT_ID,
+             r.NEW_MAINTAINER,--填报人
+             r.UPDATE_USER,--更新人（username）
+             r.update_user_name,--更新人（中文名）
+             r.UPDATE_TIME,
+             r.USER_NAME,--填报人username
+             r.DISPLAY_NAME,--填报人姓名
+             r.CLIENT_NAME,
+             r.CLIENT_STATUS,
+             r.CLIENT_BELONG,
+             r.INDUSTRY_TYPE,
+             r.ORGAN_FLAG,
+             r.WORK_TYPE,
+             r.DATA_STATUS,
+             r.RELATED_PROJ,
+             r.STAFF_ID,--填报人工号,
+             row_number() over(
+                               partition by null ' || v_order || ' 
+                                   /*order by b.update_time desc*/) as rn,
+             r.industry_name
+        from (select /*+parallel(4)*/ b.client_id as client_id,
+                          -- a.NEW_MAINTAINER as new_maintainer,
+						  nvl(c.DISPLAY_NAME,c1.display_name) as new_maintainer,
+                          a.UPDATE_USER as update_user,
+                          nvl(u.display_name,u1.display_name) as update_user_name,
+                          a.UPDATE_TIME as update_time,
+                          nvl(c1.user_name,c.USER_NAME) as user_name,
+                          nvl(c.DISPLAY_NAME,c1.display_name) as display_name,
+                          b.client_name as client_name,
+                          b.client_status as client_status,
+                          b.client_belong as client_belong,
+                          b.industry_type as industry_type,
+                          b.organ_flag as organ_flag,
+                          b.work_type as work_type,
+                          b.data_status as data_status,
+                          b.related_proj as related_proj,
+                          c.STAFF_ID as staff_id,
+                          nvl(b.industry_name,k.map_v) as industry_name
+                     from (select /*+parallel(4)*/ b.client_id,
+                          b.client_name as client_name,
+                          b.client_status as client_status,
+                          b.client_belong as client_belong,
+                          b.industry_type as industry_type,
+                          b.organ_flag as organ_flag,
+                          b.work_type as work_type,
+                          b.data_status as data_status,
+                          b.related_proj as related_proj,
+                          b.update_time,
+                          b.update_user,
+                          b.industry_name
+                     from thjs.t_th_client_info b
+                    where b.client_belong = ''1''
+                     union
+                     select /*+parallel(4)*/b.client_id,
+                          b.client_name as client_name,
+                          b.client_status as client_status,
+                          b.client_belong as client_belong,
+                          b.industry_type as industry_type,
+                          b.organ_flag as organ_flag,
+                          b.work_type as work_type,
+                          b.data_status as data_status,
+                          b.related_proj as related_proj,
+                          b.update_time,
+                          b.update_user,
+                          b.industry_name
+                     from thjs.t_th_client_info_draft b
+                    where b.client_belong = ''1'') b
+                left join thjs.T_MAINTAINER_INFO a
+                       on a.client_id = b.client_id
+                LEFT JOIN basic_thjs.wb_user c
+                       on a.new_maintainer = c.user_name --c.SID
+                LEFT JOIN basic_thjs.wb_user_hg c1
+                       on a.new_maintainer = c1.user_name
+                LEFT JOIN basic_thjs.wb_user u
+                       on a.update_user = u.user_name --c.SID
+                LEFT JOIN basic_thjs.wb_user_hg u1
+                       on a.update_user = u1.user_name
+		        left join basic_thjs.wb_key k
+		          on k.RID = ''0049CHMGX6NHX''
+		         and b.industry_type = k.MAP_K
+                    where (b.CLIENT_NAME like ''%' || i_client_name || '%'' 
+                                    or ''' || i_client_name || ''' is null)
+                      and (b.WORK_TYPE = ''' || i_work_type || ''' 
+                                    or ''' || i_work_type  || ''' is null)
+                      and (a.NEW_MAINTAINER = ''' || i_usercode  || ''' or b.update_user = ''' || i_usercode || ''' 
+                                    or ''' || i_usercode  || ''' = ''admin'')
+                      and (instr(a.NEW_MAINTAINER, ''' || i_maintainer || ''' ) > 0 
+					                  or instr(nvl(c.DISPLAY_NAME,c1.display_name),''' || i_maintainer || ''' ) > 0
+                            or ''' || i_maintainer  || ''' is null)
+                      and (b.client_status = ''' || i_client_status || ''' 
+                                    or ''' || i_client_status  || ''' is null)) r';
+    
+  dbms_output.put_line(v_sql);
+    execute immediate v_sql;
+    
+    open rt_cursor for
+      select * 
+        from thjs.t_th_client_info_self_tmp r
+       where r.rn > v_page_num
+         and r.rn <= v_page_num*v_page_size + v_page_size
+    order by r.rn;
+    
+    commit;
+    o_return_msg  := '执行成功';
+    o_return_code := 0;
+exception
+    -- 非预定义异常处理
+when v_userexp then
+    rollback;
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                                i_exec_func_id => v_exec_func_id,
+                                i_func_own     => v_func_own,
+                                i_func_name    => v_func_name,
+                                i_occur_time   => sysdate,
+                                i_sqlerrm      => v_sqlerrm,
+                                i_sqlcode      => v_sqlcode,
+                                i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+    -- 预定义异常处理
+when others then
+    rollback;
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                                i_exec_func_id => v_exec_func_id,
+                                i_func_own     => v_func_own,
+                                i_func_name    => v_func_name,
+                                i_occur_time   => sysdate,
+                                i_sqlerrm      => v_sqlerrm,
+                                i_sqlcode      => v_sqlcode,
+                                i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+END;

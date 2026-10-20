@@ -1,0 +1,1652 @@
+Create or Replace procedure "THJS"."P_PROJLIST_INOUT_S" (i_projid          in varchar2, --项目id
+                                                    i_batch_id        in varchar2, --清单填报批次ID：新增批次默认为空，否则传入当前批次ID
+                                                    i_ro_inout_date   in varchar2, --入观察清单日期
+                                                    i_ro_inout_reason in varchar2, --入观察清单事由
+                                                    i_ro_inout_remark in varchar2, --入观察清单备注
+                                                    i_ro_filepath     in varchar2, --入观察清单附件
+                                                    i_co_inout_date   in varchar2, --出观察清单日期
+                                                    i_co_inout_reason in varchar2, --出观察清单事由
+                                                    i_co_inout_remark in varchar2, --出观察清单备注
+                                                    i_co_filepath     in varchar2, --出观察清单附件
+                                                    i_rl_inout_date   in varchar2, --入限制清单日期
+                                                    i_rl_inout_reason in varchar2, --入限制清单事由
+                                                    i_rl_inout_remark in varchar2, --入限制清单备注
+                                                    i_rl_filepath     in varchar2, --入限制清单附件
+                                                    i_cl_inout_date   in varchar2, --出限制清单日期
+                                                    i_cl_inout_reason in varchar2, --出限制清单事由
+                                                    i_cl_inout_remark in varchar2, --出限制清单备注
+                                                    i_cl_filepath     in varchar2, --出限制清单附件
+                                                    i_rq_inout_date   in varchar2, --入静默期日期
+                                                    i_rq_inout_reason in varchar2, --入静默期事由
+                                                    i_rq_inout_remark in varchar2, --入静默期备注
+                                                    i_rq_filepath     in varchar2, --入静默期附件
+                                                    i_cq_inout_date   in varchar2, --出静默期日期
+                                                    i_cq_inout_reason in varchar2, --出静默期事由
+                                                    i_cq_inout_remark in varchar2, --出静默期备注
+                                                    i_cq_filepath     in varchar2, --出静默期附件
+                                                    i_projlist_status in varchar2, --清单状态
+                                                    i_submit_status   in varchar2, --提交状态 0 草稿 1 提交  2 修正
+                                                    i_usercode        in varchar2, --操作员
+                                                    o_return_msg      out varchar2,
+                                                    o_return_code     out integer) is
+  ----------------------------------------------------------------------------------
+  --版    权：GTJA
+  --版    本：1.0.0
+  --开发人员：CZC@GTJA
+  --创建日期：20190510
+  --模块编号：
+  --模块名称：清单管理 - 清单填报页面信息保存
+  --功能名称：清单填报页面信息保存
+  ----------------------------------------------------------------------------------
+
+  --==============================================================================
+  --固定变量
+  v_userexp exception; -- 用户定义错
+  v_tradedate    varchar2(8); -- 任务执行时间(业务日期)
+  v_exec_func_id integer default '0'; -- 任务id
+  v_func_own     varchar2(20) default 'thjs'; -- 任务归属用户（schema）
+  v_func_name    varchar2(2000) default 'p_projlist_inout_s'; -- 任务名称(存储过程的名字)
+  v_sqlerrm      varchar2(4000); -- 错误提示信息
+  v_sqlcode      number; -- 错误代码
+  v_sqlerrl      varchar2(4000); -- 错误行号
+  --==============================================================================
+  ---------------------------------------------------------------------------------------
+  --业务变量
+  v_filldate              varchar2(10);
+  v_projlist_status       varchar2(20);
+  v_inout_id              varchar2(80); --出入单iD
+  v_inout_id_next         varchar2(80); --出单时同时入单id
+  v_inout_id_third        varchar2(80); --出单时同时入单后出的id
+  v_projlist_status_next  varchar2(20); --出入单同时入单状态
+  v_projlist_status_third varchar2(20);
+  v_projlist_status_four  varchar2(20);
+  v_proj_type             varchar2(50); --项目类型
+
+  p_ro_inout_date varchar2(10);
+  p_co_inout_date varchar2(10);
+  p_rl_inout_date varchar2(10);
+  p_cl_inout_date varchar2(10);
+  p_rq_inout_date varchar2(10);
+  p_cq_inout_date varchar2(10);
+
+  v_ro_inout_date varchar2(10);
+  v_co_inout_date varchar2(10);
+  v_rl_inout_date varchar2(10);
+  v_cl_inout_date varchar2(10);
+  v_rq_inout_date varchar2(10);
+  v_cq_inout_date varchar2(10);
+
+  v_ro_id varchar2(80);
+  v_co_id varchar2(80);
+  v_rl_id varchar2(80);
+  v_cl_id varchar2(80);
+  v_rq_id varchar2(80);
+  v_cq_id varchar2(80);
+
+  v_batch_id varchar2(80); --批次ID
+
+  v_co_filepath varchar2(1000);
+  v_updated number := 0;  --附件更新计数
+  --=============================================================
+  -- 业务处理过程
+  --=============================================================
+
+begin
+
+  v_tradedate := to_char(sysdate, 'yyyyMMdd');
+  v_filldate  := to_char(sysdate, 'yyyy-MM-dd');
+
+  insert into thjs.tb_exec_log
+    (log_id, proc_name, proc_param, exec_time)
+  values
+    (thjs.tb_exec_log_id_seq.nextval,
+     'p_projlist_inout_s',
+     i_projid || ',' || i_batch_id || ',' || i_ro_inout_date || ',' ||
+     i_ro_inout_reason || ',' || i_ro_inout_remark || ',' || i_ro_filepath || ',' ||
+     i_co_inout_date || ',' || i_co_inout_reason || ',' ||
+     i_co_inout_remark || ',' || i_co_filepath || ',' || i_rl_inout_date || ',' ||
+     i_rl_inout_reason || ',' || i_rl_inout_remark || ',' || i_rl_filepath || ',' ||
+     i_cl_inout_date || ',' || i_cl_inout_reason || ',' ||
+     i_cl_inout_remark || ',' || i_cl_filepath || ',' || i_rq_inout_date || ',' ||
+     i_rq_inout_reason || ',' || i_rq_inout_remark || ',' || i_rq_filepath || ',' ||
+     i_cq_inout_date || ',' || i_cq_inout_reason || ',' ||
+     i_cq_inout_remark || ',' || i_cq_filepath || ',' || i_projlist_status || ',' ||
+     i_submit_status || ',' || i_usercode,
+     sysdate);
+  commit;
+  
+ -- ==================== 纯附件更新模块（改进版） ====================
+  declare
+    v_robserve_id varchar2(80);
+    v_cobserve_id varchar2(80);
+    v_rlimit_id   varchar2(80);
+    v_climit_id   varchar2(80);
+    v_rquiet_id   varchar2(80);
+    v_cquiet_id   varchar2(80);
+  begin
+    select p.robserve_id,
+           p.cobserve_id,
+           p.rlimit_id,
+           p.climit_id,
+           p.rquiet_id,
+           p.cquiet_id
+      into v_robserve_id,
+           v_cobserve_id,
+           v_rlimit_id,
+           v_climit_id,
+           v_rquiet_id,
+           v_cquiet_id
+      from thjs.tb_projlist_main p
+     where p.projid = i_projid;
+
+    -- 更新入观察附件
+    if v_robserve_id is not null  then
+      update thjs.tb_projlist_inout t
+      set t.filepath = i_ro_filepath,
+			t.inout_remark = i_ro_inout_remark,
+          t.update_user = i_usercode,
+          t.update_time = sysdate
+      where t.inout_id = v_robserve_id
+        and t.projid = i_projid;
+	  v_updated := v_updated + 1;
+    end if;
+
+    -- 更新出观察附件
+    if v_cobserve_id is not null then
+      update thjs.tb_projlist_inout t
+      set t.filepath = i_co_filepath,
+			t.inout_remark = i_co_inout_remark,
+          t.update_user = i_usercode,
+          t.update_time = sysdate
+      where t.inout_id = v_cobserve_id
+        and t.projid = i_projid;
+	  v_updated := v_updated + 1;
+    end if;
+
+    -- 更新入限制附件
+    if v_rlimit_id is not null then
+      update thjs.tb_projlist_inout t
+      set t.filepath = i_rl_filepath,
+			t.inout_remark = i_rl_inout_remark,
+          t.update_user = i_usercode,
+          t.update_time = sysdate
+      where t.inout_id = v_rlimit_id
+        and t.projid = i_projid;
+	  v_updated := v_updated + 1;
+    end if;
+
+    -- 更新出限制附件
+    if v_climit_id is not null then
+      update thjs.tb_projlist_inout t
+      set t.filepath = i_cl_filepath,
+			t.inout_remark = i_cl_inout_remark,
+          t.update_user = i_usercode,
+          t.update_time = sysdate
+      where t.inout_id = v_climit_id
+        and t.projid = i_projid;
+	  v_updated := v_updated + 1;
+    end if;
+
+    -- 更新入静默附件
+    if v_rquiet_id is not null then
+      update thjs.tb_projlist_inout t
+      set t.filepath = i_rq_filepath,
+			t.inout_remark = i_rq_inout_remark,
+          t.update_user = i_usercode,
+          t.update_time = sysdate
+      where t.inout_id = v_rquiet_id
+        and t.projid = i_projid;
+	  v_updated := v_updated + 1;
+    end if;
+
+    -- 更新出静默附件
+    if v_cquiet_id is not null then
+      update thjs.tb_projlist_inout t
+      set t.filepath = i_cq_filepath,
+			t.inout_remark = i_cq_inout_remark,
+          t.update_user = i_usercode,
+          t.update_time = sysdate
+      where t.inout_id = v_cquiet_id
+        and t.projid = i_projid;
+	  v_updated := v_updated + 1;
+    end if;
+
+  exception
+    when no_data_found then
+      null;
+    when too_many_rows then
+      null;
+  end;
+  -- ==================== 附件更新模块结束 ====================
+  
+    -- ==================== 提前返回判断 ====================
+  -- 如果没有传入任何日期参数，说明只更新附件（或什么都没传）
+  if i_ro_inout_date is null and i_co_inout_date is null and
+     i_rl_inout_date is null and i_cl_inout_date is null and
+     i_rq_inout_date is null and i_cq_inout_date is null then
+     
+    if v_updated > 0 then
+      commit;
+      o_return_msg := '执行成功';
+      o_return_code := 0;
+      return;
+    else
+      o_return_msg := '没有需要更新的数据';
+      o_return_code := 0;
+      return;
+    end if;
+  end if;
+  -- ==================== 提前返回判断结束 ====================
+
+  v_co_filepath := i_co_filepath;
+  --测试代码
+  /*if i_projid='D1D9967EE60F4DAD9A4AB95000CDE228' and i_co_filepath is not null then
+    v_co_filepath:=substr(i_co_filepath,instr(i_co_filepath,'/',-1,1))||'undefined';   
+  end if;*/
+  --=======================================================
+
+  select nvl(m.projlist_status, '0')
+    into v_projlist_status
+    from dual
+    left join thjs.tb_projlist_main m
+      on m.projid = i_projid;
+
+  --项目类型
+  select m.projtype
+    into v_proj_type
+    from thjs.tb_ib_cust_info m
+   where m.projid = i_projid;
+
+  select t.ro_inout_date,
+         t.co_inout_date,
+         t.rl_inout_date,
+         t.cl_inout_date,
+         nvl(t.rq_inout_date, i_rq_inout_date),
+         nvl(t.cq_inout_date, i_cq_inout_date)
+    into p_ro_inout_date,
+         p_co_inout_date,
+         p_rl_inout_date,
+         p_cl_inout_date,
+         p_rq_inout_date,
+         p_cq_inout_date
+    from dual
+    left join thjs.vw_projlist_main_inout t
+      on t.projid = i_projid
+     and t.batch_id = i_batch_id;
+
+  --=========有效性验证========================================
+  --批次处理：为空时，表示新批次，验证清单状态（必须为出单状态）
+  if i_batch_id is null and
+     v_projlist_status not in ('0', 'co', 'cl', 'cq') then
+    o_return_msg  := '清单非出单状态，无法填报新批次！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  --判断清单状态是否匹配，如不匹配返回错误（已有其他提交）
+  if i_projlist_status <> v_projlist_status then
+    o_return_msg  := '清单状态不匹配，请重新打开页面填报！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  if i_co_inout_date is not null and i_co_inout_date < p_ro_inout_date then
+    o_return_msg  := '出观察清单日期不应早于入观察清单日期！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  if i_cl_inout_date is not null and i_cl_inout_date < p_rl_inout_date then
+    o_return_msg  := '出限制清单日期不应早于入限制清单日期！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  if i_cq_inout_date is not null and i_cq_inout_date < p_rq_inout_date then
+    o_return_msg  := '出静默期日期不应早于入静默期日期！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  if i_projlist_status = 'ro' and i_co_inout_reason = '4' and
+     (i_rq_inout_date is null or i_cq_inout_date is null) then
+    o_return_msg  := '出观察转静默期有误，请联系系统管理员！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  if i_projlist_status = 'rl' and i_cl_inout_reason = '1' and
+     (i_rq_inout_date is null or i_cq_inout_date is null) then
+    o_return_msg  := '出限制转静默期有误，请联系系统管理员！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  if (i_ro_filepath is not null and i_ro_filepath like '%undefined') or
+     (v_co_filepath is not null and v_co_filepath like '%undefined') or
+     (i_rl_filepath is not null and i_rl_filepath like '%undefined') or
+     (i_cl_filepath is not null and i_cl_filepath like '%undefined') or
+     (i_rq_filepath is not null and i_rq_filepath like '%undefined') or
+     (i_cq_filepath is not null and i_cq_filepath like '%undefined') then
+    o_return_msg  := '附件上传有误，请联系系统管理员！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  --===========================================================
+  --为防止日期控件在不同浏览器中传入格式不同，统一重新截止日期格式为YYYY-MM-DD
+  v_ro_inout_date := to_char(to_date(regexp_replace(i_ro_inout_date,
+                                                    '[^0-9]',
+                                                    ''),
+                                     'YYYYMMDD'),
+                             'YYYY-MM-DD');
+  v_co_inout_date := to_char(to_date(regexp_replace(i_co_inout_date,
+                                                    '[^0-9]',
+                                                    ''),
+                                     'YYYYMMDD'),
+                             'YYYY-MM-DD');
+  v_rl_inout_date := to_char(to_date(regexp_replace(i_rl_inout_date,
+                                                    '[^0-9]',
+                                                    ''),
+                                     'YYYYMMDD'),
+                             'YYYY-MM-DD');
+  v_cl_inout_date := to_char(to_date(regexp_replace(i_cl_inout_date,
+                                                    '[^0-9]',
+                                                    ''),
+                                     'YYYYMMDD'),
+                             'YYYY-MM-DD');
+  v_rq_inout_date := to_char(to_date(regexp_replace(i_rq_inout_date,
+                                                    '[^0-9]',
+                                                    ''),
+                                     'YYYYMMDD'),
+                             'YYYY-MM-DD');
+  v_cq_inout_date := to_char(to_date(regexp_replace(i_cq_inout_date,
+                                                    '[^0-9]',
+                                                    ''),
+                                     'YYYYMMDD'),
+                             'YYYY-MM-DD');
+
+  --======================
+  --20240708 清单阶段及自动化核验
+  --
+  if v_projlist_status = '0' then
+    --未入单
+    v_projlist_status_next := case
+                                when v_ro_inout_date is not null then
+                                 'ro'
+                                when v_rl_inout_date is not null then
+                                 'rl'
+                                when v_rq_inout_date is not null then
+                                 'rq'
+                                else
+                                 null
+                              end;
+  
+  elsif v_projlist_status in ('ro', 'rl', 'rq') then
+    --入观察清单，入限制清单，入静默期       
+  
+    v_projlist_status_next := 'c' || substr(v_projlist_status, 2);
+  
+  elsif v_projlist_status in ('co', 'cl', 'cq') then
+    --出观察清单，出限制清单，出静默期
+  
+    --入清单,获取选中的入清单阶段
+    v_projlist_status_next := case
+                                when v_ro_inout_date is not null then
+                                 'ro'
+                                when v_rl_inout_date is not null then
+                                 'rl'
+                                when v_rq_inout_date is not null then
+                                 'rq'
+                                else
+                                 null
+                              end;
+  
+  else
+    o_return_msg  := '清单状态有误，请联系系统管理员！';
+    o_return_code := -1;
+    return;
+  
+  end if;
+
+  --清单填报实际阶段状态
+  if v_projlist_status_next is not null then
+  
+    if (v_projlist_status_next = 'ro' and v_ro_inout_date is null) or
+       (v_projlist_status_next = 'co' and v_co_inout_date is null) or
+       (v_projlist_status_next = 'rl' and v_rl_inout_date is null) or
+       (v_projlist_status_next = 'cl' and v_cl_inout_date is null) or
+       (v_projlist_status_next = 'rq' and v_rq_inout_date is null) or
+       (v_projlist_status_next = 'cq' and v_cq_inout_date is null) then
+    
+      o_return_msg  := '清单填报日期有误，请联系系统管理员！';
+      o_return_code := -1;
+      return;
+    
+    end if;
+  
+    --自动逻辑处理  
+    if v_projlist_status_next = 'co' and i_co_inout_reason = '3' then
+      --出观察转限制清单
+    
+      v_projlist_status_third := 'rl';
+      v_rl_inout_date         := nvl(v_rl_inout_date, v_co_inout_date);
+    
+      if v_rl_inout_date is null then
+        o_return_msg  := '转限制清单有误，请联系系统管理员！';
+        o_return_code := -1;
+        return;
+      end if;
+    elsif v_projlist_status_next = 'co' and i_co_inout_reason = '4' then
+      --出观察转静默期
+      v_projlist_status_third := 'rq';
+      v_projlist_status_four  := 'cq';
+    
+      --自动静默期处理
+      v_rq_inout_date := nvl(v_rq_inout_date, v_co_inout_date);
+      if v_cq_inout_date is null or v_cq_inout_date = v_rq_inout_date then
+      
+        v_cq_inout_date := to_char(to_date(v_rq_inout_date, 'yyyy-MM-dd') +
+                                   (case
+                                      when v_proj_type like '%IPO%' then
+                                       40
+                                      else
+                                       10
+                                    end),
+                                   'yyyy-MM-dd');
+      end if;
+    
+    elsif v_projlist_status_next = 'cl' and i_co_inout_reason = '1' then
+      --出限制，事由=价格利率确定
+    
+      v_projlist_status_third := 'rq';
+      v_projlist_status_four  := 'cq';
+    
+      --自动静默期处理
+      v_rq_inout_date := nvl(v_rq_inout_date, v_cl_inout_date);
+      if v_cq_inout_date is null or v_cq_inout_date = v_rq_inout_date then
+      
+        v_cq_inout_date := to_char(to_date(v_rq_inout_date, 'yyyy-MM-dd') +
+                                   (case
+                                      when v_proj_type like '%IPO%' then
+                                       40
+                                      else
+                                       10
+                                    end),
+                                   'yyyy-MM-dd');
+      end if;
+    
+    elsif v_projlist_status_next = 'rq' then
+      --手工入静默期
+      v_projlist_status_third := 'cq';
+    
+      --自动静默期处理
+      if v_cq_inout_date is null or v_cq_inout_date = v_rq_inout_date then
+      
+        v_cq_inout_date := to_char(to_date(v_rq_inout_date, 'yyyy-MM-dd') +
+                                   (case
+                                      when v_proj_type like '%IPO%' then
+                                       40
+                                      else
+                                       10
+                                    end),
+                                   'yyyy-MM-dd');
+      
+      end if;
+    
+    end if;
+  
+  else
+    o_return_msg  := '清单状态有误，请联系系统管理员！';
+    o_return_code := -1;
+    return;
+  end if;
+
+  --====================================================================
+  --生成新的批次号
+  if i_batch_id is null then
+    v_batch_id := sys_guid();
+    --新批次时，保存原批次，清空主表出入单绑定ID
+    insert into thjs.tb_projlist_main_batch
+      select * from thjs.tb_projlist_main t where t.projid = i_projid;
+  
+    update thjs.tb_projlist_main t
+       set t.batch_id    = v_batch_id,
+           t.robserve_id = null,
+           t.cobserve_id = null,
+           t.rlimit_id   = null,
+           t.climit_id   = null,
+           t.rquiet_id   = null,
+           t.cquiet_id   = null
+     where t.projid = i_projid;
+    commit;
+  else
+    v_batch_id := i_batch_id;
+  end if;
+
+  if i_submit_status <> '2' then
+    --草稿，提交
+  
+    --根据清单状态，判断填报阶段，保存填报信息，更新主表 
+    v_inout_id       := sys_guid();
+    v_inout_id_next  := sys_guid();
+    v_inout_id_third := sys_guid();
+  
+    if v_projlist_status = '0' then
+      --未入单
+      v_projlist_status_next := case
+                                  when v_ro_inout_date is not null then
+                                   'ro'
+                                  when v_rl_inout_date is not null then
+                                   'rl'
+                                  when v_rq_inout_date is not null then
+                                   'rq'
+                                  else
+                                   null
+                                end;
+    
+      if v_projlist_status_next is not null then
+      
+        insert into thjs.tb_projlist_inout
+          (busidate,
+           batch_id,
+           inout_id,
+           projid,
+           inout_type,
+           inout_direct,
+           fill_date,
+           inout_date,
+           inout_reason,
+           inout_remark,
+           filepath,
+           inout_user,
+           inout_status,
+           update_user,
+           update_time)
+        values
+          (v_tradedate,
+           v_batch_id,
+           v_inout_id,
+           i_projid,
+           substr(v_projlist_status_next, 2), --取清单类型       
+           'i', --入观察清单
+           v_filldate,
+           decode(v_projlist_status_next,
+                  'ro',
+                  v_ro_inout_date,
+                  'rl',
+                  v_rl_inout_date,
+                  'rq',
+                  v_rq_inout_date),
+           decode(v_projlist_status_next,
+                  'ro',
+                  i_ro_inout_reason,
+                  'rl',
+                  i_rl_inout_reason,
+                  'rq',
+                  i_rq_inout_reason),
+           decode(v_projlist_status_next,
+                  'ro',
+                  i_ro_inout_remark,
+                  'rl',
+                  i_rl_inout_remark,
+                  'rq',
+                  i_rq_inout_remark),
+           decode(v_projlist_status_next,
+                  'ro',
+                  i_ro_filepath,
+                  'rl',
+                  i_rl_filepath,
+                  'rq',
+                  i_rq_filepath),
+           i_usercode,
+           i_submit_status,
+           i_usercode,
+           sysdate);
+           
+        -----------------------
+         insert into thjs.tb_tmp_0406          
+          select v_tradedate,
+                 c.projid,
+                 '',
+                 v_batch_id,
+                 decode(v_projlist_status_next, 'ro', v_inout_id, ''),
+                 decode(v_projlist_status_next, 'rl', v_inout_id, ''),
+                 decode(v_projlist_status_next, 'rq', v_inout_id, ''),
+                 v_projlist_status_next,
+                 i_usercode,
+                 i_usercode
+            from thjs.tb_ib_cust_info c
+           where c.projid = i_projid; 
+        commit;                   
+        -----------------------
+           
+      
+        --根据清单状态更新主表
+        insert into thjs.tb_projlist_main
+          (busidate,
+           projid,
+           gtjarole,
+           --multistk_id,
+           batch_id,
+           robserve_id,
+           rlimit_id,
+           rquiet_id,
+           projlist_status,
+           update_user,
+           create_user)
+          select v_tradedate,
+                 c.projid,
+                 '',
+                 v_batch_id,
+                 decode(v_projlist_status_next, 'ro', v_inout_id, ''),
+                 decode(v_projlist_status_next, 'rl', v_inout_id, ''),
+                 decode(v_projlist_status_next, 'rq', v_inout_id, ''),
+                 v_projlist_status_next,
+                 i_usercode,
+                 i_usercode
+            from thjs.tb_ib_cust_info c
+           where c.projid = i_projid;
+        commit;
+      
+        --直接入静默期时，自动出静默期
+        if v_projlist_status_next = 'rq' then
+        
+          --入静默期
+          --处理页面有误，入静默期日期未传递/出静默=入静默时，根据出限制日期自动计算日期
+          if v_cq_inout_date is null or v_rq_inout_date = v_cq_inout_date then
+            --v_rq_inout_date,v_cq_inout_date
+            select to_char(to_date(v_rq_inout_date, 'yyyy-MM-dd') + case
+                             when v_proj_type like '%IPO%' then
+                              40
+                             else
+                              10
+                           end,
+                           'yyyy-MM-dd')
+              into v_cq_inout_date
+              from dual;
+          end if;
+        
+          if v_cq_inout_date is not null then
+          
+            insert into thjs.tb_projlist_inout
+              (busidate,
+               batch_id,
+               inout_id,
+               projid,
+               inout_type,
+               inout_direct,
+               fill_date,
+               inout_date,
+               inout_reason,
+               inout_remark,
+               filepath,
+               inout_user,
+               inout_status,
+               update_user,
+               update_time)
+            values
+              (v_tradedate,
+               v_batch_id,
+               v_inout_id_next,
+               i_projid,
+               'q', --静默期
+               'o', --出清单
+               v_filldate,
+               v_cq_inout_date,
+               i_cq_inout_reason,
+               i_cq_inout_remark,
+               i_cq_filepath,
+               i_usercode,
+               i_submit_status,
+               i_usercode,
+               sysdate);
+          
+            update thjs.tb_projlist_main p
+               set p.cquiet_id       = v_inout_id_next,
+                   p.projlist_status = case
+                                         when v_cq_inout_date >
+                                              to_char(sysdate, 'YYYY-MM-DD') then
+                                          'rq'
+                                         else
+                                          'cq'
+                                       end,
+                   p.update_user     = i_usercode,
+                   p.update_time     = sysdate
+             where p.projid = i_projid;
+          
+            commit;
+          else
+          
+            o_return_msg  := '静默期自动出单有误，请联系系统管理员！';
+            o_return_code := -1;
+            rollback;
+            return;
+          end if;
+        
+        end if;
+      
+      else
+      
+        o_return_msg  := '入单有误，请联系系统管理员！';
+        o_return_code := -1;
+        return;
+      
+      end if;
+    
+    elsif v_projlist_status in ('ro', 'rl', 'rq') then
+      --入观察清单，入限制清单，入静默期
+    
+      --出清单
+      insert into thjs.tb_projlist_inout
+        (busidate,
+         batch_id,
+         inout_id,
+         projid,
+         inout_type,
+         inout_direct,
+         fill_date,
+         inout_date,
+         inout_reason,
+         inout_remark,
+         filepath,
+         inout_user,
+         inout_status,
+         update_user,
+         update_time,
+         debug_info)
+      values
+        (v_tradedate,
+         v_batch_id,
+         v_inout_id,
+         i_projid,
+         substr(v_projlist_status, 2), --取清单类型
+         'o', --出清单
+         v_filldate,
+         decode(v_projlist_status,
+                'ro',
+                v_co_inout_date,
+                'rl',
+                v_cl_inout_date,
+                'rq',
+                v_cq_inout_date),
+         decode(v_projlist_status,
+                'ro',
+                i_co_inout_reason,
+                'rl',
+                i_cl_inout_reason,
+                'rq',
+                i_cq_inout_reason),
+         decode(v_projlist_status,
+                'ro',
+                i_co_inout_remark,
+                'rl',
+                i_cl_inout_remark,
+                'rq',
+                i_cq_inout_remark),
+         decode(v_projlist_status,
+                'ro',
+                i_co_filepath,
+                'rl',
+                i_cl_filepath,
+                'rq',
+                i_cq_filepath),
+         i_usercode,
+         i_submit_status,
+         i_usercode,
+         sysdate,
+         'projtype:' || v_proj_type);
+    
+      --根据清单状态更新主表
+      --出单记录id及状态更新
+      update thjs.tb_projlist_main p
+         set p.cobserve_id     = decode(v_projlist_status,
+                                        'ro',
+                                        v_inout_id,
+                                        p.cobserve_id),
+             p.climit_id       = decode(v_projlist_status,
+                                        'rl',
+                                        v_inout_id,
+                                        p.climit_id),
+             p.cquiet_id       = decode(v_projlist_status,
+                                        'rq',
+                                        v_inout_id,
+                                        p.cquiet_id),
+             p.projlist_status = 'c' || substr(v_projlist_status, 2),
+             p.update_user     = i_usercode,
+             p.update_time     = sysdate
+       where p.projid = i_projid;
+      commit;
+    
+      --出观察清单同时入其他清单
+      if v_projlist_status = 'ro' and i_co_inout_reason in ('3', '4') then
+        --3 转限制清单 4 转静默期
+      
+        v_projlist_status_next := case
+                                    when v_projlist_status <> 'ro' and v_ro_inout_date is not null then
+                                     'ro'
+                                    when v_projlist_status <> 'rl' and v_rl_inout_date is not null then
+                                     'rl'
+                                    when v_projlist_status <> 'rq' and v_rq_inout_date is not null then
+                                     'rq'
+                                    else
+                                     null
+                                  end;
+      
+        --入清单
+        if v_projlist_status_next is not null then
+        
+          insert into thjs.tb_projlist_inout
+            (busidate,
+             batch_id,
+             inout_id,
+             projid,
+             inout_type,
+             inout_direct,
+             fill_date,
+             inout_date,
+             inout_reason,
+             inout_remark,
+             filepath,
+             inout_user,
+             inout_status,
+             update_user,
+             update_time)
+          values
+            (v_tradedate,
+             v_batch_id,
+             v_inout_id_next,
+             i_projid,
+             substr(v_projlist_status_next, 2), --取清单类型       
+             'i', --入清单
+             v_filldate,
+             decode(v_projlist_status_next,
+                    'ro',
+                    v_ro_inout_date,
+                    'rl',
+                    v_rl_inout_date,
+                    'rq',
+                    v_rq_inout_date),
+             decode(v_projlist_status_next,
+                    'ro',
+                    i_ro_inout_reason,
+                    'rl',
+                    i_rl_inout_reason,
+                    'rq',
+                    i_rq_inout_reason),
+             decode(v_projlist_status_next,
+                    'ro',
+                    i_ro_inout_remark,
+                    'rl',
+                    i_rl_inout_remark,
+                    'rq',
+                    i_rq_inout_remark),
+             decode(v_projlist_status_next,
+                    'ro',
+                    i_ro_filepath,
+                    'rl',
+                    i_rl_filepath,
+                    'rq',
+                    i_rq_filepath),
+             i_usercode,
+             i_submit_status,
+             i_usercode,
+             sysdate);
+        
+          --同时入单记录id及状态二次更新
+          update thjs.tb_projlist_main p
+             set p.robserve_id     = decode(v_projlist_status_next,
+                                            'ro',
+                                            v_inout_id_next,
+                                            p.robserve_id),
+                 p.rlimit_id       = decode(v_projlist_status_next,
+                                            'rl',
+                                            v_inout_id_next,
+                                            p.rlimit_id),
+                 p.rquiet_id       = decode(v_projlist_status_next,
+                                            'rq',
+                                            v_inout_id_next,
+                                            p.rquiet_id),
+                 p.projlist_status = v_projlist_status_next,
+                 p.update_user     = i_usercode,
+                 p.update_time     = sysdate
+           where p.projid = i_projid;
+          commit;
+        
+          --观察转静默，静默期自动完成
+          if v_projlist_status_next = 'rq' then
+          
+            --入静默期
+            --处理页面有误，入静默期日期未传递/出静默=入静默时，根据出限制日期自动计算日期
+            if v_cq_inout_date is null or v_rq_inout_date = v_cq_inout_date then
+              --v_rq_inout_date,v_cq_inout_date
+              select to_char(to_date(v_rq_inout_date, 'yyyy-MM-dd') + case
+                               when v_proj_type like '%IPO%' then
+                                40
+                               else
+                                10
+                             end,
+                             'yyyy-MM-dd')
+                into v_cq_inout_date
+                from dual;
+            end if;
+          
+            --自动静默期有误时，错误提醒
+            if v_cq_inout_date is null then
+              o_return_msg  := '静默期自动入出单有误，请联系系统管理员！';
+              o_return_code := -1;
+              rollback;
+              return;
+            end if;
+          
+          end if;
+        
+        else
+          --转限制，静默时日期 未成功返回
+          o_return_msg  := '观察清单转限制/静默有误，请联系系统管理员！';
+          o_return_code := -1;
+          rollback;
+          return;
+        
+        end if;
+      
+      end if;
+    
+      --出限制清单时，选择价格/利率确定 自动完成静默期阶段
+      if v_projlist_status = 'rl' and i_cl_inout_reason = '1' then
+      
+        --IPO类型  入静默期日期+40日后自动出静默期
+        --其余类型 入静默期日期+10日后自动出静默期
+      
+        --入静默期
+        --处理页面有误，入静默期日期未传递/出静默=入静默时，根据出限制日期自动计算日期
+        if v_rq_inout_date is null or v_rq_inout_date = v_cq_inout_date then
+          --v_rq_inout_date,v_cq_inout_date
+          select v_cl_inout_date,
+                 to_char(to_date(v_cl_inout_date, 'yyyy-MM-dd') + case
+                           when v_proj_type like '%IPO%' then
+                            40
+                           else
+                            10
+                         end,
+                         'yyyy-MM-dd')
+            into v_rq_inout_date, v_cq_inout_date
+            from dual;
+        end if;
+      
+        --自动静默期有误时，错误提醒
+        if v_rq_inout_date is null or v_cq_inout_date is null then
+          o_return_msg  := '静默期自动入出单有误，请联系系统管理员！';
+          o_return_code := -1;
+          rollback;
+          return;
+        end if;
+      
+        if v_rq_inout_date is not null then
+        
+          insert into thjs.tb_projlist_inout
+            (busidate,
+             batch_id,
+             inout_id,
+             projid,
+             inout_type,
+             inout_direct,
+             fill_date,
+             inout_date,
+             inout_reason,
+             inout_remark,
+             filepath,
+             inout_user,
+             inout_status,
+             update_user,
+             update_time)
+          values
+            (v_tradedate,
+             v_batch_id,
+             v_inout_id_next,
+             i_projid,
+             'q', --静默期
+             'i', --入清单
+             v_filldate,
+             v_rq_inout_date,
+             i_rq_inout_reason,
+             i_rq_inout_remark,
+             i_rq_filepath,
+             i_usercode,
+             i_submit_status,
+             i_usercode,
+             sysdate);
+        
+          update thjs.tb_projlist_main p
+             set p.rquiet_id       = v_inout_id_next,
+                 p.projlist_status = 'rq',
+                 p.update_user     = i_usercode,
+                 p.update_time     = sysdate
+           where p.projid = i_projid;
+        
+        end if;
+      
+        commit;
+      
+      end if;
+    
+      --自动出静默期
+      if v_projlist_status <> 'rq' and v_cq_inout_date is not null then
+      
+        insert into thjs.tb_projlist_inout
+          (busidate,
+           batch_id,
+           inout_id,
+           projid,
+           inout_type,
+           inout_direct,
+           fill_date,
+           inout_date,
+           inout_reason,
+           inout_remark,
+           filepath,
+           inout_user,
+           inout_status,
+           update_user,
+           update_time)
+        values
+          (v_tradedate,
+           v_batch_id,
+           v_inout_id_third,
+           i_projid,
+           'q', --静默期
+           'o', --出清单
+           v_filldate,
+           v_cq_inout_date,
+           i_cq_inout_reason,
+           i_cq_inout_remark,
+           i_cq_filepath,
+           i_usercode,
+           i_submit_status,
+           i_usercode,
+           sysdate);
+      
+        update thjs.tb_projlist_main p
+           set p.cquiet_id       = v_inout_id_third,
+               p.projlist_status = case
+                                     when v_cq_inout_date >
+                                          to_char(sysdate, 'YYYY-MM-DD') then
+                                      'rq'
+                                     else
+                                      'cq'
+                                   end,
+               p.update_user     = i_usercode,
+               p.update_time     = sysdate
+         where p.projid = i_projid;
+      
+        commit;
+      
+      end if;
+    
+    elsif v_projlist_status in ('co', 'cl', 'cq') then
+      --出观察清单，出限制清单，出静默期
+    
+      --入清单,获取选中的入清单阶段
+      v_projlist_status_next := case
+                                  when v_ro_inout_date is not null then
+                                   'ro'
+                                  when v_rl_inout_date is not null then
+                                   'rl'
+                                  when v_rq_inout_date is not null then
+                                   'rq'
+                                  else
+                                   null
+                                end;
+    
+      --入清单
+      if v_projlist_status_next is not null then
+      
+        insert into thjs.tb_projlist_inout
+          (busidate,
+           batch_id,
+           inout_id,
+           projid,
+           inout_type,
+           inout_direct,
+           fill_date,
+           inout_date,
+           inout_reason,
+           inout_remark,
+           filepath,
+           inout_user,
+           inout_status,
+           update_user,
+           update_time)
+        values
+          (v_tradedate,
+           v_batch_id,
+           v_inout_id_next,
+           i_projid,
+           substr(v_projlist_status_next, 2), --取清单类型       
+           'i', --入清单
+           v_filldate,
+           decode(v_projlist_status_next,
+                  'ro',
+                  v_ro_inout_date,
+                  'rl',
+                  v_rl_inout_date,
+                  'rq',
+                  v_rq_inout_date),
+           decode(v_projlist_status_next,
+                  'ro',
+                  i_ro_inout_reason,
+                  'rl',
+                  i_rl_inout_reason,
+                  'rq',
+                  i_rq_inout_reason),
+           decode(v_projlist_status_next,
+                  'ro',
+                  i_ro_inout_remark,
+                  'rl',
+                  i_rl_inout_remark,
+                  'rq',
+                  i_rq_inout_remark),
+           decode(v_projlist_status_next,
+                  'ro',
+                  i_ro_filepath,
+                  'rl',
+                  i_rl_filepath,
+                  'rq',
+                  i_rq_filepath),
+           i_usercode,
+           i_submit_status,
+           i_usercode,
+           sysdate);
+      
+        --入单记录id及状态更新
+        update thjs.tb_projlist_main p
+           set p.robserve_id     = decode(v_projlist_status_next,
+                                          'ro',
+                                          v_inout_id_next,
+                                          p.robserve_id),
+               p.rlimit_id       = decode(v_projlist_status_next,
+                                          'rl',
+                                          v_inout_id_next,
+                                          p.rlimit_id),
+               p.rquiet_id       = decode(v_projlist_status_next,
+                                          'rq',
+                                          v_inout_id_next,
+                                          p.rquiet_id),
+               p.projlist_status = v_projlist_status_next,
+               p.update_user     = i_usercode,
+               p.update_time     = sysdate
+         where p.projid = i_projid;
+        commit;
+      
+      end if;
+    
+      --自动出静默期
+      if v_projlist_status_next = 'rq' then
+      
+        --入静默期
+        --处理页面有误，入静默期日期未传递/出静默=入静默时，根据出限制日期自动计算日期
+        if v_cq_inout_date is null or v_rq_inout_date = v_cq_inout_date then
+          --v_rq_inout_date,v_cq_inout_date
+          select to_char(to_date(v_rq_inout_date, 'yyyy-MM-dd') + case
+                           when v_proj_type like '%IPO%' then
+                            40
+                           else
+                            10
+                         end,
+                         'yyyy-MM-dd')
+            into v_cq_inout_date
+            from dual;
+        end if;
+      
+        if v_cq_inout_date is not null then
+          insert into thjs.tb_projlist_inout
+            (busidate,
+             batch_id,
+             inout_id,
+             projid,
+             inout_type,
+             inout_direct,
+             fill_date,
+             inout_date,
+             inout_reason,
+             inout_remark,
+             filepath,
+             inout_user,
+             inout_status,
+             update_user,
+             update_time)
+          values
+            (v_tradedate,
+             v_batch_id,
+             v_inout_id_third,
+             i_projid,
+             'q', --静默期
+             'o', --出清单
+             v_filldate,
+             v_cq_inout_date,
+             i_cq_inout_reason,
+             i_cq_inout_remark,
+             i_cq_filepath,
+             i_usercode,
+             i_submit_status,
+             i_usercode,
+             sysdate);
+        
+          update thjs.tb_projlist_main p
+             set p.cquiet_id       = v_inout_id_third,
+                 p.projlist_status = case
+                                       when v_cq_inout_date >
+                                            to_char(sysdate, 'YYYY-MM-DD') then
+                                        'rq'
+                                       else
+                                        'cq'
+                                     end,
+                 p.update_user     = i_usercode,
+                 p.update_time     = sysdate
+           where p.projid = i_projid;
+        
+          commit;
+        
+        else
+        
+          o_return_msg  := '静默期自动入出单有误，请联系系统管理员！';
+          o_return_code := -1;
+          rollback;
+          return;
+        
+        end if;
+      
+      end if;
+    
+    end if;
+  
+  elsif i_submit_status = '2' then
+    --修正
+  
+    update thjs.tb_projlist_main p
+       set p.update_user = i_usercode, p.update_time = sysdate
+     where p.projid = i_projid;
+  
+    v_inout_id       := sys_guid();
+    v_inout_id_next  := sys_guid();
+    v_inout_id_third := sys_guid();
+  
+    --判断存在的清单阶段
+    --针对存在的阶段数据作更新操作
+    --不存在的阶段，有值传入（出观察时入其他阶段），视作清单填报处理
+    select p.robserve_id,
+           p.cobserve_id,
+           p.rlimit_id,
+           p.climit_id,
+           p.rquiet_id,
+           p.cquiet_id
+      into v_ro_id, v_co_id, v_rl_id, v_cl_id, v_rq_id, v_cq_id
+      from thjs.tb_projlist_main p
+     where p.projid = i_projid;
+  
+    --入观察
+    if v_ro_id is not null and v_ro_inout_date is not null then
+    
+      update thjs.tb_projlist_inout i
+         set i.inout_date   = v_ro_inout_date,
+             i.inout_reason = i_ro_inout_reason,
+             i.inout_remark = i_ro_inout_remark,
+             i.filepath     = i_ro_filepath,
+             i.update_user  = i_usercode,
+             i.update_time  = sysdate
+       where i.inout_id = v_ro_id;
+    
+    end if;
+  
+    --出观察
+    if v_co_id is not null and v_co_inout_date is not null then
+    
+      update thjs.tb_projlist_inout i
+         set i.inout_date   = v_co_inout_date,
+             i.inout_reason = i_co_inout_reason,
+             i.inout_remark = i_co_inout_remark,
+             i.filepath     = i_co_filepath,
+             i.update_user  = i_usercode,
+             i.update_time  = sysdate
+       where i.inout_id = v_co_id;
+    
+    end if;
+  
+    --入限制
+    if v_rl_inout_date is not null then
+    
+      if v_rl_id is not null then
+        update thjs.tb_projlist_inout i
+           set i.inout_date   = v_rl_inout_date,
+               i.inout_reason = i_rl_inout_reason,
+               i.inout_remark = i_rl_inout_remark,
+               i.filepath     = i_rl_filepath,
+               i.update_user  = i_usercode,
+               i.update_time  = sysdate
+         where i.inout_id = v_rl_id;
+      
+      else
+        insert into thjs.tb_projlist_inout
+          (busidate,
+           batch_id,
+           inout_id,
+           projid,
+           inout_type,
+           inout_direct,
+           fill_date,
+           inout_date,
+           inout_reason,
+           inout_remark,
+           filepath,
+           inout_user,
+           inout_status,
+           update_user,
+           update_time)
+        values
+          (v_tradedate,
+           v_batch_id,
+           v_inout_id,
+           i_projid,
+           'l',
+           'i',
+           v_tradedate,
+           v_rl_inout_date,
+           i_rl_inout_reason,
+           i_rl_inout_remark,
+           i_rl_filepath,
+           i_usercode,
+           '1',
+           i_usercode,
+           sysdate);
+      
+        update thjs.tb_projlist_main p
+           set p.rlimit_id = v_inout_id
+         where p.projid = i_projid;
+      
+      end if;
+    
+    end if;
+  
+    --出限制
+    if v_cl_id is not null and v_cl_inout_date is not null then
+    
+      update thjs.tb_projlist_inout i
+         set i.inout_date   = v_cl_inout_date,
+             i.inout_reason = i_cl_inout_reason,
+             i.inout_remark = i_cl_inout_remark,
+             i.filepath     = i_cl_filepath,
+             i.update_user  = i_usercode,
+             i.update_time  = sysdate
+       where i.inout_id = v_cl_id;
+    
+    end if;
+  
+    --入静默
+    if v_rq_inout_date is not null then
+    
+      if v_rq_id is not null then
+        update thjs.tb_projlist_inout i
+           set i.inout_date   = v_rq_inout_date,
+               i.inout_reason = i_rq_inout_reason,
+               i.inout_remark = i_rq_inout_remark,
+               i.filepath     = i_rq_filepath,
+               i.update_user  = i_usercode,
+               i.update_time  = sysdate
+         where i.inout_id = v_rq_id;
+      
+      else
+      
+        insert into thjs.tb_projlist_inout
+          (busidate,
+           batch_id,
+           inout_id,
+           projid,
+           inout_type,
+           inout_direct,
+           fill_date,
+           inout_date,
+           inout_reason,
+           inout_remark,
+           filepath,
+           inout_user,
+           inout_status,
+           update_user,
+           update_time)
+        values
+          (v_tradedate,
+           v_batch_id,
+           v_inout_id_next,
+           i_projid,
+           'q',
+           'i',
+           v_tradedate,
+           v_rq_inout_date,
+           i_rq_inout_reason,
+           i_rq_inout_remark,
+           i_rq_filepath,
+           i_usercode,
+           '1',
+           i_usercode,
+           sysdate);
+      
+        update thjs.tb_projlist_main p
+           set p.rquiet_id = v_inout_id_next
+         where p.projid = i_projid;
+      
+      end if;
+    
+    end if;
+  
+    --出静默
+    if v_cq_inout_date is not null then
+    
+      if v_cq_id is not null then
+        update thjs.tb_projlist_inout i
+           set i.inout_date   = v_cq_inout_date,
+               i.inout_reason = i_cq_inout_reason,
+               i.inout_remark = i_cq_inout_remark,
+               i.filepath     = i_cq_filepath,
+               i.update_user  = i_usercode,
+               i.update_time  = sysdate
+         where i.inout_id = v_cq_id;
+      
+      else
+      
+        insert into thjs.tb_projlist_inout
+          (busidate,
+           batch_id,
+           inout_id,
+           projid,
+           inout_type,
+           inout_direct,
+           fill_date,
+           inout_date,
+           inout_reason,
+           inout_remark,
+           filepath,
+           inout_user,
+           inout_status,
+           update_user,
+           update_time)
+        values
+          (v_tradedate,
+           v_batch_id,
+           v_inout_id_third,
+           i_projid,
+           'q',
+           'o',
+           v_tradedate,
+           v_cq_inout_date,
+           i_cq_inout_reason,
+           i_cq_inout_remark,
+           i_cq_filepath,
+           i_usercode,
+           '1',
+           i_usercode,
+           sysdate);
+      
+        update thjs.tb_projlist_main p
+           set p.cquiet_id = v_inout_id_third
+         where p.projid = i_projid;
+      
+      end if;
+    
+    end if;
+  
+    commit;
+  
+  end if;
+
+  --因关联信息存在置空情况，故关联信息批次代码fill_id应主动清空。并由关联信息修改sp去更新
+  update thjs.tb_projlist_main p
+     set p.multistk_id = ''
+   where p.projid = i_projid;
+  commit;
+
+  --由于实际操作日期与出入单发生日期（页面输入）不一定一致，需根据清单各阶段日期取值，重新计算状态字段
+  merge into thjs.tb_projlist_main p
+  using (select t.projid,
+                t.projname,
+                t.ro_inout_date,
+                t.co_inout_date,
+                t.rl_inout_date,
+                t.cl_inout_date,
+                t.rq_inout_date,
+                t.cq_inout_date,
+                case
+                  when (t.ro_inout_date is not null and
+                       t.ro_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.co_inout_date is null or
+                       t.co_inout_date > to_char(sysdate, 'yyyy-MM-dd')) and
+                       t.rl_inout_date is null and t.rq_inout_date is null then
+                   'ro'
+                  when (t.rl_inout_date is null or
+                       t.rl_inout_date > to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.co_inout_date is not null and
+                       t.co_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.rq_inout_date is null or
+                       t.rq_inout_date > to_char(sysdate, 'yyyy-MM-dd')) then
+                   'co'
+                  when (t.rl_inout_date is not null and
+                       t.rl_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.cl_inout_date is null or
+                       t.cl_inout_date > to_char(sysdate, 'yyyy-MM-dd')) then
+                   'rl'
+                  when (t.rq_inout_date is null or
+                       t.rq_inout_date > to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.cl_inout_date is not null and
+                       t.cl_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       t.rq_inout_date is null then
+                   'cl'
+                  when (t.rq_inout_date is not null and
+                       t.rq_inout_date <= to_char(sysdate, 'yyyy-MM-dd')) and
+                       (t.cq_inout_date is null or
+                       t.cq_inout_date > to_char(sysdate, 'yyyy-MM-dd')) then
+                   'rq'
+                  when t.cq_inout_date is not null and
+                       t.cq_inout_date <= to_char(sysdate, 'yyyy-MM-dd') then
+                   'cq'
+                  else
+                   '0'
+                end as calc_status,
+                t.projlist_status
+           from THJS.VW_PROJLIST_MAIN_INOUT t
+          where t.projid = i_projid) t
+  on (p.projid = t.projid)
+  when matched then
+    update set p.projlist_status = t.calc_status;
+  commit;
+
+  --刷新清单所有入出单记录检查结果
+  merge into thjs.tb_projlist_check c
+  using (select i.busidate,
+                i.projid,
+                i.inout_id,
+                case
+                  when date_diff <= 0 then
+                   '0'
+                  else
+                   '1'
+                end as check_flag,
+                case
+                  when date_diff < 0 then
+                   '早' || cast(abs(i.date_diff) as int) || '天'
+                  when date_diff = 0 then
+                   '准确'
+                  else
+                   '晚' || cast(abs(i.date_diff) as int) || '天'
+                end as check_result
+           from (select i.*,
+                        to_date(i.fill_date, 'yyyy-MM-dd') -
+                        to_date(i.inout_date, 'yyyy-MM-dd') as date_diff
+                   from thjs.tb_projlist_inout i
+                  where i.projid = i_projid) i) i
+  on (c.projid = i.projid and c.inout_id = i.inout_id)
+  when matched then
+    update set c.check_flag = i.check_flag, c.check_result = i.check_result
+  when not matched then
+    insert
+      (BUSIDATE,
+       PROJID,
+       INOUT_ID,
+       CHECK_FLAG,
+       CHECK_RESULT,
+       CHECK_USER,
+       CREATE_TIME)
+    values
+      (i.busidate,
+       i.projid,
+       i.inout_id,
+       i.check_flag,
+       i.check_result,
+       'admin',
+       sysdate);
+
+  commit;
+
+  o_return_msg  := '执行成功';
+  o_return_code := 0;
+
+  /*insert into thjs.tb_test
+    (id, text)
+  values
+    (95, o_return_msg || '-' || o_return_code);*/
+
+exception
+  -- 非预定义异常处理
+  when v_userexp then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+    -- 预定义异常处理
+  when others then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                            i_exec_func_id => v_exec_func_id,
+                            i_func_own     => v_func_own,
+                            i_func_name    => v_func_name,
+                            i_occur_time   => sysdate,
+                            i_sqlerrm      => v_sqlerrm,
+                            i_sqlcode      => v_sqlcode,
+                            i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+end;

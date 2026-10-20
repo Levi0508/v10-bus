@@ -1124,8 +1124,8 @@ comp.vue = new Vue({
       <el-card class="box-card" :name="'beneficialOwner'+this._uid" v-if="organ_flag=='1'">
         <div slot="header" class="clearfix">
           <span>客户受益所有人信息</span>
-          <el-button type="text" icon="el-icon-plus" class="add-btn" @click="showDialog('1',{},'5')">添加</el-button>
-          <el-button v-if="'_$showBomisBtn$_'=='true'" type="text" icon="el-icon-plus" class="add-btn" @click="showDialog('1',{},'bomis')">受益所有人核验(新版)</el-button>
+          <!-- <el-button type="text" icon="el-icon-plus" class="add-btn" @click="showDialog('1',{},'5')">添加</el-button> -->
+          <el-button v-if="'_$showBomisBtn$_'=='true'" type="text" icon="el-icon-plus" class="add-btn" @click="showDialog('1',{},'bomis')">添加</el-button>
         </div>
         <div v-if="relatedInfo5.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
         <el-card v-for="item in relatedInfo5" :key="item.related_id" style="margin-bottom:10px;"
@@ -1190,6 +1190,7 @@ comp.vue = new Vue({
           <div class="attachment-footer">
             <el-button type="text" @click="deleteRalated(item)">删除</el-button>
             <el-button type="text" @click="showDialog('2',item,'5')">编辑</el-button>
+            <el-button v-if="'_$showBomisBtn$_'=='true'" type="text" @click="showBenefitEditDialogByRelated(item)">修改</el-button>
           </div>
         </el-card>
         <!-- 附件信息表 -->
@@ -2359,7 +2360,7 @@ comp.vue = new Vue({
         <el-table-column prop="ownerrightmgmtpostother" label="在华最高层级的高级管理其他职位" width="240"></el-table-column>
         <el-table-column label="操作" width="100" fixed="right">
           <template slot-scope="scope">
-            <el-button @click="showBenefitEditDialog(scope.row)" type="text" size="small">修改</el-button>
+            <!-- <el-button @click="showBenefitEditDialog(scope.row)" type="text" size="small">修改</el-button> -->
             <el-button @click="delBomisBnfInfo(scope.row)" type="text" size="small">删除</el-button>
           </template>
         </el-table-column>
@@ -2464,6 +2465,26 @@ comp.vue = new Vue({
                 <el-option v-for="item in bomisParams.benefit_company_no_list" :key="item.k" :label="item.v"
                   :value="item.k"> </el-option>
               </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item prop="full_info_flag">
+              <el-radio-group v-model="bomisParams.editOneBenefitForm.full_info_flag">
+                <el-radio key="full_info_flag01" label="01"
+                  @click.native="nativeRadioClick('01', bomisParams.editOneBenefitForm, 'full_info_flag')" value="01">
+                  透明度较高、信息披露充分的客户（如上市公司、国有企业）</el-radio>
+                <el-radio key="full_info_flag02" label="02"
+                  @click.native="nativeRadioClick('02', bomisParams.editOneBenefitForm, 'full_info_flag')" value="02">
+                  受益人信息不规范</el-radio>
+              </el-radio-group>
+              <div v-if="bomisParams.editOneBenefitForm.full_info_flag === '01'" style="color:#F56C6C;font-size:14px;line-height:22px;">
+                <div>1、国有企业为经官方信息验证并确认属于国有独资公司、国有控股公司、全民所有制企业。</div>
+                <div>2、勾选后，仅需填写姓名、性别、国籍、出生年月，出生日期处需手动输入，格式为“1999-01”。</div>
+                <div>3、受益所有人身份证明文件的复印件请上传用于身份识别的照片。</div>
+              </div>
+              <div v-if="bomisParams.editOneBenefitForm.full_info_flag === '02'" style="color:#F56C6C;font-size:14px;line-height:22px;">
+                勾选后，新客户仍为草稿状态，不进入审核流程；老客户自动设为强限制客户。
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -2693,19 +2714,6 @@ comp.vue = new Vue({
           </el-col>
         </el-row>
         <el-row :gutter="24">
-          <el-col :span="24">
-            <!-- label="　" -->
-            <el-form-item prop="full_info_flag">
-              <el-radio-group v-model="bomisParams.editOneBenefitForm.full_info_flag">
-                <el-radio key="full_info_flag01" label="01"
-                  @click.native="nativeRadioClick('01', bomisParams.editOneBenefitForm, 'full_info_flag')" value="01">
-                  透明度较高、信息披露充分的客户（如上市公司、国有企业）</el-radio>
-                <el-radio key="full_info_flag02" label="02"
-                  @click.native="nativeRadioClick('02', bomisParams.editOneBenefitForm, 'full_info_flag')" value="02">
-                  受益人信息不规范</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
           <el-col :span="8">
             <el-form-item label="姓名" prop="related_name">
               <el-select clearable v-model="bomisParams.editOneBenefitForm.related_name" allow-create filterable
@@ -4957,6 +4965,23 @@ comp.vue = new Vue({
         this.bomisParams.bnf_type_new_list = [];
       }
       this.bomisParams.benefitEditDialogVisible = true;
+    },
+    // 外层受益人卡片的“修改”：卡片数据未拆分多选字段，需按 related_id 取核验数据源中的同一条记录
+    showBenefitEditDialogByRelated: function (item) {
+      var that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_bomis_benefit_scinfo',
+        params: { client_id: '_$client_id$_' },
+        json: true,
+        success(resp) {
+          var row = (resp.items || []).find(i => i.related_id === item.related_id && i.related_name === item.related_name);
+          if (!row) {
+            Wb.error('未找到该受益人信息，请刷新页面后重试');
+            return;
+          }
+          that.showBenefitEditDialog(row);
+        }
+      });
     },
     delBomisBnfInfo: function (row) {
       var that = this;

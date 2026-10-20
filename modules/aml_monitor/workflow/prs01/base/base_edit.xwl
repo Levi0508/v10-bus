@@ -9,7 +9,7 @@
   "properties": {
     "cid": "module",
     "links": "[\n  \"wb/custom-made/js/prs01.js\",\n  \"wb/libs/exportPdf/html2canvas.js\",\n  \"wb/libs/exportPdf/jspdf.debug.js\"\n]",
-    "serverScript": "var showBomisBtn = Wb.permit('aml_monitor/workflow/prs01/dataSource/bomisBtnShow.xwl');\nWb.log('showBomisBtn');\nWb.log(showBomisBtn ? 1 : 0);\nWb.log(Wb.get('sys.username'));\nWb.set('showBomisBtn',showBomisBtn);"
+    "serverScript": "var showBomisBtn = Wb.permit('aml_monitor/workflow/prs01/base/base_edit_clf20261020.xwl');\nWb.log('showBomisBtn');\nWb.log(showBomisBtn ? 1 : 0);\nWb.log(Wb.get('sys.username'));\nWb.set('showBomisBtn',showBomisBtn);"
   },
   "_icon": "module",
   "_expanded": true,

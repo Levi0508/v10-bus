@@ -1,0 +1,375 @@
+{
+  "title": "我填报的反洗钱客户clf20261020",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "links": "[\"wb/custom-made/vue/vue.js\",\"wb/custom-made/vue/element.js\",\"wb/custom-made/vue/element.css\"]"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1"
+      },
+      "_expanded": true,
+      "events": {
+        "keydown": "if (e.keyCode == '13') {\n  app.seekBtn.fireClick()\n}"
+      },
+      "items": [
+        {
+          "_icon": "panel",
+          "text": "header",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "header",
+            "html": "<div style=\"font-size:16px;font-weight:bold;padding:20px;\">我填报的反洗钱客户</div>",
+            "maxHeight": "80",
+            "style": "display:none"
+          },
+          "_expanded": true,
+          "items": [
+            {
+              "cls": "Wb.Container",
+              "events": {
+                "ready": "let comp = this;\ncomp.vue = new Vue({\n  el: comp.el.addEl(),\n  template: `\n<div style=\"padding:15px 0 0 20px;\">\n  <el-breadcrumb separator=\"/\">\n  <el-breadcrumb-item>反洗钱系统</el-breadcrumb-item>\n  <el-breadcrumb-item>我填报的反洗钱客户</el-breadcrumb-item>\n  </el-breadcrumb>\n</div>\n`,\n  data() {\n    return {\n    }\n  },\n  methods: {\n  }\n});"
+              },
+              "properties": {
+                "cid": "headers",
+                "isProperty": "true"
+              },
+              "text": "headers",
+              "_expanded": true,
+              "_icon": "container",
+              "hasDupCid": 0
+            }
+          ]
+        },
+        {
+          "_icon": "splitter",
+          "text": "splitter1",
+          "cls": "Wb.Splitter",
+          "properties": {
+            "cid": "splitter1"
+          }
+        },
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "border": "false",
+            "layout": "grid4"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "text",
+              "text": "CLIENT_NAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "CLIENT_NAME",
+                "text": "客户名称",
+                "placeholder": "请输入客户名称"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "combo",
+              "text": "WORK_TYPE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "WORK_TYPE",
+                "text": "工作类型",
+                "placeholder": "请选择工作类型",
+                "keyName": "work_type"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "combo",
+              "text": "CLIENT_STATUS",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "CLIENT_STATUS",
+                "text": "客户状态",
+                "placeholder": "请选择客户状态",
+                "keyName": "client_status"
+              }
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid1",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid1",
+            "pagingBar": "pageNums",
+            "pageSize": "100",
+            "full": "true",
+            "border": "false",
+            "url": "m?xwl=aml_monitor/KYC01050/select",
+            "emptyHint": "true",
+            "textSelectable": "true",
+            "columnsSortable": "true",
+            "sorters": "[{name: 'client_id', desc: true}]"
+          },
+          "_expanded": true,
+          "items": [
+            {
+              "_icon": "toolbar",
+              "text": "tbar",
+              "cls": "Wb.Toolbar",
+              "properties": {
+                "cid": "tbar",
+                "gap": "true",
+                "layout": "form-compact",
+                "isProperty": "true",
+                "border": "false"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "button",
+                  "text": "addBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "addBtn",
+                    "text": "客户维护",
+                    "roundBorder": "true",
+                    "style": "background-color:#5cb85c;color:#fff",
+                    "icon": "edit",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "hasDupCid": 0,
+                  "events": {
+                    "click": "if (app.grid1.selectionsData.length != 1) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec\", rec);\nconsole.log(\"sys\",'_$sys.username$_')\nWb.confirm('您将进入客户信息表填报页面，您需要确认信息无变化或者编辑更新相关信息', function () {\n  Wb.open({\n    url: 'm?xwl=syr_2/client_edit_clf20261020',\n    title: rec.client_name + '客户信息修改',\n    params: {\n      ORGAN_FLAG: rec.organ_flag,\n      CLIENT_ID: rec.client_id,\n      CLIENT_BELONG: rec.client_belong,\n      CLIENT_NAME: rec.client_name,\n      CLIENT_STATUS: rec.client_status,\n      FK_FLAG: '0', //项目组人员不可查看反馈结果tab页数据\n      DATA_TYPE: rec.data_status\n    }\n  })\n});\n\n"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "invalidBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "invalidBtn",
+                    "text": "审核信息查询",
+                    "roundBorder": "true",
+                    "style": "background-color:#5bc0de;color:#fff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "if (app.grid1.selectionsData.length != 1) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nWb.open({\n  url: xpath + '/client_audit_table',\n  title:'审核信息查询',\n  params: {\n    CLIENT_ID: rec.client_id\n  },\n  success() {\n\n  }\n})"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "deleteBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "deleteBtn",
+                    "text": "失效",
+                    "roundBorder": "true",
+                    "icon": "delete",
+                    "iconColor": "#ffffff",
+                    "style": "background-color:#d9534f;color:#fff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "let sys_username = '_$sys.username$_';\n\nif (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '1') {\n  Wb.tipError(\"该客户状态为已失效\");\n  return;\n}\n\nif (!sys_username) {\n  Wb.tipError(\"检测到用户未登录，请刷新页面重新登录\");\n  return;\n}\n\nWb.confirm(`请确认是否完成以下操作：<br/>\n<div style=\"max-width:600px;padding:0 20px 20px 20px;\">（1）若未签署过协议（保密协议除外）、未正式建立业务关系，请首先更新工作室阶段和状态为终止或完成（如有相关工作室）。其次，在反洗钱系统中上传情况说明，说明未正式建立业务关系的具体情况和是否签署过协议（保密协议除外）。最后，在反洗钱系统之备注处注明“未正式建立业务关系”。<br>\n（2）若签署过协议（保密协议除外）、正式建立业务关系，请首先更新工作室阶段和状态为终止或完成（如有相关工作室）。其次，尽量完善信息和上传底稿（客户基本信息表、营业执照、法代和受益所有人的身份证为重，其余次之），若无法完善，请拟写说明说清楚信息或底稿缺失（参考投行反洗钱底稿目录）/无法更新的原因、上传至反洗钱系统，并上传外部数据库查验过程截图。最后，请在反洗钱系统之备注处注明实际业务终止日期。<br/></div>`, function () {\n  Wb.ajax({\n    url: xpath + '/../KYC01020/select_client_proj',\n    params: {\n      I_CLIENT_ID: rec.client_id,\n      I_CLIENT_NAME: rec.client_name,\n      I_USER_NAME: '_$sys.username$_'\n    },\n    success(resp) {\n      let res = Wb.decode(resp).items;\n      console.log(\"res\", res);\n      let message = res[0].message;\n      if (message) {\n        Wb.info(message);\n      } else {\n        Wb.confirm(\"确认将客户置为失效？\", function () {\n          Wb.ajax({\n            url: xpath + '/../KYC01020/update_client_status',\n            params: {\n              I_CLIENT_ID: rec.client_id,\n              I_OP_FLAG: '1',\n              I_USER_NAME: '_$sys.username$_'\n            },\n            success(resp) {\n              app.grid1.reload();\n            }\n          });\n        });\n      }\n    }\n  });\n}, null, true);"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "right1",
+                  "text": "fill1",
+                  "cls": "Wb.Fill",
+                  "properties": {
+                    "cid": "fill1"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "seekBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "seekBtn",
+                    "text": "查询",
+                    "type": "primary",
+                    "roundBorder": "true",
+                    "style": "background-color:#337ab7;color:#fff",
+                    "icon": "search",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "if(Wb.verify(app.panel1)){\n  app.grid1.load({\n    comps:app.panel1\n  })\n}"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "resetBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "resetBtn",
+                    "text": "重置",
+                    "roundBorder": "true",
+                    "icon": "loading3",
+                    "iconColor": "#ffffff",
+                    "style": "background-color:#5cbc85;color:#fff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "app.CLIENT_NAME.setValue('');\napp.WORK_TYPE.setValue('');\napp.CLIENT_STATUS.setValue('');"
+                  }
+                }
+              ]
+            },
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": true,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "rownum_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum_Col",
+                    "rowNum": "true",
+                    "width": "60"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "CLIENT_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CLIENT_NAME_Col",
+                    "text": "客户全称",
+                    "fieldName": "client_name",
+                    "minWidth": "250",
+                    "width": "300"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "CLIENT_BELONG_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CLIENT_BELONG_Col",
+                    "text": "客户归属",
+                    "fieldName": "client_belong",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "ORGAN_FLAG_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ORGAN_FLAG_Col",
+                    "text": "客户类型",
+                    "fieldName": "organ_flag",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "INDUSTRY_TYPE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "INDUSTRY_TYPE_Col",
+                    "text": "行业分类（一级）",
+                    "fieldName": "industry_type",
+                    "keyValue": "true",
+                    "width": "250"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "WORK_TYPE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "WORK_TYPE_Col",
+                    "text": "工作类型",
+                    "fieldName": "work_type",
+                    "keyValue": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "WORK_TIME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "WORK_TIME_Col",
+                    "text": "时间",
+                    "fieldName": "update_time",
+                    "width": "180",
+                    "render": "const date = new Date(value);\n\nconst year = date.getFullYear();\nconst month = String(date.getMonth() + 1).padStart(2, '0');\nconst day = String(date.getDate()).padStart(2, '0');\n\nconst result = `${year}${month}${day}`;\n\nif (value) {\n  return result;\n} else {\n  return value;\n}"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "DATA_STATUS_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DATA_STATUS_Col",
+                    "text": "数据状态",
+                    "fieldName": "data_status",
+                    "keyValue": "true"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "CLIENT_STATUS_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CLIENT_STATUS_Col",
+                    "text": "客户状态",
+                    "fieldName": "client_status",
+                    "keyValue": "true"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "RELATED_PROJ_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RELATED_PROJ_Col",
+                    "text": "项目关联（预留字段）",
+                    "fieldName": "related_proj"
+                  },
+                  "hasDupCid": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

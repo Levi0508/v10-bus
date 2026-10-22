@@ -1274,6 +1274,9 @@ comp.vue = new Vue({
       <el-card v-show="false" class="box-card">
         <div :id="'pdf-container'+this._uid" style="width:100%;font-size:24px;">
           <h2 class="pdf-section-title">客户基本信息</h2>
+          <div style="text-align:right;font-size:20px;color:#606266;margin-bottom:10px;">
+            最新更新日期：{{ formatUpdateTime(basicInfo.update_time) }}
+          </div>
           <div class="info-div" v-if="organ_flag=='1'">
             <div class="table-row">
               <div class="cell-label col-3">客户名称</div>
@@ -1574,6 +1577,8 @@ comp.vue = new Vue({
             <div class="table-row">
               <div class="cell-label col-3">建立业务关系日期</div>
               <div class="cell-value col-5">{{basicInfo.associated_date}}</div>
+              <div class="cell-label col-3">最新更新日期</div>
+              <div class="cell-value col-13">{{ formatUpdateTime(basicInfo.update_time) }}</div>
             </div>
           </div>
         </div>
@@ -3319,6 +3324,10 @@ comp.vue = new Vue({
       const item = dictData?.find(item => item.k === key);
       return item ? item.v : '-';
     },
+    formatUpdateTime(val) {
+      if (!val) return '-';
+      return String(val).replace(/\.\d+$/, '');
+    },
     formatMoney(s, n) {
       if (!s && s !== 0) return '';
       let str = String(s);
@@ -4362,6 +4371,9 @@ comp.vue = new Vue({
           console.log("getBasicInfo===", res[0])
           if (res[0]) {
             that.basicInfo = res[0];
+            if (app.updateTimeLabel) {
+              app.updateTimeLabel.text = '最新更新日期：' + that.formatUpdateTime(res[0].update_time);
+            }
             if ('_$organ_flag$_' == '1') {
               that.ruleForm1 = { ...that.basicInfo };//机构户基本信息数据回显
               if (that.ruleForm1.register_fund) {

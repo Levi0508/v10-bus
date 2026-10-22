@@ -833,6 +833,9 @@ comp.vue = new Vue({
       <el-card v-show="false" class="box-card">
         <div id="pdf-container" style="width:100%;font-size:24px;">
           <h2 class="pdf-section-title">客户基本信息</h2>
+          <div style="text-align:right;font-size:20px;color:#606266;margin-bottom:10px;">
+            最新更新日期：{{ formatUpdateTime(basicInfo.update_time) }}
+          </div>
           <div class="info-div" v-if="organ_flag=='1'">
             <div class="table-row">
               <div class="cell-label col-3">客户名称</div>
@@ -1129,6 +1132,8 @@ comp.vue = new Vue({
             <div class="table-row">
               <div class="cell-label col-3">建立业务关系日期</div>
               <div class="cell-value col-5">{{basicInfo.associated_date}}</div>
+              <div class="cell-label col-3">最新更新日期</div>
+              <div class="cell-value col-13">{{ formatUpdateTime(basicInfo.update_time) }}</div>
             </div>
           </div>
         </div>
@@ -1383,6 +1388,9 @@ comp.vue = new Vue({
             that.basicInfo.setup_date = res[0].setup_date ? String(res[0].setup_date).replace(/\s.*$/, '') : '';
             that.basicInfo.id_begindate = res[0].id_begindate ? String(res[0].id_begindate).replace(/\s.*$/, '') : '';
             that.basicInfo.id_enddate = res[0].id_enddate ? String(res[0].id_enddate).replace(/\s.*$/, '') : '';
+            if (app.updateTimeLabel) {
+              app.updateTimeLabel.text = '最新更新日期：' + that.formatUpdateTime(res[0].update_time);
+            }
           }
           // app.mainContainer.show();
         }
@@ -1671,6 +1679,11 @@ comp.vue = new Vue({
         })
       })
     },
+    formatUpdateTime(val) {
+      if (!val) return '-';
+      return String(val).replace(/\.\d+$/, '');
+    },
+    // 打印导出前的必填校验，规则需与编辑页 submit() 保持一致
 validateBeforeExport() {
   const isEmpty = val => val === null || val === undefined || String(val).trim() === '';
   const rules = getRules();

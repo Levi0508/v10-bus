@@ -3654,6 +3654,7 @@ comp.vue = new Vue({
       });
     },
     downloadPdf() {
+      if (!this.submit()) return;
       console.log("uid", this._uid);
       const htmlContent = document.getElementById('pdf-container' + this._uid);
       const clone = htmlContent.cloneNode(true);

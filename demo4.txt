@@ -1740,13 +1740,6 @@ validateBeforeExport() {
           msgs.push(`${typeName}${name}的是否政府部门不能为空`);
         }
         if (item.organ_flag === '0' && isEmpty(item.birthday)) msgs.push(`${typeName}${name}的出生日期不能为空`);
-        if (item.related_type === '5') {
-          if (isEmpty(item.beneficiary)) msgs.push(`${typeName}${name}的受益所有人类型不能为空`);
-          if (isEmpty(item.address)) msgs.push(`${typeName}${name}的地址不能为空`);
-          if (['A1', 'A2', 'B1', 'D1'].includes(item.beneficiary) && isEmpty(item.shareholding_ratio)) {
-            msgs.push(`${typeName}${name}的股权/表决权比例不能为空`);
-          }
-        }
         if ((item.related_type === '1' || item.related_type === '4') && isEmpty(item.mobno1)) {
           msgs.push(`${typeName}${name}的联系方式不能为空`);
         }
@@ -1756,7 +1749,57 @@ validateBeforeExport() {
     validateRelatedPerson(this.relatedInfo2, '控股股东');
     validateRelatedPerson(this.relatedInfo3, '实际控制人');
     validateRelatedPerson(this.relatedInfo4, '授权代表人');
-    validateRelatedPerson(this.relatedInfo5, '受益所有人');
+
+    // 受益所有人按新版受益人弹窗（editOneBenefitFormRules + 各表单项 v-if）的必填规则校验
+    const splitVal = val => isEmpty(val) ? [] : (Array.isArray(val) ? val : String(val).split(','));
+    this.relatedInfo5.forEach(item => {
+      const prefix = `受益所有人${item.related_name || ''}的`;
+      const bnfType = splitVal(item.bnf_type);
+      const hasBnf = codes => codes.some(c => bnfType.includes(c));
+      const required = [
+        ['bo_type', '受益所有人（是否识别受益所有人）'], ['company_type', '企业性质'],
+        ['full_info_flag', '客户信息披露情况（透明度较高/受益人信息不规范）'],
+        ['gender', '性别'], ['nationality', '国籍'], ['birthday', '出生年月']
+      ];
+
+      if (isEmpty(item.related_name)) msgs.push('受益所有人的姓名不能为空');
+      if (hasBnf(['NA1', 'NB1', 'ND1'])) {
+        required.push(['acthdrat', '持有股权、股份或者合伙权益的比例'], ['shareratiostartdate', '形成日期(股权、股份)'], ['shareratioenddate', '终止日期(股权、股份)']);
+      }
+      if (hasBnf(['NA2-1', 'NB2-1', 'ND2-1'])) {
+        required.push(['actownerprofitratio', '持有收益权的比例'], ['profitratiostartdate', '形成日期(收益权)'], ['profitratioenddate', '终止日期(收益权)']);
+      }
+      if (hasBnf(['NA2-2', 'NB2-2', 'ND2-2'])) {
+        required.push(['actownerprofitratiovote', '持有表决权的比例'], ['profitratiovotestartdate', '形成日期(表决权)'], ['profitratiovoteenddate', '终止日期(表决权)']);
+      }
+      if (hasBnf(['NA3-1', 'NA3-2', 'NB3-1', 'NB3-2', 'ND3'])) {
+        required.push(['actctrltype', '实施实际控制的内容/方式'], ['obtainactdate', '形成日期(实施实际控制)'], ['terminationactdate', '终止日期(实施实际控制)']);
+      }
+      if (hasBnf(['NA3-2', 'NB3-2', 'ND3'])) {
+        required.push(['actotherforms', '其他形式的具体内容']);
+      }
+      if (hasBnf(['NA3-1', 'NB3-1', 'ND3'])) {
+        required.push(['actconuppermarket', '是否存在上一层备案主体']);
+        if (item.actconuppermarket === 'Y') {
+          required.push(['actconupperentname', '上一层备案主体名称'], ['actconuniscid', '上一层备案主体的统一社会信用代码']);
+        }
+      }
+      if (hasBnf(['NA4', 'NB4'])) {
+        required.push(['seniormgrpos', '负责日常经营管理的（高级管理）人员职位']);
+        if (splitVal(item.seniormgrpos).includes('15')) {
+          required.push(['actdailymgmtpostother', '公司章程规定的其他（高级管理）人员的具体职位']);
+        }
+      }
+      if (hasBnf(['NA5'])) {
+        required.push(['seniormgrposcn', '在华最高层级的高级管理人员职位']);
+        if (splitVal(item.seniormgrposcn).includes('1')) {
+          required.push(['ownerrightmgmtpostother', '在华最高层级的高级管理其他职位']);
+        }
+      }
+      required.forEach(([field, label]) => {
+        if (isEmpty(item[field])) msgs.push(`${prefix}${label}不能为空`);
+      });
+    });
   } else {
     // 自然人
     checkFields(['client_name', 'birthday', 'id_address', 'address', 'nationality', 'gender', 'income',

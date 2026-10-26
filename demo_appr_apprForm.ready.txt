@@ -79,25 +79,6 @@ comp.vue = new Vue({
         </el-table-column>
       </el-table>
     </div>
-    <div style="color:#4b4b4b;padding:20px 0 10px 0;cursor:pointer;" @click="showBomisFlowHistory=!showBomisFlowHistory">
-      <i :class="showBomisFlowHistory ? 'el-icon-caret-bottom' : 'el-icon-caret-right'"></i>
-      {{ flowPiid ? '当前流程历史核验记录' : '待提交的核验记录' }}（{{ bomisFlowHistory.length }}）
-    </div>
-    <div v-if="showBomisFlowHistory">
-      <div v-if="bomisFlowHistory.length===0" style="color:#8d8b8b;text-align:center;">暂无核验记录</div>
-      <div v-for="item in bomisFlowHistory" :key="item.id"
-        :style="{ border: '1px solid ' + (item.id === bomisRespId ? '#409EFF' : '#d1d6db'), borderRadius: '2px', padding: '6px 10px', marginBottom: '8px', lineHeight: '22px' }">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>{{ item.op_time }}&nbsp;&nbsp;{{ item.op_user_name }}</span>
-          <el-button type="text" size="mini" @click="showBomisDetail(item.list)">查看明细</el-button>
-        </div>
-        <div>核验结果：{{ item.result.RETURN_MSG }}</div>
-        <div>比对受益所有权结果：{{ item.result.COMPARE_REMARK }}</div>
-        <div v-if="item.batch_nos.length">
-          <el-tag v-for="n in item.batch_nos" :key="n" size="mini" style="margin-right:6px;">批次{{ n }} 依据</el-tag>
-        </div>
-      </div>
-    </div>
     <div style="color:#4b4b4b;padding:20px 0 10px 0;">受益所有人核验结论</div>
     <div v-if="lastBatchConclusion.result" style="color:#8d8b8b;font-size:12px;padding-bottom:6px;">
       上次结论：{{ formatConclusion(lastBatchConclusion.result) }}（{{ lastBatchConclusion.user }} / {{ lastBatchConclusion.time }}）
@@ -199,8 +180,7 @@ comp.vue = new Vue({
       bomisDetailVisible: false,
       bomisDetailList: [], // 明细弹窗数据
       flowPiid: '', // 当前在途流程实例ID，无在途流程时为空
-      bomisFlowHistory: [], // 当前流程历史核验记录
-      showBomisFlowHistory: true,
+      bomisFlowHistory: [], // 供左侧「历史核验信息」弹窗使用
       bomisColumns: [
         { prop: 'check_type_name', label: '差异类型', width: 150, fixed: 'left' },
         { prop: 'name', label: '姓名', width: 120 },
@@ -593,7 +573,7 @@ comp.vue = new Vue({
         done(that.filterBomisItemsForRightPanel(items || []));
       };
       Wb.ajax({
-        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_flow_bomis_history',
+        url: 'm?xwl=syr_2/select_flow_bomis_history_clf20261026',
         params: { client_id: '_$client_id$_', piid: that.flowPiid || '' },
         json: true,
         success(resp) {
@@ -673,7 +653,7 @@ comp.vue = new Vue({
     // 流程发起后，把未归属流程的核验记录和本次审核批次绑定到新流程
     bindBomisPiid(audit_id, done) {
       Wb.ajax({
-        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/bind_bomis_piid',
+        url: 'm?xwl=syr_2/bind_bomis_piid_clf20261026',
         params: { client_id: '_$client_id$_', audit_id: audit_id },
         json: true,
         success() { done(); },

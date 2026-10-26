@@ -5357,7 +5357,7 @@ comp.vue = new Vue({
         cancelButtonText: '取消'
       }).then(() => {
         Wb.ajax({
-          url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/del_bomis_benefit_scinfo',
+          url: 'm?xwl=syr_2/del_bomis_benefit_scinfo_clf20261026',
           params: { client_id: '_$client_id$_', benefit_scinfo: row },
           json: true,
           success(resp) {

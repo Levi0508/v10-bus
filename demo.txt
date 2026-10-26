@@ -5115,16 +5115,33 @@ comp.vue = new Vue({
       }
     },
     bomisBoTypeChange: function (newValue, form) {
-      if (newValue === '1') {
-        form.company_type = '';
-        form.bnf_type = [];
-      } else if (newValue === '2') {
-        form.company_type = '';
-        form.bnf_type = [];
-      } else if (newValue === '') {
-        form.company_type = '';
-        form.bnf_type = [];
+      if (newValue !== '1' && newValue !== '2' && newValue !== '') {
+        return;
       }
+      form.company_type = '';
+      form.bnf_type = [];
+      form.common_rate = '';
+      form.actctrltype = [];
+      form.seniormgrpos = [];
+      form.seniormgrposcn = [];
+      form.acthdrat = undefined;
+      form.shareratiostartdate = '';
+      form.shareratioenddate = '';
+      form.actownerprofitratio = undefined;
+      form.profitratiostartdate = '';
+      form.profitratioenddate = '';
+      form.actownerprofitratiovote = undefined;
+      form.profitratiovotestartdate = '';
+      form.profitratiovoteenddate = '';
+      form.actotherforms = '';
+      form.obtainactdate = '';
+      form.terminationactdate = '';
+      form.actconuppermarket = '';
+      form.actconupperentname = '';
+      form.actconuniscid = '';
+      form.actdailymgmtpostother = '';
+      form.ownerrightmgmtpostother = '';
+      form.actctrlcpny = '';
     },
     getBomisCompanyType: function (form) {
       if (form.bo_type === '1') {

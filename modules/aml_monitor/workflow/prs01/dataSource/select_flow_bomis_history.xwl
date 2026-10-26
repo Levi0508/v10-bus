@@ -1,0 +1,14 @@
+{
+  "title": "查询流程维度BOMIS核验历史",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var client_id = Wb.get('client_id');\nvar piid = Wb.get('piid') || '';\n\nvar sql = `\n  select t.*\n  from thjs.th_bomis_response t\n  where t.client_id = {?client_id?}\n`;\n\nif (!Wb.isEmpty(piid)) {\n  sql += ` and t.piid = {?piid?}`;\n} else {\n  // 无在途流程：仅「未提交」核验（未绑 piid / audit_id）\n  sql += ` and (t.piid is null or trim(t.piid) = '')`;\n  sql += ` and (t.audit_id is null or trim(t.audit_id) = '')`;\n}\n\nsql += ` order by t.op_time desc`;\n\ntry {\n  Wb.send(Wb.getRowx({ sql: sql }));\n} catch (e) {\n  try {\n    var sql2 = `\n      select t.*\n      from thjs.th_bomis_response t\n      where t.client_id = {?client_id?}\n        and (t.piid is null or trim(t.piid) = '')\n      order by t.op_time desc\n    `;\n    Wb.send(Wb.getRowx({ sql: sql2 }));\n  } catch (e2) {\n    var fallbackSql = `\n      select t.*\n      from thjs.th_bomis_response t\n      where t.client_id = {?client_id?}\n      order by t.op_time desc\n    `;\n    Wb.send(Wb.getRowx({ sql: fallbackSql }));\n  }\n}"
+  },
+  "_icon": "module"
+}

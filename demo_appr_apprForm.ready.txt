@@ -536,22 +536,94 @@ comp.vue = new Vue({
       }
       return { result: response_info, list: list };
     },
-    // 查询最近一次受益所有人核验结果
-    getLastOnlineBomisCheckRs: function () {
+    isPendingBomisRow: function (row) {
+      if (!row) { return false; }
+      var hasPiid = row.piid != null && String(row.piid).trim() !== '';
+      var hasAudit = row.audit_id != null && String(row.audit_id).trim() !== '';
+      return !hasPiid && !hasAudit;
+    },
+    filterBomisItemsForRightPanel: function (items) {
+      var list = items || [];
       var that = this;
+      if (that.flowPiid) {
+        return list.filter(function (row) { return (row.piid || '') === that.flowPiid; });
+      }
+      return list.filter(function (row) { return that.isPendingBomisRow(row); });
+    },
+    clearBomisPendingDisplay: function () {
+      this.bomisLastCheckResult = {};
+      this.bomisLastCheckResultList = [];
+      this.bomisRespId = '';
+      this.bomisFlowHistory = [];
+    },
+    rowsToBomisFlowHistory: function (items) {
+      var that = this;
+      return (items || []).map(function (row) {
+        var parsed = that.parseBomisResponse(row);
+        return {
+          id: row.id,
+          op_time: row.op_time,
+          op_user_name: row.op_user_name,
+          batch_nos: row.batch_nos || [],
+          result: parsed ? parsed.result : { RETURN_MSG: '无返回信息', COMPARE_REMARK: '' },
+          list: parsed ? parsed.list : []
+        };
+      });
+    },
+    syncBomisRightPanelFromRows: function (items) {
+      var pending = this.filterBomisItemsForRightPanel(items);
+      this.bomisFlowHistory = this.rowsToBomisFlowHistory(pending);
+      var row = pending.length > 0 ? pending[0] : null;
+      if (!row) {
+        this.clearBomisPendingDisplay();
+        return;
+      }
+      var parsed = this.parseBomisResponse(row);
+      if (!parsed) {
+        this.clearBomisPendingDisplay();
+        return;
+      }
+      this.bomisLastCheckResult = parsed.result;
+      this.bomisLastCheckResultList = parsed.list;
+      this.bomisRespId = row.id || '';
+    },
+    fetchBomisResponseItems: function (done) {
+      var that = this;
+      var finish = function (items) {
+        done(that.filterBomisItemsForRightPanel(items || []));
+      };
       Wb.ajax({
-        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_his_bomis_response',
-        params: { client_id: '_$client_id$_' },
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_flow_bomis_history',
+        params: { client_id: '_$client_id$_', piid: that.flowPiid || '' },
         json: true,
         success(resp) {
-          var row = resp.total > 0 ? resp.items[0] : null;
-          var parsed = that.parseBomisResponse(row);
-          if (!parsed) { return; }
-          that.bomisLastCheckResult = parsed.result;
-          that.bomisLastCheckResultList = parsed.list;
-          that.bomisRespId = row.id || '';
+          finish(resp.items);
+        },
+        failure() {
+          Wb.ajax({
+            url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_his_bomis_response',
+            params: { client_id: '_$client_id$_' },
+            json: true,
+            success(resp2) {
+              finish(resp2.items);
+            },
+            failure() {
+              finish([]);
+            }
+          });
         }
       });
+    },
+    // 右侧：未提交前跨次进入仍展示；提交 bind 后再次进入为空
+    loadPendingBomisCheck: function (callback) {
+      var that = this;
+      that.fetchBomisResponseItems(function (pending) {
+        that.syncBomisRightPanelFromRows(pending);
+        if (typeof callback === 'function') { callback(pending); }
+      });
+    },
+    getLastOnlineBomisCheckRs: function () {
+      this.loadPendingBomisCheck();
     },
     // 按主键查询某条核验记录（历史批次用）
     getBomisCheckRsById(id) {
@@ -592,27 +664,11 @@ comp.vue = new Vue({
         }
       });
     },
-    // 查询当前流程历史核验记录（无在途流程时查询未归属流程的核验记录）
+    mapBomisFlowHistoryRows(items) {
+      return this.rowsToBomisFlowHistory(this.filterBomisItemsForRightPanel(items));
+    },
     getBomisFlowHistory() {
-      var that = this;
-      Wb.ajax({
-        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_flow_bomis_history',
-        params: { client_id: '_$client_id$_', piid: that.flowPiid },
-        json: true,
-        success(resp) {
-          that.bomisFlowHistory = (resp.items || []).map(row => {
-            var parsed = that.parseBomisResponse(row);
-            return {
-              id: row.id,
-              op_time: row.op_time,
-              op_user_name: row.op_user_name,
-              batch_nos: row.batch_nos || [],
-              result: parsed ? parsed.result : { RETURN_MSG: '无返回信息', COMPARE_REMARK: '' },
-              list: parsed ? parsed.list : []
-            };
-          });
-        }
-      });
+      this.loadPendingBomisCheck();
     },
     // 流程发起后，把未归属流程的核验记录和本次审核批次绑定到新流程
     bindBomisPiid(audit_id, done) {

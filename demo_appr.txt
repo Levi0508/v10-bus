@@ -710,6 +710,8 @@ comp.vue = new Vue({
           <span>客户受益所有人信息</span>
           <el-button style="float: right;" type="warning" size="mini" @click="onlineBomisCheck"
             :disabled="onlineBomisCheckBtnDisable" :loading="bomisChecking">受益所有人信息核验</el-button>
+          <el-button style="float: right; margin-right: 8px;" type="primary" size="mini" plain
+            @click="openBomisHistoryDialog">历史核验信息</el-button>
         </div>
         <div v-if="benefitOwnerCardList.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
         <el-card v-for="item in benefitOwnerCardList" :key="item.related_id" style="margin-bottom:10px;"
@@ -1274,6 +1276,29 @@ comp.vue = new Vue({
     </div>
   </div>
 
+  <el-dialog title="历史核验信息" :visible.sync="bomisHistoryDialogVisible" width="720px" append-to-body
+    @open="loadBomisFlowHistory">
+    <div v-loading="bomisHistoryLoading" style="min-height: 120px;">
+      <div v-if="!bomisHistoryLoading && bomisHistoryList.length === 0" style="color:#8d8b8b;text-align:center;">
+        暂无核验记录</div>
+      <div v-for="item in bomisHistoryList" :key="item.id"
+        style="border:1px solid #d1d6db;border-radius:2px;padding:8px 10px;margin-bottom:8px;line-height:22px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>{{ item.op_time }}&nbsp;&nbsp;{{ item.op_user_name || '-' }}</span>
+          <el-button type="text" size="mini" @click="showBomisHistoryDetail(item.list)">查看明细</el-button>
+        </div>
+        <div>核验结果：{{ item.result.RETURN_MSG || '-' }}</div>
+        <div>比对受益所有权结果：{{ item.result.COMPARE_REMARK || '-' }}</div>
+        <div v-if="item.batch_nos && item.batch_nos.length">
+          <el-tag v-for="n in item.batch_nos" :key="n" size="mini" style="margin-right:6px;">批次{{ n }} 依据</el-tag>
+        </div>
+      </div>
+    </div>
+    <div slot="footer">
+      <el-button size="mini" @click="bomisHistoryDialogVisible = false">关闭</el-button>
+    </div>
+  </el-dialog>
+
   <el-dialog title="附件管理" :visible.sync="fileDialogVisible" :close-on-click-modal="false">
     <el-form>
       <el-form-item label="附件类型">
@@ -1361,6 +1386,9 @@ comp.vue = new Vue({
       bomisSourceTableData: [], // 待发送核验的受益人数据
       onlineBomisCheckBtnDisable: true,
       bomisChecking: false, // 核验请求中
+      bomisHistoryDialogVisible: false,
+      bomisHistoryLoading: false,
+      bomisHistoryList: [],
       ruleForm1: app.data.forms.ruleForm1,
       ruleForm2: app.data.forms.ruleForm2,
       ruleForm3: app.data.forms.ruleForm3,
@@ -1603,6 +1631,29 @@ comp.vue = new Vue({
         }
       });
     },
+    openBomisHistoryDialog: function () {
+      this.bomisHistoryDialogVisible = true;
+    },
+    loadBomisFlowHistory: function () {
+      var that = this;
+      var apprVue = app.apprForm && app.apprForm.vue;
+      if (!apprVue || !apprVue.loadPendingBomisCheck) {
+        Wb.tipWarn('审核意见区未加载完成，请稍后再试');
+        that.bomisHistoryLoading = false;
+        return;
+      }
+      that.bomisHistoryLoading = true;
+      that.bomisHistoryList = [];
+      apprVue.loadPendingBomisCheck(function () {
+        that.bomisHistoryList = apprVue.bomisFlowHistory || [];
+        that.bomisHistoryLoading = false;
+      });
+    },
+    showBomisHistoryDetail: function (list) {
+      if (app.apprForm && app.apprForm.vue && app.apprForm.vue.showBomisDetail) {
+        app.apprForm.vue.showBomisDetail(list);
+      }
+    },
     onlineBomisCheck: function () {
       // 受益所有人实时核验
       var that = this;
@@ -1630,8 +1681,7 @@ comp.vue = new Vue({
           json: true,
           success(resp) {
             that.bomisChecking = false;
-            app.apprForm.vue.getLastOnlineBomisCheckRs();
-            app.apprForm.vue.getBomisFlowHistory();
+            app.apprForm.vue.loadPendingBomisCheck();
           },
           failure() {
             that.bomisChecking = false;

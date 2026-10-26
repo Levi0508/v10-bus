@@ -1218,6 +1218,10 @@ comp.vue = new Vue({
               </el-row>
               <el-row :gutter="10" class="info-row"
                 v-if="bomisBnfIncludes(item,'NA2-1') || bomisBnfIncludes(item,'NB2-1') || bomisBnfIncludes(item,'ND2-1')">
+                <div class="info-row-flex" style="width:100%;flex-basis:100%;">
+                  <label style="font-weight:600;color:#303133;">{{ bomisPriBenefitBlockTitle(item, 'profit') }}</label>
+                  <div></div>
+                </div>
                 <div class="info-row-flex"><label>持有收益权的比例(%)</label>
                   <div>{{ item.actownerprofitratio != null && item.actownerprofitratio !== '' ? item.actownerprofitratio : '-' }}</div>
                 </div>
@@ -1230,6 +1234,10 @@ comp.vue = new Vue({
               </el-row>
               <el-row :gutter="10" class="info-row"
                 v-if="bomisBnfIncludes(item,'NA2-2') || bomisBnfIncludes(item,'NB2-2') || bomisBnfIncludes(item,'ND2-2')">
+                <div class="info-row-flex" style="width:100%;flex-basis:100%;">
+                  <label style="font-weight:600;color:#303133;">{{ bomisPriBenefitBlockTitle(item, 'vote') }}</label>
+                  <div></div>
+                </div>
                 <div class="info-row-flex"><label>持有表决权的比例(%)</label>
                   <div>{{ item.actownerprofitratiovote != null && item.actownerprofitratiovote !== '' ? item.actownerprofitratiovote : '-' }}</div>
                 </div>
@@ -2174,8 +2182,15 @@ comp.vue = new Vue({
           </el-col>
         </el-row>
         <!-- 收益权 -->
-        <el-row :gutter="24"
-          v-if="bomisParams.editBomisForm.bnf_type.includes('NA2-1') || bomisParams.editBomisForm.bnf_type.includes('NB2-1') || bomisParams.editBomisForm.bnf_type.includes('ND2-1')">
+        <div
+          v-if="bomisParams.editBomisForm.bnf_type.includes('NA2-1') || bomisParams.editBomisForm.bnf_type.includes('NB2-1') || bomisParams.editBomisForm.bnf_type.includes('ND2-1')"
+          :style="bomisPriBenefitWrapStyle(bomisParams.editBomisForm)">
+        <el-row :gutter="24">
+          <el-col :span="24" style="margin-bottom: 8px;">
+            <div style="font-size: 14px; font-weight: 600; color: #303133; line-height: 22px;">
+              {{ bomisPriBenefitBlockTitle(bomisParams.editBomisForm, 'profit') }}
+            </div>
+          </el-col>
           <el-col :span="8">
             <el-form-item label="持有收益权的比例(%)" prop="actownerprofitratio">
               <el-input-number v-model="bomisParams.editBomisForm.actownerprofitratio" :min="25" :max="100" :step="1"
@@ -2208,9 +2223,17 @@ comp.vue = new Vue({
             </el-form-item>
           </el-col>
         </el-row>
+        </div>
         <!-- 表决权 -->
-        <el-row :gutter="24"
-          v-if="bomisParams.editBomisForm.bnf_type.includes('NA2-2') || bomisParams.editBomisForm.bnf_type.includes('NB2-2') || bomisParams.editBomisForm.bnf_type.includes('ND2-2')">
+        <div
+          v-if="bomisParams.editBomisForm.bnf_type.includes('NA2-2') || bomisParams.editBomisForm.bnf_type.includes('NB2-2') || bomisParams.editBomisForm.bnf_type.includes('ND2-2')"
+          :style="bomisPriBenefitWrapStyle(bomisParams.editBomisForm)">
+        <el-row :gutter="24">
+          <el-col :span="24" style="margin-bottom: 8px;">
+            <div style="font-size: 14px; font-weight: 600; color: #303133; line-height: 22px;">
+              {{ bomisPriBenefitBlockTitle(bomisParams.editBomisForm, 'vote') }}
+            </div>
+          </el-col>
           <el-col :span="8">
             <el-form-item label="持有表决权的比例(%)" prop="actownerprofitratiovote">
               <el-input-number v-model="bomisParams.editBomisForm.actownerprofitratiovote" :min="25" :max="100"
@@ -2243,6 +2266,7 @@ comp.vue = new Vue({
             </el-form-item>
           </el-col>
         </el-row>
+        </div>
         <!-- 实际实施控制 -->
         <el-row :gutter="24">
           <el-col :span="24"
@@ -2681,8 +2705,15 @@ comp.vue = new Vue({
           </el-col>
         </el-row>
         <!-- 收益权 -->
-        <el-row :gutter="24"
-          v-if="bomisParams.editOneBenefitForm.bnf_type.includes('NA2-1') || bomisParams.editOneBenefitForm.bnf_type.includes('NB2-1') || bomisParams.editOneBenefitForm.bnf_type.includes('ND2-1')">
+        <div
+          v-if="bomisParams.editOneBenefitForm.bnf_type.includes('NA2-1') || bomisParams.editOneBenefitForm.bnf_type.includes('NB2-1') || bomisParams.editOneBenefitForm.bnf_type.includes('ND2-1')"
+          :style="bomisPriBenefitWrapStyle(bomisParams.editOneBenefitForm)">
+        <el-row :gutter="24">
+          <el-col :span="24" style="margin-bottom: 8px;">
+            <div style="font-size: 14px; font-weight: 600; color: #303133; line-height: 22px;">
+              {{ bomisPriBenefitBlockTitle(bomisParams.editOneBenefitForm, 'profit') }}
+            </div>
+          </el-col>
           <el-col :span="8">
             <el-form-item label="持有收益权的比例(%)" prop="actownerprofitratio">
               <el-input-number v-model="bomisParams.editOneBenefitForm.actownerprofitratio" :min="25" :max="100"
@@ -2715,9 +2746,17 @@ comp.vue = new Vue({
             </el-form-item>
           </el-col>
         </el-row>
+        </div>
         <!-- 表决权 -->
-        <el-row :gutter="24"
-          v-if="bomisParams.editOneBenefitForm.bnf_type.includes('NA2-2') || bomisParams.editOneBenefitForm.bnf_type.includes('NB2-2') || bomisParams.editOneBenefitForm.bnf_type.includes('ND2-2')">
+        <div
+          v-if="bomisParams.editOneBenefitForm.bnf_type.includes('NA2-2') || bomisParams.editOneBenefitForm.bnf_type.includes('NB2-2') || bomisParams.editOneBenefitForm.bnf_type.includes('ND2-2')"
+          :style="bomisPriBenefitWrapStyle(bomisParams.editOneBenefitForm)">
+        <el-row :gutter="24">
+          <el-col :span="24" style="margin-bottom: 8px;">
+            <div style="font-size: 14px; font-weight: 600; color: #303133; line-height: 22px;">
+              {{ bomisPriBenefitBlockTitle(bomisParams.editOneBenefitForm, 'vote') }}
+            </div>
+          </el-col>
           <el-col :span="8">
             <el-form-item label="持有表决权的比例(%)" prop="actownerprofitratiovote">
               <el-input-number v-model="bomisParams.editOneBenefitForm.actownerprofitratiovote" :min="25" :max="100"
@@ -2750,6 +2789,7 @@ comp.vue = new Vue({
             </el-form-item>
           </el-col>
         </el-row>
+        </div>
         <!-- 实际实施控制 -->
         <el-row :gutter="24">
           <el-col :span="24"
@@ -5053,6 +5093,49 @@ comp.vue = new Vue({
       }
       var s = item.bnf_type_str || t || '';
       return String(s).split(',').indexOf(code) >= 0;
+    },
+    bomisHasBothPriBenefitBlocks: function (formOrItem) {
+      if (!formOrItem) { return false; }
+      var bnf = formOrItem.bnf_type;
+      if (!Array.isArray(bnf)) {
+        var s = formOrItem.bnf_type_str || bnf || '';
+        bnf = s ? String(s).split(',') : [];
+      }
+      var hasProfit = ['NA2-1', 'NB2-1', 'ND2-1'].some(function (c) { return bnf.indexOf(c) >= 0; });
+      var hasVote = ['NA2-2', 'NB2-2', 'ND2-2'].some(function (c) { return bnf.indexOf(c) >= 0; });
+      return hasProfit && hasVote;
+    },
+    bomisPriBenefitWrapStyle: function (formOrItem) {
+      if (!this.bomisHasBothPriBenefitBlocks(formOrItem)) {
+        return {};
+      }
+      return {
+        padding: '12px 12px 4px',
+        marginBottom: '10px',
+        background: '#fafafa',
+        border: '1px solid #ebeef5',
+        borderRadius: '4px'
+      };
+    },
+    bomisPriBenefitBlockTitle: function (formOrItem, kind) {
+      var codes = kind === 'profit'
+        ? ['NA2-1', 'NB2-1', 'ND2-1']
+        : ['NA2-2', 'NB2-2', 'ND2-2'];
+      var fallback = kind === 'profit' ? '持有、使用收益权' : '持有、使用表决权';
+      if (!formOrItem) { return fallback; }
+      var bnf = formOrItem.bnf_type;
+      if (!Array.isArray(bnf)) {
+        var s = formOrItem.bnf_type_str || bnf || '';
+        bnf = s ? String(s).split(',') : [];
+      }
+      var activeCode = codes.find(function (c) { return bnf.indexOf(c) >= 0; });
+      if (!activeCode) { return fallback; }
+      var list = (this.bomisParams && this.bomisParams.bnf_type_new_list) || [];
+      var hit = list.find(function (d) { return d.k === activeCode; });
+      if (hit && hit.v) {
+        return hit.v + '（' + activeCode + '）';
+      }
+      return fallback + '（' + activeCode + '）';
     },
     bomisSeniormgrposIncludes(item, code) {
       if (!item) { return false; }

@@ -1,0 +1,659 @@
+let comp = this;
+comp.vue = new Vue({
+  el: comp.el.addEl(),
+  template: `
+<div>
+  <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding-bottom:8px;">
+    <div style="padding-top:50px;font-size:16px;font-weight:bold;color:#303133">审核意见</div>
+    <div style="padding-top:40px;">
+      <el-dropdown trigger="click" @command="restrictiveBtn">
+        <!-- 触发按钮 -->
+        <el-button type="primary" size="small">
+          限制措施<i class="el-icon-arrow-down el-icon--right"></i>
+        </el-button>
+
+        <!-- 2. el-dropdown-menu：下拉列表内容 -->
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item command="2">强限制</el-dropdown-item>
+          <el-dropdown-item command="3">弱限制</el-dropdown-item>
+          <el-dropdown-item command="0">解除限制</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <el-table :data="tableData" border stripe style="width: 100%">
+      <el-table-column label="序号" width="50" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.$index + 1 }}</span>
+          <input type="hidden" v-model="scope.row.seq" :value="scope.$index + 1" />
+        </template>
+      </el-table-column>
+
+      <el-table-column label="错误类型" width="200">
+        <template slot-scope="scope">
+          <el-select v-model="scope.row.error_type" placeholder="请选择" filterable clearable style="width: 100%"
+            :key="scope.$index">
+            <el-option v-for="item in errorTypeOptions" :key="item.err_type" :value="item.err_type"></el-option>
+          </el-select>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="问题描述" min-width="200">
+        <template slot-scope="scope">
+          <el-input v-model="scope.row.problem_desc" placeholder="请输入" type="textarea" :rows="1" autosize />
+        </template>
+      </el-table-column>
+
+      <el-table-column label="操作" width="60" align="center">
+        <template slot-scope="scope">
+          <el-button type="text" size="small" style="color: #F56C6C" @click="removeRow(scope.$index)">
+            移除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+  <div class="add-btn-container">
+      <el-button type="primary" size="small" @click="addRow">添加行</el-button>
+    </div>
+  <div>
+    <div style="color:#4b4b4b;padding:20px 0 10px 0;">备注</div>
+    <el-input type="textarea" v-model="remark" :rows="4" :autosize="{minRows: 4}"></el-input>
+  </div>
+  <div v-if="organFlag==='1'">
+    <div style="color:#4b4b4b;padding:20px 0 10px 0;">受益所有人当前核验信息</div>
+    <div v-if="!bomisLastCheckResult.RETURN_MSG" style="color:#8d8b8b;text-align:center;">暂无核验记录</div>
+    <div v-else>
+      <div style="border:1px solid #d1d6db;border-radius:2px;padding:10px 12px;line-height:24px;">
+        <div>核验结果：{{ bomisLastCheckResult.RETURN_MSG }}</div>
+        <div>核验时间：{{ bomisLastCheckResult.op_time }}</div>
+        <div>比对受益所有权结果：{{ bomisLastCheckResult.COMPARE_REMARK }}</div>
+      </div>
+      <div style="font-weight:bold;margin:10px 0 0;">核验明细：</div>
+      <el-table :data="bomisLastCheckResultList" border style="width: 100%;margin: 0.5em 0 0;"
+        :header-cell-style="{ background: '#EDF3FE' }" size="mini" max-height="400">
+        <el-table-column v-for="col in bomisColumns" :key="col.prop" :prop="col.prop" :label="col.label"
+          :width="col.width" :fixed="col.fixed || false">
+          <template slot-scope="scope">{{ col.dict ? formatMultipleDictMap(col.dict, scope.row[col.prop]) : scope.row[col.prop] }}</template>
+        </el-table-column>
+      </el-table>
+    </div>
+    <div style="color:#4b4b4b;padding:20px 0 10px 0;cursor:pointer;" @click="showBomisFlowHistory=!showBomisFlowHistory">
+      <i :class="showBomisFlowHistory ? 'el-icon-caret-bottom' : 'el-icon-caret-right'"></i>
+      {{ flowPiid ? '当前流程历史核验记录' : '待提交的核验记录' }}（{{ bomisFlowHistory.length }}）
+    </div>
+    <div v-if="showBomisFlowHistory">
+      <div v-if="bomisFlowHistory.length===0" style="color:#8d8b8b;text-align:center;">暂无核验记录</div>
+      <div v-for="item in bomisFlowHistory" :key="item.id"
+        :style="{ border: '1px solid ' + (item.id === bomisRespId ? '#409EFF' : '#d1d6db'), borderRadius: '2px', padding: '6px 10px', marginBottom: '8px', lineHeight: '22px' }">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>{{ item.op_time }}&nbsp;&nbsp;{{ item.op_user_name }}</span>
+          <el-button type="text" size="mini" @click="showBomisDetail(item.list)">查看明细</el-button>
+        </div>
+        <div>核验结果：{{ item.result.RETURN_MSG }}</div>
+        <div>比对受益所有权结果：{{ item.result.COMPARE_REMARK }}</div>
+        <div v-if="item.batch_nos.length">
+          <el-tag v-for="n in item.batch_nos" :key="n" size="mini" style="margin-right:6px;">批次{{ n }} 依据</el-tag>
+        </div>
+      </div>
+    </div>
+    <div style="color:#4b4b4b;padding:20px 0 10px 0;">受益所有人核验结论</div>
+    <div v-if="lastBatchConclusion.result" style="color:#8d8b8b;font-size:12px;padding-bottom:6px;">
+      上次结论：{{ formatConclusion(lastBatchConclusion.result) }}（{{ lastBatchConclusion.user }} / {{ lastBatchConclusion.time }}）
+    </div>
+    <el-select v-model="bomisCheckConclusion" placeholder="请选择" clearable size="small" style="width: 100%">
+      <el-option v-for="item in bomisCheckConclusionOptions" :key="item.k" :label="item.k + '-' + item.v"
+        :value="item.k"></el-option>
+    </el-select>
+  </div>
+  <div>
+    <div style="display:flex;justify-content:space-between;padding-top:20px;">
+      <el-button type="primary" size="small" @click="submitAppr">保存提交</el-button>
+      <el-button size="small" @click="cancel">取消</el-button>
+    </div>
+  </div>
+  <div style="color:#4b4b4b;padding:20px 0 10px 0;" @click="showHistoryLogs=!showHistoryLogs">
+    <span v-if="showHistoryLogs"><i class="el-icon-caret-bottom"></i></span>
+    <span v-else><i class="el-icon-caret-top"></i></span>
+    历史问题记录
+  </div>
+  <div v-if="showHistoryLogs">
+    <div v-if="batch_total===0"
+      style="color:#8d8b8b;height:100%;display:flex;justify-content:center;align-items:center;">暂无数据</div>
+    <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+      <el-tab-pane v-for="index in batch_total" :key="index" :label="'批次'+ (batch_total - index + 1)"
+        :name="String(index)">
+        <el-table :data="hisData" border style="width: 100%;">
+          <el-table-column prop="audit_desc" label="问题分类" width="120" />
+          <el-table-column prop="dispose_desc" label="问题内容" width="200"></el-table-column>
+          <el-table-column prop="batch_display_name" label="提出人" width="120" />
+          <el-table-column prop="create_time" label="提出时间" width="200" />
+        </el-table>
+        <div>
+          <div style="color:#4b4b4b;padding:20px 0 10px 0;">备注</div>
+          <el-input type="textarea" v-model="batch_remark" disabled></el-input>
+          <template v-if="organFlag==='1'">
+            <div style="color:#4b4b4b;padding:10px 0 0 0;">受益所有人核验结论：{{ formatConclusion(batch_bomis_check_result) }}</div>
+            <div v-if="!batch_bomis_resp_id" style="color:#8d8b8b;padding:6px 0 0 0;">该轮未进行受益所有人核验</div>
+            <div v-else-if="batchBomisResult.RETURN_MSG"
+              style="border:1px solid #d1d6db;border-radius:2px;margin-top:6px;padding:6px 10px;line-height:22px;">
+              <div>核验结果：{{ batchBomisResult.RETURN_MSG }}</div>
+              <div>核验时间：{{ batchBomisResult.op_time }}</div>
+              <div>比对受益所有权结果：{{ batchBomisResult.COMPARE_REMARK }}</div>
+              <el-button type="text" size="mini" @click="showBomisDetail(batchBomisList)">查看明细</el-button>
+            </div>
+          </template>
+          <div style="color:#4b4b4b;padding:10px 0 0 0;text-align:right">审核人:&nbsp;&nbsp;{{batch_display_name}}</div>
+          <div style="color:#4b4b4b;padding:10px 0 0 0;text-align:right">审核时间:&nbsp;&nbsp;{{batch_create_time}}</div>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+
+  <el-dialog title="核验明细" :visible.sync="bomisDetailVisible" width="80%" append-to-body>
+    <el-table :data="bomisDetailList" border style="width: 100%;" :header-cell-style="{ background: '#EDF3FE' }"
+      size="mini" max-height="500">
+        <el-table-column v-for="col in bomisColumns" :key="col.prop" :prop="col.prop" :label="col.label"
+          :width="col.width" :fixed="col.fixed || false">
+          <template slot-scope="scope">{{ col.dict ? formatMultipleDictMap(col.dict, scope.row[col.prop]) : scope.row[col.prop] }}</template>
+        </el-table-column>
+    </el-table>
+  </el-dialog>
+</div>
+`,
+  data() {
+    return {
+      selectList: null,
+      dialogFormVisible: false,
+      fileList: [],
+      attachments: [],
+
+      tableData: [{}],//当前审核详情
+      remark: '',
+
+      hisData: [],//历史审核详情
+      errorTypeOptions: [],//错误类型下拉框选项
+      showHistoryLogs: true,//是否展示历史问题记录
+      batch_display_name: '',
+      batch_create_time: '',
+      batch_remark: '',
+      batch_total: 0,//批次总数
+      activeTab: '1',
+
+      organFlag: '_$organ_flag$_',
+      bomisLastCheckResult: {
+        "RETURN_CODE": "",
+        "RETURN_MSG": "",
+        "NoDiffList": [],
+        "COMPARE_REMARK": ""
+      },
+      bomisLastCheckResultList: [], // 核验后返回的受益人数据
+      bomisRespId: '', // 当前展示的核验记录主键，提交时一并保存
+      bomisCheckConclusion: '', // 受益所有人核验结论
+      lastBatchConclusion: { result: '', user: '', time: '' }, // 最近一个审核批次的核验结论
+      batch_bomis_check_result: '',
+      batch_bomis_resp_id: '',
+      batchBomisResult: { RETURN_MSG: '' },
+      batchBomisList: [],
+      bomisDetailVisible: false,
+      bomisDetailList: [], // 明细弹窗数据
+      flowPiid: '', // 当前在途流程实例ID，无在途流程时为空
+      bomisFlowHistory: [], // 当前流程历史核验记录
+      showBomisFlowHistory: true,
+      bomisColumns: [
+        { prop: 'check_type_name', label: '差异类型', width: 150, fixed: 'left' },
+        { prop: 'name', label: '姓名', width: 120 },
+        { prop: 'gender', label: '性别', width: 70, dict: 'benefit_gender_list' },
+        { prop: 'ntlty', label: '国籍', width: 160, dict: 'bomis_nationality_list' },
+        { prop: 'birthdt', label: '出生日期', width: 160 },
+        { prop: 'idtp', label: '证件类型', width: 220, dict: 'benefit_id_type_list' },
+        { prop: 'idnb', label: '证件号码', width: 260 },
+        { prop: 'iddate', label: '证件有效期', width: 260 },
+        { prop: 'addr', label: '联系地址', width: 300 },
+        { prop: 'mobno1', label: '联系电话(手机)', width: 300 },
+        { prop: 'mobno2', label: '联系电话(固定电话)', width: 300 },
+        { prop: 'acthdrat', label: '持有股权、股份或者合伙权益的比例（%)', width: 160 },
+        { prop: 'shareratiostartdate', label: '形成日期(股权、股份或者合伙权益)', width: 160 },
+        { prop: 'shareratioenddate', label: '终止日期(股权、股份或者合伙权益)', width: 160 },
+        { prop: 'actownerprofitratio', label: '持有收益权的比例(%)', width: 160 },
+        { prop: 'profitratiostartdate', label: '形成日期(收益权)', width: 160 },
+        { prop: 'profitratioenddate', label: '终止日期(收益权)', width: 160 },
+        { prop: 'actownerprofitratiovote', label: '持有表决权的比例(%)', width: 160 },
+        { prop: 'profitratiovotestartdate', label: '形成日期(表决权)', width: 160 },
+        { prop: 'profitratiovoteenddate', label: '终止日期(表决权)', width: 160 },
+        { prop: 'actctrltype', label: '实施实际控制的内容/方式', width: 300, dict: 'benefit_actctrltype_list' },
+        { prop: 'actotherforms', label: '其他形式的具体内容', width: 160 },
+        { prop: 'obtainactdate', label: '形成日期(实施实际控制)', width: 160 },
+        { prop: 'terminationactdate', label: '终止日期(实施实际控制)', width: 160 },
+        { prop: 'actconuppermarket', label: '是否存在上一层备案主体', width: 150, dict: 'benefit_yesno_list' },
+        { prop: 'actconupperentname', label: '实际控制备案主体的上一层备案主体名称', width: 240 },
+        { prop: 'actconuniscid', label: '实际控制备案主体的统一社会信用代码', width: 200 },
+        { prop: 'seniormgrpos', label: '负责日常经营管理的（高级管理）人员职位', width: 240, dict: 'benefit_seniormgrpos_list' },
+        { prop: 'actdailymgmtpostother', label: '公司章程规定的其他（高级管理）人员的具体职位', width: 240 },
+        { prop: 'seniormgrposcn', label: '在华最高层级的高级管理人员职位', width: 240, dict: 'benefit_seniormgrposcn_list' },
+        { prop: 'ownerrightmgmtpostother', label: '在华最高层级的高级管理其他职位', width: 240 }
+      ],
+      bomisCheckConclusionOptions: [
+        { k: '1', v: 'BOMIS信息正确，录入信息有误' },
+        { k: '2', v: 'BOMIS信息有误，录入信息正确' },
+        { k: '3', v: 'BOMIS信息有误，录入信息有误' },
+        { k: '4', v: '经营主体应备案未备案' },
+        { k: '5', v: '经营主体无需备案' }
+      ],
+    };
+  },
+  methods: {
+    //添加行
+    addRow() {
+      this.tableData.push({
+        seq: '',
+        error_type: '',
+        problem_desc: ''
+      });
+    },
+    // 校验时的提示（需换行）
+    showMessage(msg, time, type) {
+      this.$message({
+        showClose: true,
+        dangerouslyUseHTMLString: true,
+        message: msg,
+        duration: time ? time : 0,
+        type: type ? type : 'success'
+      })
+    },
+    //移除行
+    removeRow(index) {
+      this.tableData.splice(index, 1);
+    },
+    handleTabClick(tab) {
+      // tab.name是从1开始的，需要转换为从0开始的index
+      // console.log("tab",tab);
+      const index = parseInt(tab.name) - 1;
+      this.getApprData(index);
+    },
+    restrictiveBtn(item) {
+      console.log('用户选择了:', item);
+      console.log('当前用户状态:', app.mainContainer.vue.basicInfo.client_status);
+      const client_status = app.mainContainer.vue.basicInfo.client_status;
+      if (item == '0' && client_status !== '2' && client_status !== '3') {
+        Wb.tipError("请选择状态为已限制的客户");
+        return;
+      }
+      if (item == '2' && client_status == '2') {
+        Wb.tipError("该客户状态为已限制");
+        return;
+      }
+      if (item == '3' && client_status == '3') {
+        Wb.tipError("该客户状态为弱限制");
+        return;
+      } else if (item == '3' && client_status == '2') {
+        Wb.tipError("该客户状态为已限制");
+        return;
+      }
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/KYC01020/update_client_status',
+        params: {
+          I_CLIENT_ID: '_$client_id$_',
+          I_OP_FLAG: item,
+          I_USER_NAME: '_$sys.username$_'
+        },
+        success(resp) {
+          let res = Wb.decode(resp);
+          if (res.O_RETURN_CODE == '0') {
+            Wb.tipSucc("操作成功");
+          } else {
+            Wb.tipError(res.O_RETURN_MSG);
+          }
+          app.mainContainer.vue.getBasicInfo('_$client_id$_');
+        }
+      });
+    },
+    // 查询审核记录
+    getApprData(batch) {
+      let that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_appr_details',
+        params: {
+          I_CLIENT_ID: '_$client_id$_',
+          I_BATCH_NUM: batch
+        },
+        success(resp) {
+          let res = Wb.decode(resp).items;
+          console.log(`批次 ${batch} 的数据:`, res);
+
+          // 统一更新历史数据，不再区分 lastData 和 hisData
+          that.hisData = res;
+          that.batch_display_name = res[0]?.batch_display_name || '';
+          that.batch_create_time = res[0]?.batch_create_time || '';
+          that.batch_remark = res[0]?.batch_remark || '';
+          that.batch_bomis_check_result = res[0]?.batch_bomis_check_result || '';
+          that.batch_bomis_resp_id = res[0]?.batch_bomis_resp_id || '';
+          that.batchBomisResult = { RETURN_MSG: '' };
+          that.batchBomisList = [];
+          if (that.batch_bomis_resp_id) {
+            that.getBomisCheckRsById(that.batch_bomis_resp_id);
+          }
+        }
+      })
+    },
+    // 查询审核批次
+    getBatchTotal() {
+      let that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_batch_total',
+        params: {
+          I_CLIENT_ID: '_$client_id$_'
+        },
+        success(resp) {
+          let res = Wb.decode(resp).items;
+          that.batch_total = res[0].cnt;
+          if (that.batch_total > 0 && that.organFlag === '1') {
+            that.getLastBatchConclusion();
+          }
+          // 批次总数获取后，加载第一个历史tab的数据
+          if (that.batch_total > 1) {
+            that.getApprData(0); // 加载第一个历史批次（index从0开始）
+          }
+        }
+      })
+    },
+    // 查询错误类型
+    getErrorType() {
+      let that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_err_type',
+        params: {
+          ORGAN_FLAG: '_$organ_flag$_'
+        },
+        success(resp) {
+          let rows = Wb.decode(resp).items;
+          that.errorTypeOptions = rows;
+          console.log("that.errorTypeOptions", that.errorTypeOptions);
+        }
+      });
+    },
+    // 保存提交 并下发流程
+    submitAppr() {
+      console.log("app.apprForm.vue.tableData", this.tableData);
+      let tableData = this.tableData;
+      let that = this;
+
+      const audit_id = Wb.getId();
+      const batchList = tableData.map((item, index) => ({
+        CLIENT_ID: '_$client_id$_',
+        AUDIT_ID: audit_id,
+        AUDIT_SEQ: index + 1,       // 对应 tableData[i].seq
+        AUDIT_DESC: item.error_type, // 对应 tableData[i].error_type
+        DISPOSE_DESC: item.problem_desc, // 对应 tableData[i].problem_desc
+        CREATE_USER: '_$sys.username$_'
+      }));
+
+      let errors = [];
+      if (batchList.length == 0) {
+        Wb.tipError("审核意见为空！");
+        return;
+      }
+
+      tableData.forEach((row, rowIndex) => {
+        if (!row['error_type']) {
+          errors.push(`请选择第${rowIndex + 1}行的错误类型`);
+        }
+        if (!row['problem_desc']) {
+          errors.push(`请填写第${rowIndex + 1}行的问题描述`);
+        }
+      });
+
+      if (this.organFlag === '1' && !this.bomisCheckConclusion) {
+        errors.push('请选择受益所有人核验结论');
+      }
+
+      if (errors.length > 0) {
+        Wb.tipError(errors.join('\n'));
+        return;
+      }
+
+      console.log("batchList", batchList);
+      // 插入审核意见list表
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/save_appr_list',
+        params: {
+          CLIENT_ID: '_$client_id$_',
+          AUDIT_ID: audit_id,
+          REMARK: this.remark,
+          BOMIS_CHECK_RESULT: this.bomisCheckConclusion,
+          BOMIS_RESP_ID: this.bomisRespId,
+          PIID: this.flowPiid,
+          CREATE_USER: '_$sys.username$_'
+        },
+        success(resp) {
+          Wb.ajax({
+            url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/save_appr_details',
+            params: {
+              batchList: batchList
+            },
+            success() {
+              var dealRequest = Wb.ajax({
+                url: 'm?xwl=aml_monitor/KYC01020/flow_request_deal',
+                params: {
+                  'x-flow-systemId': 'IBCM',//当前发送全连接流程类型
+                  'x-userId': '_$sys.userid$_',//当前登录人id
+                  'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),//当前登录人name
+                  'url': 'http://10.116.131.13:8094/auto/submit',
+                  "CLIENT_ID": '_$client_id$_',
+                  "CLIENT_NAME": '_$client_name$_',
+                  "ORGAN_FLAG": '_$organ_flag$_',
+                  "CLIENT_BELONG": '_$client_belong$_' == '融资端' ? '1' : '2',//1融资端 2投资端
+                  "CLIENT_STATUS": '_$client_status$_',
+                  "FK_FLAG": '_$fk_flag$_',
+                  "todoTitle": '_$client_name$_' + " 客户反洗钱审核意见",
+                  "sysGuid": "IBCM",
+                  "flowCode": "IBCM001",
+                  "templateName": '_$client_name$_' + " 反洗钱客户填报审核",
+                  "flowVer": "2",
+                  "nodeCode": "draft",
+                  "applyTable": "T_TH_CLIENT_FLOW",
+                  "candidates": '_$maintainer$_',
+                },
+                success(resp) {
+                  // Wb.tipSucc("成功发送【反洗钱客户信息填报审核】流程")
+                  that.showMessage("成功发送【反洗钱客户信息填报审核】流程", 2000, 'success');
+                  that.bindBomisPiid(audit_id, function () {
+                    app.parentApp.parentContainer.close();
+                  });
+
+                },
+                //错误返回则删除数据
+                failure(resp) {
+                  clearTimeout(timeoutId); // 成功响应时清除超时计时器
+                }
+              });
+              var timeoutId = setTimeout(function () {
+                // 如果存在 XMLHttpRequest 对象，则中止请求
+                if (dealRequest && typeof dealRequest.abort === 'function') {
+                  dealRequest.abort();
+                  console.log('请求超时');
+                }
+              }, 60000); // 设置1分钟的超时时间
+            }
+          });
+        }
+      });
+    },
+    cancel() {
+      app.parentApp.parentContainer.close();
+    },
+    // 页面展示数据字典转换 多选（字典在 mainContainer 中加载）
+    formatMultipleDictMap(dictType, key) {
+      var c_key = key || '';
+      if (c_key === '') { return ' '; }
+      const keyList = c_key.split(',');
+      const dictData = app.mainContainer.vue.selectList[dictType];
+      const item = [];
+      for (let index = 0; index < keyList.length; index++) {
+        item.push(dictData?.find(item => item.k === keyList[index]));
+      }
+      return item.length && !!item[0] ? item.map(i => i.v).join('；') : '-';
+    },
+    formatConclusion(key) {
+      const item = this.bomisCheckConclusionOptions.find(i => i.k === key);
+      return item ? item.k + '-' + item.v : '-';
+    },
+    // 解析一条核验记录，返回核验结果摘要和明细列表
+    parseBomisResponse(row) {
+      if (!row || !row.response_info) { return null; }
+      var response_info;
+      try {
+        response_info = JSON.parse(JSON.parse(row.response_info));
+      } catch (e) {
+        return null;
+      }
+      response_info.op_time = row.op_time;
+      var list = [];
+      var noDiff = (response_info.NoDiffList || [])[0];
+      if (noDiff) {
+        var checkTypes = [
+          { count: 'CONS_COUNT', list: 'ConsList', code: 'cons', name: '核验一致' },
+          { count: 'LACK_COUNT', list: 'LackList', code: 'lack', name: '受益人缺失' },
+          { count: 'MORE_COUNT', list: 'MoreList', code: 'more', name: '受益人多出' },
+          { count: 'ELMT_COUNT', list: 'ElmtList', code: 'elmt', name: '个人信息要素项不一致' },
+          { count: 'PERP_COUNT', list: 'PerpList', code: 'perp', name: '备案主体填报类型为承诺免报' },
+          { count: 'SCEC_COUNT', list: 'ScecList', code: 'scec', name: '备案主体填报类型为国有公司' }
+        ];
+        checkTypes.forEach(function (t) {
+          if (noDiff[t.count] > 0) {
+            list = list.concat(noDiff[t.list].map(item => {
+              const newItem = {};
+              for (const key in item) {
+                newItem[key.toLowerCase()] = item[key];
+              }
+              newItem.check_type_code = t.code;
+              newItem.check_type_name = t.name;
+              return newItem;
+            }));
+          }
+        });
+      }
+      return { result: response_info, list: list };
+    },
+    // 查询最近一次受益所有人核验结果
+    getLastOnlineBomisCheckRs: function () {
+      var that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_his_bomis_response',
+        params: { client_id: '_$client_id$_' },
+        json: true,
+        success(resp) {
+          var row = resp.total > 0 ? resp.items[0] : null;
+          var parsed = that.parseBomisResponse(row);
+          if (!parsed) { return; }
+          that.bomisLastCheckResult = parsed.result;
+          that.bomisLastCheckResultList = parsed.list;
+          that.bomisRespId = row.id || '';
+        }
+      });
+    },
+    // 按主键查询某条核验记录（历史批次用）
+    getBomisCheckRsById(id) {
+      var that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_his_bomis_response',
+        params: { client_id: '_$client_id$_', id: id },
+        json: true,
+        success(resp) {
+          if (that.batch_bomis_resp_id !== id) { return; }
+          var row = resp.total > 0 ? resp.items[0] : null;
+          // 后端未支持按 id 查询时会返回最新记录，需要比对主键
+          var parsed = row && row.id === id ? that.parseBomisResponse(row) : null;
+          if (!parsed) { return; }
+          that.batchBomisResult = parsed.result;
+          that.batchBomisList = parsed.list;
+        }
+      });
+    },
+    showBomisDetail(list) {
+      this.bomisDetailList = list || [];
+      this.bomisDetailVisible = true;
+    },
+    // 查询客户当前在途流程，取得 piid 后加载当前流程历史核验记录
+    getFlowCurNode() {
+      var that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_flow_cur_node',
+        params: { client_id: '_$client_id$_' },
+        json: true,
+        success(resp) {
+          that.flowPiid = resp && resp.O_RETURN_CODE === 0 && !resp.finished ? resp.piid : '';
+          that.getBomisFlowHistory();
+        },
+        failure() {
+          that.flowPiid = '';
+          that.getBomisFlowHistory();
+        }
+      });
+    },
+    // 查询当前流程历史核验记录（无在途流程时查询未归属流程的核验记录）
+    getBomisFlowHistory() {
+      var that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_flow_bomis_history',
+        params: { client_id: '_$client_id$_', piid: that.flowPiid },
+        json: true,
+        success(resp) {
+          that.bomisFlowHistory = (resp.items || []).map(row => {
+            var parsed = that.parseBomisResponse(row);
+            return {
+              id: row.id,
+              op_time: row.op_time,
+              op_user_name: row.op_user_name,
+              batch_nos: row.batch_nos || [],
+              result: parsed ? parsed.result : { RETURN_MSG: '无返回信息', COMPARE_REMARK: '' },
+              list: parsed ? parsed.list : []
+            };
+          });
+        }
+      });
+    },
+    // 流程发起后，把未归属流程的核验记录和本次审核批次绑定到新流程
+    bindBomisPiid(audit_id, done) {
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/bind_bomis_piid',
+        params: { client_id: '_$client_id$_', audit_id: audit_id },
+        json: true,
+        success() { done(); },
+        failure() { done(); }
+      });
+    },
+    // 查询最近一个审核批次的核验结论
+    getLastBatchConclusion() {
+      let that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_appr_details',
+        params: {
+          I_CLIENT_ID: '_$client_id$_',
+          I_BATCH_NUM: 0
+        },
+        success(resp) {
+          let res = Wb.decode(resp).items;
+          that.lastBatchConclusion = {
+            result: res[0]?.batch_bomis_check_result || '',
+            user: res[0]?.batch_display_name || '',
+            time: res[0]?.batch_create_time || ''
+          };
+        }
+      });
+    }
+  },
+  created: function () {
+    // 加载字典
+    setTimeout(() => {
+      this.selectList = { ...app.data.selectList }
+      this.getBatchTotal();
+      this.getErrorType();
+      if (this.organFlag === '1') {
+        this.getLastOnlineBomisCheckRs();
+        // this.getFlowCurNode();
+      }
+    }, 1000);
+  },
+});

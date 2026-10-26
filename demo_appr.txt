@@ -730,8 +730,8 @@ comp.vue = new Vue({
                 </el-tag>
               </div>
             </div>
-            <!-- 旧版受益人卡片（非 BOMIS） -->
-            <template v-if="'_$showBomisBtn$_'!='true'">
+            <!-- 旧版受益人卡片（非 BOMIS）；有 BOMIS 字段时与编辑页一致走新卡片 -->
+            <template v-if="'_$showBomisBtn$_'!='true' && !item.bo_type && !item.company_type && !item.bnf_type && !item.bnf_type_str">
               <el-row :gutter="10" class="info-row">
                 <div class="info-row-flex" v-if="item.organ_flag==='1'"><label>国家或地区</label>
                   <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
@@ -901,8 +901,9 @@ comp.vue = new Vue({
                 </div>
               </el-row>
             </template>
-
-        <!-- 附件信息表 -->
+          </div>
+        </el-card>
+        <!-- 附件信息表（整块在 v-for 外，与授权代表人等模块一致） -->
         <div style="padding-top:10px;">
           <span>附件信息</span>
           <!--<el-tooltip 
@@ -911,7 +912,7 @@ comp.vue = new Vue({
             placement="right">
           </el-tooltip>-->
           <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
-          <span style="color:#F56C6C;">请上传受益所有人的身份证明文件的复印件；确认受益所有人的证明文件，包括但不限于股权架构图、公司章程、委托持股协议、一致行动协议、表决权差异安排协议、任命文件等；关于股权/表决权等比例计算的说明（如涉及比例）；在受益所有人信息查询管理系统（BOMIS系统）备案的信息截图（如有）</span>
+          <span style="color:#F56C6C;font-size:14px;">请上传受益所有人的身份证明文件的复印件；确认受益所有人的证明文件，包括但不限于股权架构图、公司章程、委托持股协议、一致行动协议、表决权差异安排协议、任命文件等；关于股权/表决权等比例计算的说明（如涉及比例）；在受益所有人信息查询管理系统（BOMIS系统）备案的信息截图（如有）</span>
           <el-table :data="attachmentList.beneficialOwner" border style="width: 100%;margin-top:10px;" :default-sort = "{prop: 'date', order: 'descending'}">
             <el-table-column prop="name" label="附件名称" sortable>
               <template slot-scope="scope">
@@ -1398,8 +1399,9 @@ comp.vue = new Vue({
   },
   computed: {
     benefitOwnerCardList() {
-      if ('_$showBomisBtn$_' === 'true') {
-        return this.bomisSourceTableData || [];
+      var bomisList = this.bomisSourceTableData || [];
+      if ('_$showBomisBtn$_' === 'true' || bomisList.length > 0) {
+        return bomisList;
       }
       return this.relatedInfo5 || [];
     }
@@ -2091,7 +2093,7 @@ validateBeforeExport() {
     await this.getRelatedInfo('_$client_id$_', '4');
     // 获取受益所有人信息
     await this.getRelatedInfo('_$client_id$_', '5');
-    if ('_$showBomisBtn$_' === 'true') {
+    if (this.organ_flag === '1') {
       this.getBomisSourceTableData();
     }
     await this.selectFile();

@@ -2178,7 +2178,8 @@ comp.vue = new Vue({
           v-if="bomisParams.editBomisForm.bnf_type.includes('NA2-1') || bomisParams.editBomisForm.bnf_type.includes('NB2-1') || bomisParams.editBomisForm.bnf_type.includes('ND2-1')">
           <el-col :span="8">
             <el-form-item label="持有收益权的比例(%)" prop="actownerprofitratio">
-              <el-input-number type="number" v-model="bomisParams.editBomisForm.actownerprofitratio"
+              <el-input-number v-model="bomisParams.editBomisForm.actownerprofitratio" :min="25" :max="100" :step="1"
+                :precision="2" controls-position="right"
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2190,7 +2191,8 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="profitratiostartdate">
               <el-date-picker v-model="bomisParams.editBomisForm.profitratiostartdate" type="date" placeholder="选择日期"
-                format="yyyy-MM-dd" clearable editable class="formitem-full-width formitem-max-width" />
+                format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
+                class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -2201,7 +2203,8 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="profitratioenddate">
               <el-date-picker v-model="bomisParams.editBomisForm.profitratioenddate" type="date" placeholder="选择日期"
-                format="yyyy-MM-dd" clearable editable class="formitem-full-width formitem-max-width" />
+                format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
+                class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -2210,7 +2213,8 @@ comp.vue = new Vue({
           v-if="bomisParams.editBomisForm.bnf_type.includes('NA2-2') || bomisParams.editBomisForm.bnf_type.includes('NB2-2') || bomisParams.editBomisForm.bnf_type.includes('ND2-2')">
           <el-col :span="8">
             <el-form-item label="持有表决权的比例(%)" prop="actownerprofitratiovote">
-              <el-input-number type="number" v-model="bomisParams.editBomisForm.actownerprofitratiovote"
+              <el-input-number v-model="bomisParams.editBomisForm.actownerprofitratiovote" :min="25" :max="100"
+                :step="1" :precision="2" controls-position="right"
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2222,7 +2226,7 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="profitratiovotestartdate">
               <el-date-picker v-model="bomisParams.editBomisForm.profitratiovotestartdate" type="date"
-                placeholder="选择日期" format="yyyy-MM-dd" clearable editable
+                placeholder="选择日期" format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2234,7 +2238,8 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="profitratiovoteenddate">
               <el-date-picker v-model="bomisParams.editBomisForm.profitratiovoteenddate" type="date" placeholder="选择日期"
-                format="yyyy-MM-dd" clearable editable class="formitem-full-width formitem-max-width" />
+                format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
+                class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -2680,7 +2685,8 @@ comp.vue = new Vue({
           v-if="bomisParams.editOneBenefitForm.bnf_type.includes('NA2-1') || bomisParams.editOneBenefitForm.bnf_type.includes('NB2-1') || bomisParams.editOneBenefitForm.bnf_type.includes('ND2-1')">
           <el-col :span="8">
             <el-form-item label="持有收益权的比例(%)" prop="actownerprofitratio">
-              <el-input-number type="number" v-model="bomisParams.editOneBenefitForm.actownerprofitratio"
+              <el-input-number v-model="bomisParams.editOneBenefitForm.actownerprofitratio" :min="25" :max="100"
+                :step="1" :precision="2" controls-position="right"
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2692,7 +2698,7 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="profitratiostartdate">
               <el-date-picker v-model="bomisParams.editOneBenefitForm.profitratiostartdate" type="date"
-                placeholder="选择日期" format="yyyy-MM-dd" clearable editable
+                placeholder="选择日期" format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2704,7 +2710,8 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="profitratioenddate">
               <el-date-picker v-model="bomisParams.editOneBenefitForm.profitratioenddate" type="date" placeholder="选择日期"
-                format="yyyy-MM-dd" clearable editable class="formitem-full-width formitem-max-width" />
+                format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
+                class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -2713,7 +2720,8 @@ comp.vue = new Vue({
           v-if="bomisParams.editOneBenefitForm.bnf_type.includes('NA2-2') || bomisParams.editOneBenefitForm.bnf_type.includes('NB2-2') || bomisParams.editOneBenefitForm.bnf_type.includes('ND2-2')">
           <el-col :span="8">
             <el-form-item label="持有表决权的比例(%)" prop="actownerprofitratiovote">
-              <el-input-number type="number" v-model="bomisParams.editOneBenefitForm.actownerprofitratiovote"
+              <el-input-number v-model="bomisParams.editOneBenefitForm.actownerprofitratiovote" :min="25" :max="100"
+                :step="1" :precision="2" controls-position="right"
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2725,7 +2733,7 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="profitratiovotestartdate">
               <el-date-picker v-model="bomisParams.editOneBenefitForm.profitratiovotestartdate" type="date"
-                placeholder="选择日期" format="yyyy-MM-dd" clearable editable
+                placeholder="选择日期" format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2737,7 +2745,7 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="profitratiovoteenddate">
               <el-date-picker v-model="bomisParams.editOneBenefitForm.profitratiovoteenddate" type="date"
-                placeholder="选择日期" format="yyyy-MM-dd" clearable editable
+                placeholder="选择日期" format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -3137,12 +3145,6 @@ comp.vue = new Vue({
           bo_type: [{ required: true, message: '请选择是否识别受益所有人', trigger: 'change' }],
           company_type: [{ required: true, message: '请选择企业性质', trigger: 'change' }],
           full_info_flag: [{ required: true, message: '请选择', trigger: 'change' }],
-          actownerprofitratio: [{ required: true, message: '请填写', trigger: 'change' }],
-          profitratiostartdate: [{ required: true, message: '请选择', trigger: 'change' }],
-          profitratioenddate: [{ required: true, message: '请选择', trigger: 'change' }],
-          actownerprofitratiovote: [{ required: true, message: '请填写', trigger: 'change' }],
-          profitratiovotestartdate: [{ required: true, message: '请选择', trigger: 'change' }],
-          profitratiovoteenddate: [{ required: true, message: '请选择', trigger: 'change' }],
           actctrltype: [{ required: true, message: '请选择', trigger: 'change' }],
           actotherforms: [{ required: true, message: '请填写', trigger: 'change' }],
           obtainactdate: [{ required: true, message: '请选择', trigger: 'change' }],
@@ -3234,12 +3236,6 @@ comp.vue = new Vue({
           bo_type: [{ required: true, message: '请选择是否识别受益所有人', trigger: 'change' }],
           company_type: [{ required: true, message: '请选择企业性质', trigger: 'change' }],
           full_info_flag: [{ required: true, message: '请选择', trigger: 'change' }],
-          actownerprofitratio: [{ required: true, message: '请填写', trigger: 'change' }],
-          profitratiostartdate: [{ required: true, message: '请选择', trigger: 'change' }],
-          profitratioenddate: [{ required: true, message: '请选择', trigger: 'change' }],
-          actownerprofitratiovote: [{ required: true, message: '请填写', trigger: 'change' }],
-          profitratiovotestartdate: [{ required: true, message: '请选择', trigger: 'change' }],
-          profitratiovoteenddate: [{ required: true, message: '请选择', trigger: 'change' }],
           actctrltype: [{ required: true, message: '请选择', trigger: 'change' }],
           actotherforms: [{ required: true, message: '请填写', trigger: 'change' }],
           obtainactdate: [{ required: true, message: '请选择', trigger: 'change' }],
@@ -4870,10 +4866,10 @@ comp.vue = new Vue({
                   required.push(['acthdrat', '持有股权、股份或者合伙权益的比例'], ['shareratiostartdate', '形成日期(股权、股份)']);
                 }
                 if (hasBnf(['NA2-1', 'NB2-1', 'ND2-1'])) {
-                  required.push(['actownerprofitratio', '持有收益权的比例'], ['profitratiostartdate', '形成日期(收益权)'], ['profitratioenddate', '终止日期(收益权)']);
+                  required.push(['actownerprofitratio', '持有收益权的比例'], ['profitratiostartdate', '形成日期(收益权)']);
                 }
                 if (hasBnf(['NA2-2', 'NB2-2', 'ND2-2'])) {
-                  required.push(['actownerprofitratiovote', '持有表决权的比例'], ['profitratiovotestartdate', '形成日期(表决权)'], ['profitratiovoteenddate', '终止日期(表决权)']);
+                  required.push(['actownerprofitratiovote', '持有表决权的比例'], ['profitratiovotestartdate', '形成日期(表决权)']);
                 }
                 if (hasBnf(['NA3-1', 'NA3-2', 'NB3-1', 'NB3-2', 'ND3'])) {
                   required.push(['actctrltype', '实施实际控制的内容/方式'], ['obtainactdate', '形成日期(实施实际控制)'], ['terminationactdate', '终止日期(实施实际控制)']);
@@ -5281,23 +5277,36 @@ comp.vue = new Vue({
       var trial = this.normalizeBnfTypeSelection(selected.concat([optionK]));
       return trial.indexOf(optionK) < 0;
     },
-    /** NA1/NB1/ND1（ActCtrl=Y）：比例、形成日期必填；终止日期按接口说明选填 */
+    /** NA1/2-1/2-2：比例、形成日期必填；终止日期选填（与 NA1 一致） */
     syncBomisShareRatioFieldRules: function (rules, form) {
       var that = this;
-      var shareRuleKeys = ['acthdrat', 'shareratiostartdate', 'shareratioenddate'];
+      var ruleKeys = [
+        'acthdrat', 'shareratiostartdate', 'shareratioenddate',
+        'actownerprofitratio', 'profitratiostartdate', 'profitratioenddate',
+        'actownerprofitratiovote', 'profitratiovotestartdate', 'profitratiovoteenddate'
+      ];
       var bnf = form.bnf_type;
       if (!Array.isArray(bnf)) {
         bnf = bnf ? String(bnf).split(',') : [];
       }
       var hasShare = ['NA1', 'NB1', 'ND1'].some(function (c) { return bnf.indexOf(c) >= 0; });
-      shareRuleKeys.forEach(function (k) {
+      var hasProfit = ['NA2-1', 'NB2-1', 'ND2-1'].some(function (c) { return bnf.indexOf(c) >= 0; });
+      var hasVote = ['NA2-2', 'NB2-2', 'ND2-2'].some(function (c) { return bnf.indexOf(c) >= 0; });
+      ruleKeys.forEach(function (k) {
         that.$delete(rules, k);
       });
-      if (!hasShare) {
-        return;
+      if (hasShare) {
+        that.$set(rules, 'acthdrat', [{ required: true, message: '请填写持有股权、股份或者合伙权益的比例', trigger: 'change' }]);
+        that.$set(rules, 'shareratiostartdate', [{ required: true, message: '请选择形成日期(股权、股份)', trigger: 'change' }]);
       }
-      that.$set(rules, 'acthdrat', [{ required: true, message: '请填写持有股权、股份或者合伙权益的比例', trigger: 'change' }]);
-      that.$set(rules, 'shareratiostartdate', [{ required: true, message: '请选择形成日期(股权、股份)', trigger: 'change' }]);
+      if (hasProfit) {
+        that.$set(rules, 'actownerprofitratio', [{ required: true, message: '请填写持有收益权的比例', trigger: 'change' }]);
+        that.$set(rules, 'profitratiostartdate', [{ required: true, message: '请选择形成日期(收益权)', trigger: 'change' }]);
+      }
+      if (hasVote) {
+        that.$set(rules, 'actownerprofitratiovote', [{ required: true, message: '请填写持有表决权的比例', trigger: 'change' }]);
+        that.$set(rules, 'profitratiovotestartdate', [{ required: true, message: '请选择形成日期(表决权)', trigger: 'change' }]);
+      }
     },
     bomisBnfTypeChange: function (newVal, form) {
       form.bnf_type = this.normalizeBnfTypeSelection(newVal);

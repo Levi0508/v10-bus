@@ -1127,8 +1127,8 @@ comp.vue = new Vue({
           <!-- <el-button type="text" icon="el-icon-plus" class="add-btn" @click="showDialog('1',{},'5')">添加</el-button> -->
           <el-button v-if="'_$showBomisBtn$_'=='true'" type="text" icon="el-icon-plus" class="add-btn" @click="showDialog('1',{},'bomis')">添加</el-button>
         </div>
-        <div v-if="relatedInfo5.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
-        <el-card v-for="item in relatedInfo5" :key="item.related_id" style="margin-bottom:10px;"
+        <div v-if="benefitOwnerCardList.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
+        <el-card v-for="item in benefitOwnerCardList" :key="item.related_id" style="margin-bottom:10px;"
           :class="{ 'highlight-border': item.data_status === '0' }" class="relat-card">
           <div class="client-info">
             <div class="client-title">
@@ -1146,51 +1146,183 @@ comp.vue = new Vue({
                 </el-tag>
               </div>
             </div>
-
-            <el-row :gutter="10" class="info-row">
-              <div class="info-row-flex" v-if="item.organ_flag==='1'"><label>国家或地区</label>
-                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
-              </div>
-              <div class="info-row-flex" v-if="item.organ_flag==='0'"><label>国籍</label>
-                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
-              </div>
-              <div class="info-row-flex"><label>证件类型</label>
-                <div>{{formatDictMap('id_type_list',item.id_type)|| '-'}}</div>
-              </div>
-              <div class="info-row-flex"><label>证件号码</label>
-                <div>{{item.id_no|| '-'}}</div>
-              </div>
-            </el-row>
-
-            <el-row :gutter="10" class="info-row">
-              <div class="info-row-flex"><label>证件有效期起始</label>
-                <div>{{item.id_begindate|| '-'}}</div>
-              </div>
-              <div class="info-row-flex"><label>证件有效期截止</label>
-                <div>{{item.id_enddate|| '-'}}</div>
-              </div>
-              <div class="info-row-flex"><label>出生年月</label>
-                <div>{{item.birthday|| '-'}}</div>
-              </div>
-            </el-row>
-
-            <el-row :gutter="10" class="info-row">
-              <div class="info-row-flex"><label>受益所有人类型</label>
-                <div>{{formatDictMap('beneficiary_list',item.beneficiary)|| '-'}}</div>
-              </div>
-              <div class="info-row-flex"><label>股权/表决权比例</label>
-                <div>{{item.shareholding_ratio?(item.shareholding_ratio+'%'): '-'}}</div>
-              </div>
-              <div class="info-row-flex"><label>联系地址</label>
-                <div>{{item.address|| '-'}}</div>
-              </div>
-            </el-row>
+            <!-- 旧版受益人卡片（非 BOMIS） -->
+            <template v-if="'_$showBomisBtn$_'!='true'">
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex" v-if="item.organ_flag==='1'"><label>国家或地区</label>
+                  <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="item.organ_flag==='0'"><label>国籍</label>
+                  <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件类型</label>
+                  <div>{{formatDictMap('id_type_list',item.id_type)|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件号码</label>
+                  <div>{{item.id_no|| '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>证件有效期起始</label>
+                  <div>{{item.id_begindate|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件有效期截止</label>
+                  <div>{{item.id_enddate|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>出生年月</label>
+                  <div>{{item.birthday|| '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>受益所有人类型</label>
+                  <div>{{formatDictMap('beneficiary_list',item.beneficiary)|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>股权/表决权比例</label>
+                  <div>{{item.shareholding_ratio?(item.shareholding_ratio+'%'): '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>联系地址</label>
+                  <div>{{item.address|| '-'}}</div>
+                </div>
+              </el-row>
+            </template>
+            <!-- BOMIS 受益人卡片：字段与弹窗表单一致 -->
+            <template v-else>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>受益所有人</label>
+                  <div>{{formatDictMap('benefit_flag_list', item.bo_type) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>企业性质</label>
+                  <div>{{formatDictMap('benefit_company_no_list', item.company_type) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>客户信息披露情况</label>
+                  <div>{{formatFullInfoFlag(item.full_info_flag)}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>受益所有权类型</label>
+                  <div>{{formatMultipleDictMap('bnf_type_new_list', item.bnf_type_str || item.bnf_type) || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA1') || bomisBnfIncludes(item,'NB1') || bomisBnfIncludes(item,'ND1')">
+                <div class="info-row-flex"><label>持有股权、股份或者合伙权益的比例（%）</label>
+                  <div>{{ item.acthdrat != null && item.acthdrat !== '' ? item.acthdrat : '-' }}</div>
+                </div>
+                <div class="info-row-flex"><label>形成日期(权益)</label>
+                  <div>{{item.shareratiostartdate || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>终止日期(权益)</label>
+                  <div>{{item.shareratioenddate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA2-1') || bomisBnfIncludes(item,'NB2-1') || bomisBnfIncludes(item,'ND2-1')">
+                <div class="info-row-flex"><label>持有收益权的比例(%)</label>
+                  <div>{{ item.actownerprofitratio != null && item.actownerprofitratio !== '' ? item.actownerprofitratio : '-' }}</div>
+                </div>
+                <div class="info-row-flex"><label>形成日期(收益权)</label>
+                  <div>{{item.profitratiostartdate || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>终止日期(收益权)</label>
+                  <div>{{item.profitratioenddate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA2-2') || bomisBnfIncludes(item,'NB2-2') || bomisBnfIncludes(item,'ND2-2')">
+                <div class="info-row-flex"><label>持有表决权的比例(%)</label>
+                  <div>{{ item.actownerprofitratiovote != null && item.actownerprofitratiovote !== '' ? item.actownerprofitratiovote : '-' }}</div>
+                </div>
+                <div class="info-row-flex"><label>形成日期(表决权)</label>
+                  <div>{{item.profitratiovotestartdate || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>终止日期(表决权)</label>
+                  <div>{{item.profitratiovoteenddate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA3-1') || bomisBnfIncludes(item,'NA3-2') || bomisBnfIncludes(item,'NB3-1') || bomisBnfIncludes(item,'NB3-2') || bomisBnfIncludes(item,'ND3')">
+                <div class="info-row-flex"><label>实施实际控制的内容/方式</label>
+                  <div>{{formatMultipleDictMap('benefit_actctrltype_list', item.actctrltype_str || item.actctrltype) || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="bomisBnfIncludes(item,'NA3-2') || bomisBnfIncludes(item,'NB3-2') || bomisBnfIncludes(item,'ND3')"><label>其他形式的具体内容</label>
+                  <div>{{item.actotherforms || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>形成日期(实施实际控制)</label>
+                  <div>{{item.obtainactdate || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>终止日期(实施实际控制)</label>
+                  <div>{{item.terminationactdate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA3-1') || bomisBnfIncludes(item,'NB3-1') || bomisBnfIncludes(item,'ND3')">
+                <div class="info-row-flex"><label>是否存在上一层备案主体</label>
+                  <div>{{formatDictMap('benefit_yesno_list', item.actconuppermarket) || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="item.actconuppermarket === 'Y'"><label>上一层备案主体名称</label>
+                  <div>{{item.actconupperentname || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="item.actconuppermarket === 'Y'"><label>统一社会信用代码</label>
+                  <div>{{item.actconuniscid || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA4') || bomisBnfIncludes(item,'NB4')">
+                <div class="info-row-flex"><label>负责日常经营管理的（高级管理）人员职位</label>
+                  <div>{{formatMultipleDictMap('benefit_seniormgrpos_list', item.seniormgrpos_str || item.seniormgrpos) || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="bomisSeniormgrposIncludes(item,'15')"><label>公司章程规定的其他（高级管理）人员的具体职位</label>
+                  <div>{{item.actdailymgmtpostother || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row" v-if="bomisBnfIncludes(item,'NA5')">
+                <div class="info-row-flex"><label>在华最高层级的高级管理人员职位</label>
+                  <div>{{formatMultipleDictMap('benefit_seniormgrposcn_list', item.seniormgrposcn_str || item.seniormgrposcn) || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="bomisSeniormgrposcnIncludes(item,'1')"><label>在华最高层级的高级管理其他职位</label>
+                  <div>{{item.ownerrightmgmtpostother || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>性别</label>
+                  <div>{{formatDictMap('benefit_gender_list', item.gender) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>国籍</label>
+                  <div>{{formatDictMap('nationality_list', item.nationality) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>出生年月</label>
+                  <div>{{item.birthday || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>证件类型</label>
+                  <div>{{formatDictMap('id_type_gr_list', item.id_type) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件号码</label>
+                  <div>{{item.id_no || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件有效期</label>
+                  <div>{{(item.id_begindate || '-') + ' ~ ' + (item.id_enddate || '-')}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>联系电话1</label>
+                  <div>{{item.mobno1 || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>联系电话2</label>
+                  <div>{{item.mobno2 || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>联系地址</label>
+                  <div>{{item.address || '-'}}</div>
+                </div>
+              </el-row>
+            </template>
           </div>
           <!-- 操作按钮 -->
           <div class="attachment-footer">
-            <el-button type="text" @click="deleteRalated(item)">删除</el-button>
-            <el-button type="text" @click="showDialog('2',item,'5')">编辑</el-button>
-            <el-button v-if="'_$showBomisBtn$_'=='true'" type="text" @click="showBenefitEditDialogByRelated(item)">修改</el-button>
+            <el-button type="text" @click="'_$showBomisBtn$_'=='true' ? delBomisBnfInfo(item) : deleteRalated(item)">删除</el-button>
+            <el-button v-if="'_$showBomisBtn$_'!='true'" type="text" @click="showDialog('2',item,'5')">编辑</el-button>
+            <el-button v-if="'_$showBomisBtn$_'=='true'" type="text" @click="showBenefitEditDialog(item)">修改</el-button>
           </div>
         </el-card>
         <!-- 附件信息表 -->
@@ -2317,9 +2449,6 @@ comp.vue = new Vue({
       <div v-show="false"
         style="border-width: 1px; border-style: solid; border-color: #2463eb #d1d6db #d1d6db;border-radius: 2px;">
       </div>
-      <div style="display: flex;justify-content: center;margin: 1em 0 0;">
-        <el-button type="warning" size="mini" @click="addBomisBnfInfo">添加</el-button>
-      </div>
       <!-- 待核验的受益所有人数据 -->
     <div style="display:none">
       <el-table :data="bomisParams.bomisSourceTableData" border style="width: 100%;margin: 1em 0 0;"
@@ -2437,11 +2566,9 @@ comp.vue = new Vue({
     </div>
     </div>
     <div slot="footer" class="dialog-footer">
-      <!-- <el-button type="primary">保存受益人信息</el-button> -->
       <el-button @click="closeDialog('bomisDialog')">取消</el-button>
-      <!-- <el-button type="primary" @click="saveEditForm('1','2')"
-        v-if="editForm1.related_type!=='1'&&editForm1.related_type!=='4'">提交并录入下一条</el-button>
-      <el-button type="primary" @click="saveEditForm('2','2')">提交</el-button> -->
+      <el-button type="primary" @click="addBomisBnfInfo('1')">提交并录入下一条</el-button>
+      <el-button type="primary" @click="addBomisBnfInfo('2')">提交</el-button>
     </div>
   </el-dialog>
   <!-- 6 新版受益所有人 对单个受益所有人编辑 -->
@@ -2824,10 +2951,8 @@ comp.vue = new Vue({
     </div>
     <div slot="footer" class="dialog-footer">
       <el-button @click="closeDialog('bomisBenefitDialog')">取消</el-button>
-      <el-button type="primary" @click="editBomisBnfInfo">保存</el-button>
-      <!-- <el-button type="primary" @click="saveEditForm('1','2')"
-        v-if="editForm1.related_type!=='1'&&editForm1.related_type!=='4'">提交并录入下一条</el-button>
-      <el-button type="primary" @click="saveEditForm('2','2')">提交</el-button> -->
+      <el-button type="primary" @click="editBomisBnfInfo('1')">提交并录入下一条</el-button>
+      <el-button type="primary" @click="editBomisBnfInfo('2')">提交</el-button>
     </div>
   </el-dialog>
 </div>
@@ -3147,6 +3272,13 @@ comp.vue = new Vue({
     // 是否隐藏表单项必填标记（*号）
     shouldHideRequiredMark() {
       return (this.ruleForm3 && this.ruleForm3.is_special === '1') || (this.editForm.is_government_dept === '1');
+    },
+    // 受益人卡片列表：BOMIS 走 select_bomis 数据源（含多选拆分字段），否则走 select_related_info
+    benefitOwnerCardList() {
+      if ('_$showBomisBtn$_' === 'true') {
+        return this.bomisParams.bomisSourceTableData || [];
+      }
+      return this.relatedInfo5 || [];
     }
   },
   methods: {
@@ -4022,7 +4154,7 @@ comp.vue = new Vue({
       else if (related_type == 'bomis') {
         debugger
         if (op_flag == '1') {
-          initFormCommon(this.bomisParams.editBomisForm, null, true);
+          this.resetBomisAddForm();
           this.bomisParams.editBomisForm.title = '受益所有人';
           this.bomisParams.dialogBomisVisible = true;
           this.getBomisSourceTableData();
@@ -4435,6 +4567,9 @@ comp.vue = new Vue({
           } else if (rela_type == '5') {
             that.relatedInfo5 = res;
             console.log("受益所有人信息", res);
+            if ('_$showBomisBtn$_' === 'true') {
+              that.getBomisSourceTableData();
+            }
           }
         }
       });
@@ -4834,8 +4969,101 @@ comp.vue = new Vue({
 
     // huangyuanyuan start
     // 页面展示数据字典转换 多选
+    formatFullInfoFlag(val) {
+      if (val === '01') {
+        return '透明度较高、信息披露充分的客户（如上市公司、国有企业）';
+      }
+      if (val === '02') {
+        return '受益人信息不规范';
+      }
+      return val || '-';
+    },
+    bomisBnfIncludes(item, code) {
+      if (!item) { return false; }
+      var t = item.bnf_type;
+      if (Array.isArray(t)) {
+        return t.indexOf(code) >= 0;
+      }
+      var s = item.bnf_type_str || t || '';
+      return String(s).split(',').indexOf(code) >= 0;
+    },
+    bomisSeniormgrposIncludes(item, code) {
+      if (!item) { return false; }
+      var t = item.seniormgrpos;
+      if (Array.isArray(t)) {
+        return t.indexOf(code) >= 0;
+      }
+      var s = item.seniormgrpos_str || t || '';
+      return String(s).split(',').indexOf(code) >= 0;
+    },
+    bomisSeniormgrposcnIncludes(item, code) {
+      if (!item) { return false; }
+      var t = item.seniormgrposcn;
+      if (Array.isArray(t)) {
+        return t.indexOf(code) >= 0;
+      }
+      var s = item.seniormgrposcn_str || t || '';
+      return String(s).split(',').indexOf(code) >= 0;
+    },
+    resetBomisAddForm() {
+      var form = this.bomisParams.editBomisForm;
+      form.bo_type = '';
+      form.company_type = '';
+      form.bnf_type = [];
+      form.common_rate = '';
+      form.full_info_flag = '';
+      form.actctrltype = [];
+      form.seniormgrpos = [];
+      form.seniormgrposcn = [];
+      form.related_name = '';
+      form.organ_flag = '0';
+      form.nationality = '';
+      form.id_type = '';
+      form.id_no = '';
+      form.id_begindate = '';
+      form.id_enddate = '';
+      form.birthday = '';
+      form.is_government_dept = '';
+      form.related_type = '5';
+      form.beneficiary = '';
+      form.shareholding_ratio = '';
+      form.province = '';
+      form.city = '';
+      form.district = '';
+      form.address = '';
+      form.mobno1 = '';
+      form.mobno2 = '';
+      form.gender = '';
+      form.new_flag = true;
+      form.data_status = '0';
+      form.acthdrat = undefined;
+      form.shareratiostartdate = '';
+      form.shareratioenddate = '';
+      form.actownerprofitratio = undefined;
+      form.profitratiostartdate = '';
+      form.profitratioenddate = '';
+      form.actownerprofitratiovote = undefined;
+      form.profitratiovotestartdate = '';
+      form.profitratiovoteenddate = '';
+      form.actotherforms = '';
+      form.obtainactdate = '';
+      form.terminationactdate = '';
+      form.actconuppermarket = '';
+      form.actconupperentname = '';
+      form.actconuniscid = '';
+      form.actdailymgmtpostother = '';
+      form.ownerrightmgmtpostother = '';
+      this.bomisParams.benefit_company_no_list = [];
+      this.bomisParams.bnf_type_new_list = [];
+      if (this.$refs.editBenefitForm) {
+        this.$refs.editBenefitForm.clearValidate();
+      }
+    },
     formatMultipleDictMap(dictType, key) {
       var c_key = key || '';
+      if (Array.isArray(c_key)) {
+        c_key = c_key.join(',');
+      }
       if (c_key === '') { return ' '; }
       const keyList = c_key.split(',');
       const dictData = this.selectList[dictType];
@@ -4945,7 +5173,8 @@ comp.vue = new Vue({
         form.bnf_type = result;
       }
     },
-    addBomisBnfInfo: function () {
+    addBomisBnfInfo: function (op_flag) {
+      op_flag = op_flag || '2';
       var that = this;
       that.$refs.editBenefitForm.validate((valid) => {
         if (valid) {
@@ -4958,6 +5187,12 @@ comp.vue = new Vue({
                 Wb.tipSucc('添加成功');
                 that.getRelatedInfo('_$client_id$_', '5');
                 that.getBomisSourceTableData();
+                if (op_flag === '2') {
+                  that.bomisParams.dialogBomisVisible = false;
+                } else {
+                  that.resetBomisAddForm();
+                  that.bomisParams.editBomisForm.title = '受益所有人';
+                }
               } else {
                 Wb.error(resp.O_RETURN_MSG);
               }
@@ -4969,7 +5204,8 @@ comp.vue = new Vue({
         }
       });
     },
-    editBomisBnfInfo: function () {
+    editBomisBnfInfo: function (op_flag) {
+      op_flag = op_flag || '2';
       var that = this;
       that.$refs.editOneBenefitForm.validate((valid) => {
         if (valid) {
@@ -4979,10 +5215,18 @@ comp.vue = new Vue({
             json: true,
             success(resp) {
               if (resp.O_RETURN_CODE !== -1) {
-                Wb.tipSucc('添加成功');
+                Wb.tipSucc('保存成功');
                 that.getRelatedInfo('_$client_id$_', '5');
-                that.bomisParams.benefitEditDialogVisible = false;
                 that.getBomisSourceTableData();
+                if (op_flag === '2') {
+                  that.bomisParams.benefitEditDialogVisible = false;
+                } else {
+                  that.bomisParams.benefitEditDialogVisible = false;
+                  that.resetBomisAddForm();
+                  that.bomisParams.editBomisForm.title = '受益所有人';
+                  that.bomisParams.dialogBomisVisible = true;
+                  that.getLastOnlineBomisCheckRs();
+                }
               } else {
                 Wb.error(resp.O_RETURN_MSG);
               }
@@ -5321,6 +5565,9 @@ comp.vue = new Vue({
     await this.getRelatedInfo('_$client_id$_', '4');
     // 获取受益所有人信息
     await this.getRelatedInfo('_$client_id$_', '5');
+    if ('_$showBomisBtn$_' === 'true') {
+      this.getBomisSourceTableData();
+    }
     await this.selectFile();
 
     // 从全局获取数据

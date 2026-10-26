@@ -2130,7 +2130,7 @@ comp.vue = new Vue({
                 @change="bomisBnfTypeChange(bomisParams.editBomisForm.bnf_type, bomisParams.editBomisForm)"
                 @visible-change="getBomisBnfType(bomisParams.editBomisForm)">
                 <el-option v-for="item in bomisParams.bnf_type_new_list" :key="item.k" :label="item.v" :value="item.k"
-                  :disabled="item.disabled === true">
+                  :disabled="isBomisBnfTypeDisabled(item.k, bomisParams.editBomisForm)">
                 </el-option>
               </el-select>
             </el-form-item>
@@ -2629,7 +2629,7 @@ comp.vue = new Vue({
                 @change="bomisBnfTypeChange(bomisParams.editOneBenefitForm.bnf_type, bomisParams.editOneBenefitForm)"
                 @visible-change="getBomisBnfType(bomisParams.editOneBenefitForm)">
                 <el-option v-for="item in bomisParams.bnf_type_new_list" :key="item.k" :label="item.v" :value="item.k"
-                  :disabled="item.disabled === true">
+                  :disabled="isBomisBnfTypeDisabled(item.k, bomisParams.editOneBenefitForm)">
                 </el-option>
               </el-select>
             </el-form-item>
@@ -5171,58 +5171,81 @@ comp.vue = new Vue({
         this.bomisParams.bnf_type_new_list = [];
       }
     },
-    bomisBnfTypeChange: function (newVal, form) {
-      var result = newVal;
-      if (newVal.length > 1) {
-        if (newVal.includes('NA1') && ['NA2-1', 'NA2-2', 'NA3-1', 'NA3-2', 'NA4'].includes(newVal.lastItem)) {
-          result.pop();
-        }
-        if (newVal.includes('NA4') && ['NA2-1', 'NA2-2', 'NA3-1', 'NA3-2', 'NA1'].includes(newVal.lastItem)) {
-          result.pop();
-        }
-        if ((newVal.includes('NA2-1') || newVal.includes('NA2-2'))) {
-          if (newVal.includes('NA3-1') && ['NA4', 'NA3-2', 'NA1'].includes(newVal.lastItem)) { result.pop(); }
-          if (newVal.includes('NA3-2') && ['NA4', 'NA3-1', 'NA1'].includes(newVal.lastItem)) { result.pop(); }
-          if (['NA4', 'NA1'].includes(newVal.lastItem)) { result.pop(); }
-        }
-        if (newVal.includes('NA3-1') && ['NA4', 'NA3-2', 'NA1'].includes(newVal.lastItem)) { result.pop(); }
-        if (newVal.includes('NA3-2') && ['NA4', 'NA3-1', 'NA1'].includes(newVal.lastItem)) { result.pop(); }
-
-        if (newVal.includes('NB1') && ['NB2-1', 'NB2-2', 'NB3-1', 'NB3-2', 'NB4'].includes(newVal.lastItem)) {
-          result.pop();
-        }
-        if (newVal.includes('NB4') && ['NB2-1', 'NB2-2', 'NB3-1', 'NB3-2', 'NB1'].includes(newVal.lastItem)) {
-          result.pop();
-        }
-        if ((newVal.includes('NB2-1') || newVal.includes('NB2-2'))) {
-          if (newVal.includes('NB3-1') && ['NB4', 'NB3-2', 'NB1'].includes(newVal.lastItem)) { result.pop(); }
-          if (newVal.includes('NB3-2') && ['NB4', 'NB3-1', 'NB1'].includes(newVal.lastItem)) { result.pop(); }
-          if (['NB4', 'NB1'].includes(newVal.lastItem)) { result.pop(); }
-        }
-        if (newVal.includes('NB3-1') && ['NB4', 'NB3-2', 'NB1'].includes(newVal.lastItem)) { result.pop(); }
-        if (newVal.includes('NB3-2') && ['NB4', 'NB3-1', 'NB1'].includes(newVal.lastItem)) { result.pop(); }
-
-
-
-        if (newVal.includes('ND1') && ['ND2-1', 'ND2-2', 'ND3', 'ND4'].includes(newVal.lastItem)) {
-          result.pop();
-        }
-        if ((newVal.includes('ND2-1') || newVal.includes('ND2-2'))) {
-          if (newVal.includes('ND3') && ['ND4', 'ND1'].includes(newVal.lastItem)) { result.pop(); }
-          if (['ND4', 'ND1'].includes(newVal.lastItem)) { result.pop(); }
-        }
-        if (newVal.includes('ND3') && ['ND4', 'ND1'].includes(newVal.lastItem)) { result.pop(); }
-
-        if (newVal.includes('NE1') && ['NE2'].includes(newVal.lastItem)) {
-          result.pop();
-        }
-        if (newVal.includes('NE2') && ['NE1'].includes(newVal.lastItem)) {
-          result.pop();
-        }
-
-        // this.bomisParams.editBomisForm.bnf_type = result;
-        form.bnf_type = result;
+    normalizeBnfTypeSelection: function (newVal) {
+      var checkVal = (newVal || []).slice();
+      var result = checkVal.slice();
+      if (checkVal.length <= 1) {
+        return result;
       }
+      var lastItem = checkVal[checkVal.length - 1];
+      if (checkVal.includes('NA1') && ['NA2-1', 'NA2-2', 'NA3-1', 'NA3-2', 'NA4'].includes(lastItem)) {
+        result.pop();
+      }
+      if (checkVal.includes('NA4') && ['NA2-1', 'NA2-2', 'NA3-1', 'NA3-2', 'NA1'].includes(lastItem)) {
+        result.pop();
+      }
+      if ((checkVal.includes('NA2-1') || checkVal.includes('NA2-2'))) {
+        if (checkVal.includes('NA3-1') && ['NA4', 'NA3-2', 'NA1'].includes(lastItem)) { result.pop(); }
+        if (checkVal.includes('NA3-2') && ['NA4', 'NA3-1', 'NA1'].includes(lastItem)) { result.pop(); }
+        if (['NA4', 'NA1'].includes(lastItem)) { result.pop(); }
+      }
+      if (checkVal.includes('NA3-1') && ['NA4', 'NA3-2', 'NA1'].includes(lastItem)) { result.pop(); }
+      if (checkVal.includes('NA3-2') && ['NA4', 'NA3-1', 'NA1'].includes(lastItem)) { result.pop(); }
+
+      if (checkVal.includes('NB1') && ['NB2-1', 'NB2-2', 'NB3-1', 'NB3-2', 'NB4'].includes(lastItem)) {
+        result.pop();
+      }
+      if (checkVal.includes('NB4') && ['NB2-1', 'NB2-2', 'NB3-1', 'NB3-2', 'NB1'].includes(lastItem)) {
+        result.pop();
+      }
+      if ((checkVal.includes('NB2-1') || checkVal.includes('NB2-2'))) {
+        if (checkVal.includes('NB3-1') && ['NB4', 'NB3-2', 'NB1'].includes(lastItem)) { result.pop(); }
+        if (checkVal.includes('NB3-2') && ['NB4', 'NB3-1', 'NB1'].includes(lastItem)) { result.pop(); }
+        if (['NB4', 'NB1'].includes(lastItem)) { result.pop(); }
+      }
+      if (checkVal.includes('NB3-1') && ['NB4', 'NB3-2', 'NB1'].includes(lastItem)) { result.pop(); }
+      if (checkVal.includes('NB3-2') && ['NB4', 'NB3-1', 'NB1'].includes(lastItem)) { result.pop(); }
+
+      if (checkVal.includes('ND1') && ['ND2-1', 'ND2-2', 'ND3', 'ND4'].includes(lastItem)) {
+        result.pop();
+      }
+      if ((checkVal.includes('ND2-1') || checkVal.includes('ND2-2'))) {
+        if (checkVal.includes('ND3') && ['ND4', 'ND1'].includes(lastItem)) { result.pop(); }
+        if (['ND4', 'ND1'].includes(lastItem)) { result.pop(); }
+      }
+      if (checkVal.includes('ND3') && ['ND4', 'ND1'].includes(lastItem)) { result.pop(); }
+
+      if (checkVal.includes('NE1') && ['NE2'].includes(lastItem)) {
+        result.pop();
+      }
+      if (checkVal.includes('NE2') && ['NE1'].includes(lastItem)) {
+        result.pop();
+      }
+      return result;
+    },
+    isBomisBnfTypeDisabled: function (optionK, form) {
+      var list = this.bomisParams.bnf_type_new_list || [];
+      var i;
+      for (i = 0; i < list.length; i++) {
+        if (list[i].k === optionK && list[i].disabled === true) {
+          return true;
+        }
+      }
+      var selected = form.bnf_type;
+      if (!Array.isArray(selected)) {
+        selected = selected ? String(selected).split(',') : [];
+      }
+      if (selected.indexOf(optionK) >= 0) {
+        return false;
+      }
+      if (selected.length === 0) {
+        return false;
+      }
+      var trial = this.normalizeBnfTypeSelection(selected.concat([optionK]));
+      return trial.indexOf(optionK) < 0;
+    },
+    bomisBnfTypeChange: function (newVal, form) {
+      form.bnf_type = this.normalizeBnfTypeSelection(newVal);
     },
     addBomisBnfInfo: function (op_flag) {
       op_flag = op_flag || '2';

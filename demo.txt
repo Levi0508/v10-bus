@@ -3113,9 +3113,6 @@ comp.vue = new Vue({
           bo_type: [{ required: true, message: '请选择是否识别受益所有人', trigger: 'change' }],
           company_type: [{ required: true, message: '请选择企业性质', trigger: 'change' }],
           full_info_flag: [{ required: true, message: '请选择', trigger: 'change' }],
-          acthdrat: [{ required: true, message: '请填写', trigger: 'change' }],
-          shareratiostartdate: [{ required: true, message: '请选择', trigger: 'change' }],
-          shareratioenddate: [{ required: true, message: '请选择', trigger: 'change' }],
           actownerprofitratio: [{ required: true, message: '请填写', trigger: 'change' }],
           profitratiostartdate: [{ required: true, message: '请选择', trigger: 'change' }],
           profitratioenddate: [{ required: true, message: '请选择', trigger: 'change' }],
@@ -3194,9 +3191,6 @@ comp.vue = new Vue({
           bo_type: [{ required: true, message: '请选择是否识别受益所有人', trigger: 'change' }],
           company_type: [{ required: true, message: '请选择企业性质', trigger: 'change' }],
           full_info_flag: [{ required: true, message: '请选择', trigger: 'change' }],
-          acthdrat: [{ required: true, message: '请填写', trigger: 'change' }],
-          shareratiostartdate: [{ required: true, message: '请选择', trigger: 'change' }],
-          shareratioenddate: [{ required: true, message: '请选择', trigger: 'change' }],
           actownerprofitratio: [{ required: true, message: '请填写', trigger: 'change' }],
           profitratiostartdate: [{ required: true, message: '请选择', trigger: 'change' }],
           profitratioenddate: [{ required: true, message: '请选择', trigger: 'change' }],
@@ -4830,7 +4824,7 @@ comp.vue = new Vue({
                   msg += `${typeName}的姓名不能为空<br>`;
                 }
                 if (hasBnf(['NA1', 'NB1', 'ND1'])) {
-                  required.push(['acthdrat', '持有股权、股份或者合伙权益的比例'], ['shareratiostartdate', '形成日期(股权、股份)'], ['shareratioenddate', '终止日期(股权、股份)']);
+                  required.push(['acthdrat', '持有股权、股份或者合伙权益的比例'], ['shareratiostartdate', '形成日期(股权、股份)']);
                 }
                 if (hasBnf(['NA2-1', 'NB2-1', 'ND2-1'])) {
                   required.push(['actownerprofitratio', '持有收益权的比例'], ['profitratiostartdate', '形成日期(收益权)'], ['profitratioenddate', '终止日期(收益权)']);
@@ -5244,8 +5238,30 @@ comp.vue = new Vue({
       var trial = this.normalizeBnfTypeSelection(selected.concat([optionK]));
       return trial.indexOf(optionK) < 0;
     },
+    /** NA1/NB1/ND1（ActCtrl=Y）：比例、形成日期必填；终止日期按接口说明选填 */
+    syncBomisShareRatioFieldRules: function (rules, form) {
+      var that = this;
+      var shareRuleKeys = ['acthdrat', 'shareratiostartdate', 'shareratioenddate'];
+      var bnf = form.bnf_type;
+      if (!Array.isArray(bnf)) {
+        bnf = bnf ? String(bnf).split(',') : [];
+      }
+      var hasShare = ['NA1', 'NB1', 'ND1'].some(function (c) { return bnf.indexOf(c) >= 0; });
+      shareRuleKeys.forEach(function (k) {
+        that.$delete(rules, k);
+      });
+      if (!hasShare) {
+        return;
+      }
+      that.$set(rules, 'acthdrat', [{ required: true, message: '请填写持有股权、股份或者合伙权益的比例', trigger: 'change' }]);
+      that.$set(rules, 'shareratiostartdate', [{ required: true, message: '请选择形成日期(股权、股份)', trigger: 'change' }]);
+    },
     bomisBnfTypeChange: function (newVal, form) {
       form.bnf_type = this.normalizeBnfTypeSelection(newVal);
+      var rules = form === this.bomisParams.editOneBenefitForm
+        ? this.bomisParams.editOneBenefitFormRules
+        : this.bomisParams.editBomisFormRules;
+      this.syncBomisShareRatioFieldRules(rules, form);
     },
     addBomisBnfInfo: function (op_flag) {
       op_flag = op_flag || '2';
@@ -5367,6 +5383,7 @@ comp.vue = new Vue({
       }
       this.bomisParams.benefitEditDialogVisible = true;
       this.$nextTick(function () {
+        that.syncBomisShareRatioFieldRules(that.bomisParams.editOneBenefitFormRules, that.bomisParams.editOneBenefitForm);
         if (that.$refs.editOneBenefitForm) {
           that.$refs.editOneBenefitForm.clearValidate();
         }
@@ -5574,6 +5591,7 @@ comp.vue = new Vue({
         if (newVal.bnf_type !== oldVal.bnf_type) {
           var bnfType = that.bomisParams.editBomisForm.bnf_type;
           if (!Array.isArray(bnfType)) { bnfType = []; }
+          that.syncBomisShareRatioFieldRules(that.bomisParams.editBomisFormRules, that.bomisParams.editBomisForm);
           // actCtrlCpny 2:协议约定形式，3:其他形式
           if (bnfType.length && (bnfType.includes('NA3-1') || bnfType.includes('NB3-1'))) {
             that.bomisParams.editBomisForm.actctrlcpny = '2';
@@ -5601,6 +5619,7 @@ comp.vue = new Vue({
         if (newVal.bnf_type !== oldVal.bnf_type) {
           var bnfType = that.bomisParams.editOneBenefitForm.bnf_type;
           if (!Array.isArray(bnfType)) { bnfType = []; }
+          that.syncBomisShareRatioFieldRules(that.bomisParams.editOneBenefitFormRules, that.bomisParams.editOneBenefitForm);
           // actCtrlCpny 2:协议约定形式，3:其他形式
           if (bnfType.length && bnfType.includes('NA3-1')) { that.bomisParams.editOneBenefitForm.actctrlcpny = '2'; }
           if (bnfType.length && bnfType.includes('NA3-2')) { that.bomisParams.editOneBenefitForm.actctrlcpny = '3'; }

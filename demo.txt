@@ -2141,7 +2141,8 @@ comp.vue = new Vue({
           v-if="bomisParams.editBomisForm.bnf_type.includes('NA1') || bomisParams.editBomisForm.bnf_type.includes('NB1') ||bomisParams.editBomisForm.bnf_type.includes('ND1') ">
           <el-col :span="8">
             <el-form-item label="持有股权、股份或者合伙权益的比例（%)" prop="acthdrat">
-              <el-input-number type="number" v-model="bomisParams.editBomisForm.acthdrat" :min="25" :max="100"
+              <el-input-number v-model="bomisParams.editBomisForm.acthdrat" :min="25" :max="100" :step="1"
+                :precision="2" controls-position="right"
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2155,7 +2156,8 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="shareratiostartdate">
               <el-date-picker v-model="bomisParams.editBomisForm.shareratiostartdate" type="date" placeholder="选择日期"
-                format="yyyy-MM-dd" clearable editable class="formitem-full-width formitem-max-width" />
+                format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
+                class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -2166,7 +2168,8 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="shareratioenddate">
               <el-date-picker v-model="bomisParams.editBomisForm.shareratioenddate" type="date" placeholder="选择日期"
-                format="yyyy-MM-dd" clearable editable class="formitem-full-width formitem-max-width" />
+                format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
+                class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -2640,7 +2643,8 @@ comp.vue = new Vue({
           v-if="bomisParams.editOneBenefitForm.bnf_type.includes('NA1') || bomisParams.editOneBenefitForm.bnf_type.includes('NB1') ||bomisParams.editOneBenefitForm.bnf_type.includes('ND1') ">
           <el-col :span="8">
             <el-form-item label="持有股权、股份或者合伙权益的比例（%)" prop="acthdrat">
-              <el-input-number type="number" v-model="bomisParams.editOneBenefitForm.acthdrat" :min="25" :max="100"
+              <el-input-number v-model="bomisParams.editOneBenefitForm.acthdrat" :min="25" :max="100" :step="1"
+                :precision="2" controls-position="right"
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2654,7 +2658,7 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="shareratiostartdate">
               <el-date-picker v-model="bomisParams.editOneBenefitForm.shareratiostartdate" type="date"
-                placeholder="选择日期" format="yyyy-MM-dd" clearable editable
+                placeholder="选择日期" format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
                 class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
@@ -2666,7 +2670,8 @@ comp.vue = new Vue({
             </div>
             <el-form-item prop="shareratioenddate">
               <el-date-picker v-model="bomisParams.editOneBenefitForm.shareratioenddate" type="date" placeholder="选择日期"
-                format="yyyy-MM-dd" clearable editable class="formitem-full-width formitem-max-width" />
+                format="yyyy-MM-dd" value-format="yyyy-MM-dd" clearable editable
+                class="formitem-full-width formitem-max-width" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -3108,6 +3113,25 @@ comp.vue = new Vue({
           mobno2: '',
           gender: '',
           new_flag: true,
+          data_status: '0',
+          acthdrat: undefined,
+          shareratiostartdate: '',
+          shareratioenddate: '',
+          actownerprofitratio: undefined,
+          profitratiostartdate: '',
+          profitratioenddate: '',
+          actownerprofitratiovote: undefined,
+          profitratiovotestartdate: '',
+          profitratiovoteenddate: '',
+          actotherforms: '',
+          obtainactdate: '',
+          terminationactdate: '',
+          actconuppermarket: '',
+          actconupperentname: '',
+          actconuniscid: '',
+          actdailymgmtpostother: '',
+          ownerrightmgmtpostother: '',
+          actctrlcpny: '',
         },
         editBomisFormRules: {
           bo_type: [{ required: true, message: '请选择是否识别受益所有人', trigger: 'change' }],
@@ -3186,6 +3210,25 @@ comp.vue = new Vue({
           mobno2: '',
           gender: '',
           new_flag: false,
+          data_status: '0',
+          acthdrat: undefined,
+          shareratiostartdate: '',
+          shareratioenddate: '',
+          actownerprofitratio: undefined,
+          profitratiostartdate: '',
+          profitratioenddate: '',
+          actownerprofitratiovote: undefined,
+          profitratiovotestartdate: '',
+          profitratiovoteenddate: '',
+          actotherforms: '',
+          obtainactdate: '',
+          terminationactdate: '',
+          actconuppermarket: '',
+          actconupperentname: '',
+          actconuniscid: '',
+          actdailymgmtpostother: '',
+          ownerrightmgmtpostother: '',
+          actctrlcpny: '',
         },
         editOneBenefitFormRules: {
           bo_type: [{ required: true, message: '请选择是否识别受益所有人', trigger: 'change' }],

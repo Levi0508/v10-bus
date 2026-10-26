@@ -347,7 +347,8 @@ comp.vue = new Vue({
                       </div>
                     </div>
                   </template>
-                  <el-select size="medium" v-model="ruleForm1.register_money_type" placeholder="请选择" clearable>
+                  <el-select size="medium" v-model="ruleForm1.register_money_type" placeholder="请选择" clearable
+                    @change="onRegisterMoneyTypeChange">
                     <el-option v-for="item in selectList.register_money_type_list" :key="item.k" :label="item.v"
                       :value="item.k">
                     </el-option>
@@ -1301,15 +1302,15 @@ comp.vue = new Vue({
                 <div class="info-row-flex"><label>证件号码</label>
                   <div>{{item.id_no || '-'}}</div>
                 </div>
-                <div class="info-row-flex"><label>证件有效期</label>
-                  <div>{{(item.id_begindate || '-') + ' ~ ' + (item.id_enddate || '-')}}</div>
+                <div class="info-row-flex"><label>证件有效期截止</label>
+                  <div>{{item.id_enddate || '-'}}</div>
                 </div>
               </el-row>
               <el-row :gutter="10" class="info-row">
-                <div class="info-row-flex"><label>联系电话1</label>
+                <div class="info-row-flex"><label>联系方式（手机）</label>
                   <div>{{item.mobno1 || '-'}}</div>
                 </div>
-                <div class="info-row-flex"><label>联系电话2</label>
+                <div class="info-row-flex"><label>联系方式（固话）</label>
                   <div>{{item.mobno2 || '-'}}</div>
                 </div>
                 <div class="info-row-flex"><label>联系地址</label>
@@ -3466,6 +3467,31 @@ comp.vue = new Vue({
       if (!val) return '-';
       return String(val).replace(/\.\d+$/, '');
     },
+    // 机构户保存/提交时 REGISTER_MONEY_TYPE 组装（避免 null.trim 报错）
+    formatRegisterMoneyTypeForSave(val) {
+      if (val == null || val === '' || val === '-') {
+        return '';
+      }
+      var s = String(val).trim();
+      if (s === '') {
+        return '';
+      }
+      if (!isNaN(s) && typeof app !== 'undefined' && app.formatMoneyType) {
+        return app.formatMoneyType(app.data.selectList.register_money_type_list, val);
+      }
+      return val;
+    },
+    onRegisterMoneyTypeChange(val) {
+      this.ruleForm1.register_money_type = val == null ? '' : val;
+    },
+    normalizeInstitutionBasicForm(form) {
+      if (!form) {
+        return;
+      }
+      if (form.register_money_type == null || form.register_money_type === undefined) {
+        form.register_money_type = '';
+      }
+    },
     formatMoney(s, n) {
       if (!s && s !== 0) return '';
       let str = String(s);
@@ -4515,6 +4541,7 @@ comp.vue = new Vue({
             }
             if ('_$organ_flag$_' == '1') {
               that.ruleForm1 = { ...that.basicInfo };//机构户基本信息数据回显
+              that.normalizeInstitutionBasicForm(that.ruleForm1);
               if (that.ruleForm1.register_fund) {
                 that.ruleForm1.register_fund = that.formatMoney(that.ruleForm1.register_fund, '4');
               }
@@ -5186,7 +5213,7 @@ comp.vue = new Vue({
       that.$refs.editBenefitForm.validate((valid) => {
         if (valid) {
           Wb.ajax({
-            url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/add_bomis_benefit_scinfo',
+            url: 'm?xwl=syr_2/add_bomis_benefit_scinfo_clf20261026',
             params: { client_id: '_$client_id$_', benefit_scinfo: that.bomisParams.editBomisForm },
             json: true,
             success(resp) {
@@ -5214,11 +5241,16 @@ comp.vue = new Vue({
     editBomisBnfInfo: function (op_flag) {
       op_flag = op_flag || '2';
       var that = this;
+      var payload = that.bomisParams.editOneBenefitForm;
+      if (!payload.related_id) {
+        Wb.error('缺少受益人标识，请刷新页面后重试');
+        return;
+      }
       that.$refs.editOneBenefitForm.validate((valid) => {
         if (valid) {
           Wb.ajax({
-            url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/edit_bomis_benefit_scinfo',
-            params: { client_id: '_$client_id$_', benefit_scinfo: that.bomisParams.editOneBenefitForm },
+            url: 'm?xwl=syr_2/edit_bomis_benefit_scinfo_clf20261026',
+            params: { client_id: '_$client_id$_', benefit_scinfo: payload },
             json: true,
             success(resp) {
               if (resp.O_RETURN_CODE !== -1) {
@@ -5246,18 +5278,28 @@ comp.vue = new Vue({
       });
     },
     normalizeBomisBenefitForm: function (row) {
-      var form = Object.assign({}, this.bomisParams.editOneBenefitForm, row || {});
+      var base = this.bomisParams.editOneBenefitForm;
+      var form = Object.assign({}, base, row || {});
       var toArray = function (val) {
         if (val === '' || val == null) { return []; }
         return Array.isArray(val) ? val.slice() : String(val).split(',').filter(Boolean);
       };
-      form.bnf_type = toArray(row && row.bnf_type_str != null ? row.bnf_type_str : form.bnf_type);
-      form.actctrltype = toArray(row && row.actctrltype_str != null ? row.actctrltype_str : form.actctrltype);
-      form.seniormgrpos = toArray(row && row.seniormgrpos_str != null ? row.seniormgrpos_str : form.seniormgrpos);
-      form.seniormgrposcn = toArray(row && row.seniormgrposcn_str != null ? row.seniormgrposcn_str : form.seniormgrposcn);
+      var pickMulti = function (r, field, strField) {
+        if (!r) { return []; }
+        if (Array.isArray(r[field])) { return r[field].slice(); }
+        if (r[strField] != null && r[strField] !== '') { return toArray(r[strField]); }
+        return toArray(form[field]);
+      };
+      form.bnf_type = pickMulti(row, 'bnf_type', 'bnf_type_str');
+      form.actctrltype = pickMulti(row, 'actctrltype', 'actctrltype_str');
+      form.seniormgrpos = pickMulti(row, 'seniormgrpos', 'seniormgrpos_str');
+      form.seniormgrposcn = pickMulti(row, 'seniormgrposcn', 'seniormgrposcn_str');
       form.gender = form.gender || '';
       form.mobno1 = form.mobno1 || '';
       form.mobno2 = form.mobno2 || '';
+      form.related_type = '5';
+      form.related_id = row && row.related_id != null ? row.related_id : form.related_id;
+      form.data_status = row && row.data_status != null ? row.data_status : (form.data_status || '0');
       form.new_flag = false;
       return form;
     },
@@ -5284,6 +5326,11 @@ comp.vue = new Vue({
         this.bomisParams.bnf_type_new_list = [];
       }
       this.bomisParams.benefitEditDialogVisible = true;
+      this.$nextTick(function () {
+        if (that.$refs.editOneBenefitForm) {
+          that.$refs.editOneBenefitForm.clearValidate();
+        }
+      });
     },
     // 外层受益人卡片的“修改”：卡片数据未拆分多选字段，需按 related_id 取核验数据源中的同一条记录
     showBenefitEditDialogByRelated: function (item) {

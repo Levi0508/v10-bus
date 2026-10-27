@@ -1,0 +1,219 @@
+{
+  "title": "反洗钱客户填报(syr_2)",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "links": "[\"wb/custom-made/vue/vue.js\",\"wb/custom-made/vue/element.js\",\"wb/custom-made/vue/element.css\"]"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1",
+        "layout": "middle"
+      },
+      "_expanded": true,
+      "events": {
+        "keydown": "if (e.keyCode == '13') {\n  app.seekBtn.fireClick()\n}"
+      },
+      "items": [
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "layout": "vcenter",
+            "padding": "20"
+          },
+          "_expanded": true,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "label",
+              "text": "label1",
+              "cls": "Wb.Label",
+              "properties": {
+                "cid": "label1",
+                "html": "<div style=\"font-size:15px;font-weight:bold;\">请输入完整的<font color=\"red\">【公司名称】</font>或者<font color=\"red\">【统一社会信用代码】</font>进行检索，如名称中含有括号的请使用<font color=\"red\">【全角】</font>，点击右侧搜索按钮进行模糊匹配</div>",
+                "alignSelf": "start",
+                "padding": "0 0 0 10px",
+                "visible": "false"
+              },
+              "_expanded": true,
+              "hasDupCid": 1
+            },
+            {
+              "_icon": "container",
+              "text": "container1",
+              "cls": "Wb.Container",
+              "properties": {
+                "cid": "container1",
+                "layout": "form-compact",
+                "gap": "0"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "container",
+                  "text": "container2",
+                  "cls": "Wb.Container",
+                  "properties": {
+                    "cid": "container2",
+                    "padding": "0 10px 0 0"
+                  },
+                  "events": {
+                    "ready": "let comp = this;\ncomp.vue = new Vue({\n  el: comp.el.addEl(),\n  template: `\n<div>\n  <div style=\"font-size:15px;font-weight:bold;width:1000px;\" v-if=\"organ_flag==='1'\">\n    请输入完整的<font color=\"red\">【公司名称】</font>或者<font color=\"red\">【统一社会信用代码】</font>进行检索，如名称中含有括号的请使用<font color=\"red\">【全角】</font>，点击右侧搜索按钮进行模糊匹配\n  </div>\n  <div style=\"font-size:15px;font-weight:bold;width:1000px;\" v-if=\"organ_flag==='0'\">\n    请输入完整的<font color=\"red\">【客户名称】</font>进行检索，如名称中含有括号的请使用<font color=\"red\">【全角】</font>\n  </div>\n  \n  <div style=\"margin-top: 15px; position: relative;\">\n    <el-autocomplete\n      ref=\"autoComplete\"\n      v-model=\"query\"\n      :fetch-suggestions=\"querySearch\"\n      :placeholder=\"placeholder\"\n      class=\"input-with-select\"\n      style=\"width: 100%;\"\n      @select=\"handleSelect\"\n      @keydown.native=\"handleKeydown\"\n    >\n      <el-select \n        v-model=\"organ_flag\" \n        slot=\"prepend\" \n        placeholder=\"请选择\" \n        style=\"width:100px\" \n        @change=\"handleChange\"\n      >\n        <el-option label=\"机构\" value=\"1\"></el-option>\n        <el-option label=\"自然人\" value=\"0\"></el-option>\n      </el-select>\n      \n      <el-button slot=\"append\" icon=\"el-icon-search\" @click=\"handleSearch(query)\"></el-button>\n    </el-autocomplete>\n  </div>\n</div>\n`,\n  data() {\n    return {\n      organ_flag: '1',\n      placeholder: '请输入完整的【公司名称】或者【统一社会信用代码】进行检索，如名称中含有括号的请使用【全角】',\n      query: '',\n      suggestions: [],\n      nameArr: []\n    };\n  },\n  methods: {\n    halfToFullWidth(str) {\n      return str.replace(/[()]/g, function (c) {\n        return String.fromCharCode(c.charCodeAt(0) + 0xFEE0);\n      });\n    },\n    maskIdNo(idNo) {\n      if (!idNo || typeof idNo !== 'string') { return idNo; }\n      const len = idNo.length;\n      let maskCount = 0;\n      let keepLength = 0;\n      if (len > 6) { maskCount = 6; keepLength = len - maskCount; }\n      else { maskCount = 4; keepLength = Math.max(0, len - maskCount); }\n      const stars = '*'.repeat(maskCount);\n      const prefix = idNo.slice(0, keepLength);\n      return prefix + stars;\n    },\n    handleChange(val) {\n      if (val === '1') {\n        this.placeholder = '请输入完整的【公司名称】或者【统一社会信用代码】进行检索，如名称中含有括号的请使用【全角】';\n      } else {\n        this.placeholder = '请输入完整的【客户姓名】进行检索，如名称中含有括号的请使用【全角】';\n      }\n      this.suggestions = [];\n    },\n\n    querySearch(queryString, cb) {\n      cb(this.suggestions);\n    },\n\n    handleSearch(query) {\n      let that = this;\n\n      if (!query) {\n        Wb.tipInfo(\"请输入检索内容\");\n        return;\n      }\n\n      // 机构查询\n      if (this.organ_flag === '1') {\n        let queryToFull = this.halfToFullWidth(query);\n\n        Wb.ajax({\n          url: 'm?xwl=aml_monitor/aml_interface/qcc_beneficiary_interface/fuzzySearch',\n          params: { SEARCH_KEY: queryToFull },\n          success(resp) {\n            let res = Wb.decode(resp).Result;\n\n            if (!res || res.length === 0) {\n              Wb.tipInfo(\"模糊匹配未查询到相关数据，请输入更详细内容\");\n              that.suggestions = [];\n              that.nameArr = [];\n              return;\n            }\n\n            // 2. 输入的不是完整内容 (需要展示下拉框)\n            let matchedItem = res.find(item => {\n              return item.Name === queryToFull || item.Name === query || item.CreditCode === queryToFull;\n            });\n\n            if (!matchedItem) {\n              that.nameArr = res.map(item => item.Name);\n              that.suggestions = that.nameArr.map(name => ({ value: name }));\n              that.$nextTick(() => {\n                const ac = that.$refs.autoComplete;\n                ac.suggestions = that.suggestions;\n                ac.dropdownVisible = true;\n                ac.focus();\n              })\n            }\n            // 3. 输入的是完整内容 (执行精确查询逻辑)\n            else {\n              let full_name = matchedItem.Name;\n              Wb.ajax({\n                url: 'm?xwl=aml_monitor/KYC01010/select',\n                params: {\n                  I_FULL_NAME: full_name,\n                  I_USER_ID: '_$sys.username$_'\n                },\n                success(resp) {\n                  console.log(\"resp\", Wb.decode(resp));\n                  let re = Wb.decode(resp).items;\n\n                  if (re[0] && re[0].user_flag == '0') {\n                    // case1 无查询权限\n                    Wb.error(\"当前用户无反洗钱客户填报权限，请联系合规管理员！\");\n                  } else if (re[0] && re[0].is_exists == '1') {\n                    // case2 客户已存在\n                    let clients = re.map(item => { return item.client_name + '：' + that.maskIdNo(item.id_no); }).join('<br/>');\n                    let tip = '【' + re[0].client_name + '】客户已存在，是否需要修改用户信息？<br/><br/>' + '<div style=\"color:#888;padding:0 0 20px 20px;\">' + clients + '<div>';\n\n                    Wb.Window.showMessage({\n                      title: '确认', html: tip, icon: 'help1', name: 'sys.dialog',\n                      buttons: [\n                        { text: '确定', type: 'primary', cid: 'edit' },\n                        { text: '取消', cid: 'cancel' }\n                      ], callback(btn) {\n                        if (btn == 'edit') {\n                          Wb.open({\n                            url: 'm?xwl=aml_monitor/KYC01010/client_edit',\n                            params: {\n                              CLIENT_ID: re[0].client_id,\n                              CLIENT_NAME: re[0].client_name,\n                              ORGAN_FLAG: re[0].organ_flag,\n                              CLIENT_STATUS: re[0].client_status,\n                              CLIENT_BELONG: re[0].client_belong,\n                              FK_FLAG: re[0].fk_flag, // 为0时反馈结果不可见 1时可见\n                              DATA_TYPE: re[0].data_status\n                            },\n                            title: '客户基本信息详情',\n                            success() {\n                            }\n                          });\n                        }\n                        this.close();\n                      }\n                    });\n                  } else if (re[0] && re[0].is_exists == '0') {\n                    // case3 客户不存在\n                    Wb.confirm(\"客户未填报，是否需要新增？\", function () {\n                      app.ORGAN_FLAG.setValue(1);\n                      app.FK_FLAG.setValue(re[0].fk_flag);\n                      app.CLIENT_ID.setValue(re[0].client_id);\n                      app.CLIENT_NAME.setValue(full_name);\n                      app.addWin.show();\n                    });\n                  }\n                  that.suggestions = []; // 选中后清空建议\n                }\n              });\n            }\n          }\n        });\n      }\n      // 自然人查询\n      else if (this.organ_flag === '0') {\n        Wb.ajax({\n          url: 'm?xwl=aml_monitor/KYC01010/select',\n          params: {\n            I_FULL_NAME: query,\n            I_USER_ID: '_$sys.username$_'\n          },\n          success(resp) {\n            let re = Wb.decode(resp).items;\n\n            if (re[0] && re[0].user_flag == '0') {\n              // case1 无查询权限\n              Wb.error(\"当前用户无反洗钱客户填报权限，请联系合规管理员！\");\n            } else if (re[0] && re[0].is_exists == '1') {\n              // case2 客户已存在\n              let clientOptions = re.map((item, index) => {\n                return '<div style=\"margin: 8px 0;\"><label style=\"cursor:pointer;\">' +\n                  '<input type=\"radio\" name=\"clientRadio\" value=\"' + index + '\" style=\"margin-right: 8px;\">' +\n                  item.client_name + '：' + that.maskIdNo(item.id_no) +\n                  '</label></div>';\n              }).join('');\n              let tip = '【' + re[0].client_name + '】客户已存在，是否需要修改用户信息？<br/><br/>' +\n                '<div style=\"color:#888;padding:0 0 10px 20px;\">' + clientOptions + '</div>';\n              Wb.Window.showMessage({\n                title: '确认', html: tip, icon: 'help1', name: 'sys.dialog',\n                buttons: [\n                  { text: '确定', type: 'primary', cid: 'edit' },\n                  { text: '新增', type: 'primary', cid: 'add' },\n                  { text: '取消', cid: 'cancel' }\n                ], callback(btn) {\n                  if (btn == 'edit') {\n                    let selectedRadio = document.querySelector('input[name=\"clientRadio\"]:checked');\n                    if (!selectedRadio) {\n                      Wb.tipError(\"请勾选 1 条要修改的客户信息\");\n                      return false;\n                    }\n                    let selectedIndex = parseInt(selectedRadio.value);\n                    let selectedClient = re[selectedIndex];\n                    Wb.open({\n                      url: 'm?xwl=aml_monitor/KYC01010/client_edit',\n                      params: {\n                        CLIENT_ID: selectedClient.client_id,\n                        CLIENT_NAME: selectedClient.client_name,\n                        ORGAN_FLAG: selectedClient.organ_flag,\n                        CLIENT_STATUS: selectedClient.client_status,\n                        CLIENT_BELONG: selectedClient.client_belong,\n                        FK_FLAG: selectedClient.fk_flag, // 为0时反馈结果不可见 1时可见\n                        DATA_TYPE: selectedClient.data_status\n                      },\n                      title: '客户基本信息详情',\n                      success() {\n                      }\n                    });\n                  } else if (btn == 'add') {\n                    Wb.ajax({\n                      url: 'm?xwl=aml_monitor/KYC01010/new_client_id',\n                      success(resp) {\n                        let new_client_id = Wb.decode(resp).items[0].v_client_id;\n                        app.ORGAN_FLAG.setValue(0);\n                        app.FK_FLAG.setValue(re[0].fk_flag);\n                        app.CLIENT_ID.setValue(new_client_id);\n                        app.CLIENT_NAME.setValue(re[0].client_name);\n                        app.addWin.show();\n                      }\n                    }) \n                  }\n                  this.close();\n                }\n              });\n            } else if (re[0] && re[0].is_exists == '0') {\n              // case3 客户不存在\n              Wb.confirm(\"客户未填报，是否需要新增？\", function () {\n                app.FK_FLAG.setValue(re[0].fk_flag);\n                app.CLIENT_ID.setValue(re[0].client_id);\n                app.CLIENT_NAME.setValue(that.query);\n                app.ORGAN_FLAG.setValue(0);\n                app.addWin.show();\n              });\n            }\n          }\n        });\n      }\n    },\n    handleKeydown(event) {\n      if (event.key === 'Enter') {\n        event.preventDefault();\n        event.stopPropagation();\n        this.handleSearch(this.query);\n      }\n    },\n    handleSelect(item) {\n      console.log(\"选中了:\", item);\n      this.query = item.value;\n      this.handleSearch(item.value);\n    }\n  },\n  created: function () {\n    const today = new Date();\n    const year = today.getFullYear();\n    const month = String(today.getMonth() + 1).padStart(2, '0');\n    const day = String(today.getDate()).padStart(2, '0');\n  },\n});"
+                  },
+                  "_expanded": true
+                }
+              ]
+            },
+            {
+              "_icon": "window",
+              "text": "addWin",
+              "cls": "Wb.Window",
+              "_expanded": true,
+              "properties": {
+                "cid": "addWin",
+                "title": "客户新增",
+                "dialog": "true",
+                "width": "500",
+                "padding": "20"
+              },
+              "events": {
+                "ok": "if (app.ORGAN_FLAG.value == -1 || app.ORGAN_FLAG.value == null) {\n  Wb.tipError(\"请选择客户类型！\");\n  return;\n}\n\nWb.open({\n  url: 'm?xwl=syr_2/client_add_clf20261026',\n  params: {\n    CLIENT_ID: app.CLIENT_ID.value,\n    CLIENT_NAME: app.CLIENT_NAME.value,\n    ORGAN_FLAG: app.ORGAN_FLAG.value,\n    CLIENT_BELONG: app.CLIENT_BELONG.value,\n    FK_FLAG: app.FK_FLAG.value,\n    CLIENT_STATUS: '0',// 首次添加默认正常\n  },\n  title: '填写客户信息',\n  success() {\n    app.addWin.hide()\n  }\n});"
+              },
+              "items": [
+                {
+                  "_icon": "radios",
+                  "text": "ORGAN_FLAG",
+                  "cls": "Wb.RadioGroup",
+                  "properties": {
+                    "cid": "ORGAN_FLAG",
+                    "text": "客户类型",
+                    "required": "true",
+                    "padding": "10"
+                  },
+                  "events": {
+                    "change": "console.log(app.ORGAN_FLAG.value);"
+                  },
+                  "_expanded": false,
+                  "items": [
+                    {
+                      "_icon": "check2",
+                      "text": "radio1",
+                      "cls": "Wb.Radio",
+                      "properties": {
+                        "cid": "radio1",
+                        "label": "自然人",
+                        "required": "true"
+                      },
+                      "hasDupCid": 0,
+                      "_expanded": true
+                    },
+                    {
+                      "_icon": "check2",
+                      "text": "radio2",
+                      "cls": "Wb.Radio",
+                      "properties": {
+                        "cid": "radio2",
+                        "label": "机构",
+                        "required": "true"
+                      },
+                      "hasDupCid": 0,
+                      "_expanded": true
+                    }
+                  ]
+                },
+                {
+                  "_icon": "label",
+                  "text": "label1",
+                  "cls": "Wb.Label",
+                  "properties": {
+                    "cid": "label1",
+                    "html": "<div style=\"color:#d75a4a;padding-left:105px;\">请确认客户类型是否准确，已填写类型后续无法修改</div>"
+                  },
+                  "hasDupCid": 1
+                },
+                {
+                  "_icon": "radios",
+                  "text": "CLIENT_BELONG",
+                  "cls": "Wb.RadioGroup",
+                  "properties": {
+                    "cid": "CLIENT_BELONG",
+                    "text": "客户归属",
+                    "required": "true",
+                    "padding": "10"
+                  },
+                  "events": {
+                    "change": "console.log(app.CLIENT_BELONG.value);"
+                  },
+                  "_expanded": false,
+                  "items": [
+                    {
+                      "_icon": "check2",
+                      "text": "radio4",
+                      "cls": "Wb.Radio",
+                      "properties": {
+                        "cid": "radio4",
+                        "label": "融资端",
+                        "value": "true"
+                      },
+                      "hasDupCid": 0
+                    }
+                  ]
+                },
+                {
+                  "_icon": "text",
+                  "text": "CLIENT_ID",
+                  "cls": "Wb.Text",
+                  "properties": {
+                    "cid": "CLIENT_ID",
+                    "text": "客户号（隐藏）",
+                    "visible": "false",
+                    "readonly": "true"
+                  }
+                },
+                {
+                  "_icon": "text",
+                  "text": "CLIENT_NAME",
+                  "cls": "Wb.Text",
+                  "properties": {
+                    "cid": "CLIENT_NAME",
+                    "text": "客户名称（隐藏）",
+                    "visible": "false",
+                    "readonly": "true"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "text",
+                  "text": "FK_FLAG",
+                  "cls": "Wb.Text",
+                  "properties": {
+                    "cid": "FK_FLAG",
+                    "text": "是否具有风险核查页面查看权限（隐藏）",
+                    "visible": "false",
+                    "readonly": "true"
+                  },
+                  "_expanded": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

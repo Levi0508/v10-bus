@@ -1,0 +1,2172 @@
+// 预览页 mainContainer → events.ready（只读展示，与审核主区一致）
+// 粘贴目标：syr_2/base_preview_clf*.xwl 内 cid=mainContainer
+// 维护：与 demo_appr.txt 同步更新（内容应保持一致）
+let comp = this;
+comp.vue = new Vue({
+  el: comp.el.addEl(),
+  template: `
+<div style="height:100%">
+  <div class="main-container" style="display:flex">
+    <div class="left-panel">
+      <el-tabs v-model="activeNav" @tab-click="handleClick" tab-position="left">
+        <el-tab-pane v-for="(item, index) in navList" :label="item.label" :name="item.value"></el-tab-pane>
+      </el-tabs>
+    </div>
+    <div v-if="loading" class="right-panel">
+      <el-loading v-loading="loading" element-loading-text="页面加载中，若长时间无响应，请关闭后重试"
+        element-loading-spinner="el-icon-loading" style="display:inline-block;height:100%;width:100%"></el-loading>
+    </div>
+    <div v-else class="right-panel" @scroll="onScroll" style="overflow-y:scroll;">
+      <p style="color:#F56C6C;padding-left:20px;">
+        注1：证照、身份证等有效期如果为“长期”、“永久”等，请在证照/身份证有效期截止选择“2100-12-31”。<br/>
+        注2：如果没有相关信息需要填写，请留白，不需要填写“不适用”、“无”等字段。<br/>
+        注3：附件上传后即为保存，将不允许修改和删除，如有错误可用新的同名文件更新替换。
+      </p>
+      <!--客户基本信息-->
+      <el-card class="box-card" :name="'basicInfo'+this._uid">
+        <div slot="header" class="clearfix">
+          <span>客户基本信息</span>
+        </div>
+        <div>
+          <!--个人-->
+          <el-form v-if="organ_flag==='0'" :model="ruleForm2" label-width="120px" class="basic-info-form">
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex"><span class="client-label">姓名</span><div>{{basicInfo.client_name|| '-'}}</div></div>
+              <div class="info-row-flex"><span class="client-label">联系地址</span><div>{{basicInfo.province2||''}}{{basicInfo.city2||''}}{{basicInfo.district2||''}}{{basicInfo.address||'-'}}</div></div>
+            </el-row>
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex"><span class="client-label">国籍</span><div>{{formatDictMap('nationality_list',basicInfo.nationality)||'-'}}</div></div>
+              <div class="info-row-flex"><span class="client-label">性别</span><div>{{(basicInfo.gender=='1'?'男':basicInfo.gender=='2'?'女':'未知')|| '-'}}</div></div>
+              <div class="info-row-flex"><span class="client-label">出生年月</span><div>{{basicInfo.birthday|| '-'}}</div></div>
+            </el-row>
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex"><span class="client-label">联系电话</span><div>{{basicInfo.tel|| '-'}}</div></div>
+              <div class="info-row-flex"><span class="client-label">年收入</span><div>{{formatDictMap('year_income_list',String(basicInfo.income))|| '-'}}</div></div>
+              <div class="info-row-flex"><span class="client-label">职业分类</span><div>{{formatDictMap('profession_code_list',basicInfo.profession_code)|| '-'}}</div></div>
+            </el-row>
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex"><span class="client-label">身份证件类型</span><div>{{formatDictMap('id_type_list',basicInfo.id_type)|| '-'}}</div></div>
+              <div class="info-row-flex"><span class="client-label">证件号码</span><div>{{basicInfo.id_no|| '-'}}</div></div>
+            </el-row>
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex"><span class="client-label">证件有效期</span><div>{{basicInfo.id_begindate|| '-'}}至{{basicInfo.id_enddate|| '-'}}</div></div>
+            </el-row>
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex"><span class="client-label">证件地址</span><div>{{basicInfo.province1||''}}{{basicInfo.city1||''}}{{basicInfo.district1||''}}{{basicInfo.address||'-'}}</div></div>
+            </el-row>
+          </el-form>
+          <!--机构-->
+          <el-form v-if="organ_flag==='1'" :model="ruleForm1" label-width="120px" class="basic-info-form">
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex">
+                <span class="client-label">客户名称</span>
+                <div>{{basicInfo.client_name|| '-'}}<div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.name}}</div></div>
+              </div>
+              <div class="info-row-flex">
+                <span class="client-label">办公住所</span>
+                <div>
+                  {{basicInfo.province||''}}{{basicInfo.city||''}}{{basicInfo.district||''}}{{basicInfo.office_address||'-'}}
+                  <div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.office_address}}</div>
+                </div>
+              </div>
+            </el-row>
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex">
+                <span class="client-label">注册国家地区</span>
+                <div>
+                  {{formatDictMap('nationality_list',basicInfo.register_country)|| '-'}}
+                  <div class="qcc_check" v-show="gshcInfoVisible">{{''}}</div>
+                </div>
+              </div>
+              <div class="info-row-flex">
+                <span class="client-label">注册资本币种</span>
+                <div>
+                  {{basicInfo.register_money_type}}
+                  <div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.register_money_type}}</div>
+                </div>
+              </div>
+              <div class="info-row-flex">
+                <span class="client-label">注册资本金</span>
+                <div>
+                  {{basicInfo.register_fund?formatMoney(basicInfo.register_fund,'4'): '-'}}万元
+                  <div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.register_fund}}</div>
+                </div>
+              </div>
+            </el-row>
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex">
+                <span class="client-label">行业分类</span>
+                <div>{{formatDictMap('industry_type_list',basicInfo.industry_type)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="basicInfo.industry_type=='26'">
+                <span class="client-label">行业注明</span>
+                <div>{{basicInfo.industry_name}}</div>
+              </div>
+              <div class="info-row-flex">
+                <span class="client-label">联系电话</span>
+                <div>{{basicInfo.tel|| '-'}}</div>
+              </div>
+              <div class="info-row-flex">
+                <span class="client-label">成立日期</span>
+                <div>{{basicInfo.setup_date|| '-'}}<div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.setup_date}}</div></div>
+              </div>
+            </el-row>
+            <el-row :gutter="20" class="info-row">
+              <div class="info-row-flex">
+                <span class="client-label">证照类型</span>
+                <div>{{formatDictMap('id_type_list',basicInfo.id_type)|| '-'}}<div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.id_type==='3'?'营业执照':''}}</div></div>
+              </div>
+              <div class="info-row-flex">
+                <span class="client-label">证照号码</span>
+                <div>{{basicInfo.id_no|| '-'}}<div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.id_type==='3'?gshcInfo.id_no:''}}</div></div>
+              </div>
+              <div class="info-row-flex">
+                <span class="client-label"></span>
+                <div><div class="qcc_check" v-show="gshcInfoVisible"></div></div>
+              </div>
+              <!---->
+            </el-row>
+            <el-row class="info-row">
+              <div class="info-row-flex">
+                <span class="client-label">证照有效期</span>
+                <div>{{basicInfo.id_begindate|| '-'}}至{{basicInfo.id_enddate|| '-'}}<div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.id_begindate|| '-'}}至{{gshcInfo.id_enddate|| '-'}}</div></div>
+              </div>
+            </el-row>
+            <el-row class="info-row">
+              <div class="info-row-flex">
+                <span class="client-label">经营范围</span>
+                <div>
+                  {{basicInfo.busi_scope|| '-'}}
+                  <div class="qcc_check" v-show="gshcInfoVisible">{{gshcInfo.busi_scope|| '-'}}</div>
+                </div>
+            </el-row>
+          </el-form>
+        </div>
+        <div class="attachment-section">
+          <span>附件信息</span>
+          <!--<el-tooltip 
+            class="item" 
+            effect="dark" 
+            content="" 
+            placement="right">
+            <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          </el-tooltip>-->
+          <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          <span style="color:#F56C6C;">请上传基本信息表签章版、客户营业执照复印件、客户公司章程复印件、在工商外部数据库（如“企查查”）查验的报告。</span>
+          <el-table :data="attachmentList.basicInfo" border style="width: 100%; margin-top: 10px;" :default-sort = "{prop: 'date', order: 'descending'}">
+            <el-table-column prop="name" label="附件名称" sortable>
+              <template slot-scope="scope">
+                <el-button type="text" @click="handlePreview(scope.row)" class="attachment-btn">
+                  {{ scope.row.name }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column prop="extension" label="附件类型" width="80"></el-table-column>
+            <el-table-column prop="create_time" label="上传时间" width="180" sortable></el-table-column>
+            <el-table-column prop="file_size" label="附件大小" width="100" sortable>
+              <template slot-scope="scope">
+                {{ formatSize(scope.row.file_size) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="create_by" label="上传人" width="150" sortable></el-table-column>
+            <el-table-column label="操作" width="100">
+              <template slot-scope="scope">
+                <div class="operation-buttons">
+                  <el-tooltip content="预览">
+                    <el-button type="text" class="el-icon-view" @click="handlePreview(scope.row)"></el-button>
+                  </el-tooltip>
+                  <el-tooltip content="下载">
+                    <el-button type="text" class="el-icon-download" @click="handleDownload(scope.row)"></el-button>
+                  </el-tooltip>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
+      <!--反洗钱特殊情况申请-->
+      <el-card class="box-card" :name="'fxqSpecial'+this._uid">
+        <el-form :model="ruleForm3" ref="ruleForm3" style="padding:20px;" label-position="top" disabled>
+          <el-form-item label="是否存在反洗钱特殊情况申请" prop="is_special" label-width="200">
+            <el-radio-group v-model="basicInfo.is_special">
+              <el-radio label="1">是</el-radio>
+              <el-radio label="0">否</el-radio>
+            </el-radio-group>
+            <div style="color:#f56c6c;">如目前存在未获取的反洗钱信息或底稿材料，请选择“是”</div>
+          </el-form-item>
+          <!--表单内容-->
+          <div v-if="basicInfo.is_special=='1'">
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <!--<el-form-item label="客户类型" prop="client_type">
+                  <el-select size="medium" v-model="client_type_arr" multiple placeholder="请选择">
+                    <el-option v-for="item in selectList.client_type_list" :key="item.k" :label="item.v"
+                      :value="item.k">
+                    </el-option>
+                  </el-select>
+                </el-form-item>-->
+                <el-form-item label="客户类型" prop="client_type">
+                  <el-checkbox-group v-model="client_type_arr">
+                    <el-checkbox v-for="item in selectList.client_type_list" :key="item.k" :label="item.k">
+                      {{ item.v }}
+                    </el-checkbox>
+                  </el-checkbox-group>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="具体说明" prop="client_type_other" v-if="basicInfo.client_type.indexOf('99')!==-1">
+                  <el-input size="medium" v-model="basicInfo.client_type_other">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <!--<el-form-item label="特殊事项" prop="special_matters">
+                  <el-select size="medium" v-model="special_matters_arr" multiple placeholder="请选择">
+                    <el-option v-for="item in selectList.special_matters_list" :key="item.k" :label="item.v"
+                      :value="item.k">
+                    </el-option>
+                  </el-select>
+                </el-form-item>-->
+                <el-form-item label="特殊事项" prop="special_matters">
+                  <el-checkbox-group v-model="special_matters_arr">
+                    <el-checkbox v-for="item in selectList.special_matters_list" :key="item.k" :label="item.k">
+                      {{ item.v }}
+                    </el-checkbox>
+                  </el-checkbox-group>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+              </el-col>
+            </el-row>
+            <el-form-item label="具体说明缺失的信息" prop="missing_information" v-if="basicInfo.special_matters.indexOf('1')!==-1">
+              <el-input size="medium" v-model="basicInfo.missing_information">
+              </el-input>
+            </el-form-item>
+            <el-form-item label="具体说明缺失的底稿" prop="missing_draft" v-if="basicInfo.special_matters.indexOf('2')!==-1">
+              <el-input size="medium" v-model="basicInfo.missing_draft">
+              </el-input>
+            </el-form-item>
+            <el-form-item label="具体说明" prop="special_matters_other" v-if="basicInfo.special_matters.indexOf('99')!==-1">
+              <el-input size="medium" v-model="basicInfo.special_matters_other">
+              </el-input>
+            </el-form-item>
+            <el-form-item label="特殊事项原因" prop="special_reason">
+              <el-input size="medium" type="textarea" autosize v-model="basicInfo.special_reason">
+              </el-input>
+            </el-form-item>
+            <el-form-item label="已开展的反洗钱尽职调查工作" prop="completed_cdd">
+              <el-input size="medium" type="textarea" autosize v-model="basicInfo.completed_cdd">
+              </el-input>
+            </el-form-item>
+            <el-form-item label="客户洗钱风险较低的评估说明" prop="low_risk_explanation">
+              <el-input size="medium" type="textarea" autosize v-model="basicInfo.low_risk_explanation">
+              </el-input>
+            </el-form-item>
+            <el-form-item label="后续措施" prop="take_measures">
+              <el-input size="medium" type="textarea" autosize v-model="basicInfo.take_measures">
+              </el-input>
+            </el-form-item>
+          </div>
+          <!--附件内容-->
+          <div v-if="basicInfo.is_special=='1'">
+            <div style="font-weight:blod;font-size:15px;padding-bottom:20px;">附件</div>
+            <el-row :gutter="5" style="padding-bottom:20px;">
+              <el-col :span="4">
+                <font color="#F56C6C">*&nbsp;</font>与客户沟通记录
+              </el-col>
+              <el-col :span="20">
+                <!--<el-upload class="upload-demo" ref="upload"
+                  action="m?xwl=aml_monitor/workflow/prs01/dataSource/files/upload_file1" name="file1"
+                  header="{content-type:'text/html'}" :data="uploadParams" :file-list="attachmentList.communication"
+                  :auto-upload="true" :on-change="handleChange" :on-remove="handleRemove" multiple>
+                </el-upload>-->
+                <div v-if="attachmentList.communication.length === 0" style="color:#909399;font-size:14px;">暂无附件</div>
+                <div v-else class="custom-file-list">
+                  <div v-for="file in attachmentList.communication" :key="file.id" style="display:flex;justify-content:space-between;padding-bottom:5px;">
+                    <span class="file-name" @click="handlePreview(file)" style="cursor: pointer;color:#333333;">
+                      <i class="el-icon-document"></i> {{ file.name }}.{{file.extension }}
+                    </span>
+                    <div>
+                      <i class="el-icon-view" @click="handlePreview(file)" style="color:#1890ff;cursor: pointer;"></i>
+                      <i class="el-icon-download" @click="handleDownload(file)" style="color:#1890ff;cursor: pointer;"></i>
+                    </div>
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+            <el-row :gutter="5" style="padding-bottom:20px;">
+              <el-col :span="4">
+                <font color="#F56C6C">*&nbsp;</font>二级部门负责人同意的记录
+              </el-col>
+              <el-col :span="20">
+                <!--<el-upload class="upload-demo" ref="upload"
+                  action="m?xwl=aml_monitor/workflow/prs01/dataSource/files/upload_file1" name="file1"
+                  header="{content-type:'text/html'}" :data="uploadParams" :file-list="attachmentList.agree"
+                  :auto-upload="true" :on-change="handleChange" :on-remove="handleRemove" multiple>
+                </el-upload>-->
+                <div v-if="attachmentList.communication.length === 0" style="color:#909399;font-size:14px;">暂无附件</div>
+                <div v-else class="custom-file-list">
+                  <div v-for="file in attachmentList.agree" :key="file.id" style="display:flex;justify-content:space-between;padding-bottom:5px;">
+                    <span class="file-name" @click="handlePreview(file)" style="cursor: pointer;color:#333333;">
+                      <i class="el-icon-document"></i> {{ file.name }}.{{file.extension }}
+                    </span>
+                    <div>
+                      <i class="el-icon-view" @click="handlePreview(file)" style="color:#1890ff;cursor: pointer;"></i>
+                      <i class="el-icon-download" @click="handleDownload(file)" style="color:#1890ff;cursor: pointer;"></i>
+                    </div>
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+            <el-row :gutter="5" style="padding-bottom:20px;">
+              <el-col :span="4">
+                <font>&nbsp;&nbsp;</font>其他底稿
+              </el-col>
+              <el-col :span="20">
+                <!--<el-upload class="upload-demo" ref="upload"
+                  action="m?xwl=aml_monitor/workflow/prs01/dataSource/files/upload_file1" name="file1"
+                  header="{content-type:'text/html'}" :data="uploadParams" :file-list="attachmentList.other"
+                  :auto-upload="true" :on-change="handleChange" :on-remove="handleRemove" multiple>
+                </el-upload>-->
+                <div v-if="attachmentList.other.length === 0" style="color:#909399;font-size:14px;">暂无附件</div>
+                <div v-else class="custom-file-list">
+                  <div v-for="file in attachmentList.other" :key="file.id" style="display:flex;justify-content:space-between;padding-bottom:5px;">
+                    <span class="file-name" @click="handlePreview(file)" style="cursor: pointer;color:#333333;">
+                      <i class="el-icon-document"></i> {{ file.name }}.{{file.extension }}
+                    </span>
+                    <div>
+                      <i class="el-icon-view" @click="handlePreview(file)" style="color:#1890ff;cursor: pointer;"></i>
+                      <i class="el-icon-download" @click="handleDownload(file)" style="color:#1890ff;cursor: pointer;"></i>
+                    </div>
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+        </el-form>
+      </el-card>
+      <!--法定代表人-->
+      <el-card class="box-card" :name="'LegalRep'+this._uid" v-if="organ_flag==='1'">
+        <div slot="header" class="clearfix">
+          <span>法定代表人相关信息</span>
+        </div>
+        <div v-if="relatedInfo1.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
+        <el-card v-for="item in relatedInfo1" :key="item.related_id" class="relat-card">
+          <div class="client-info">
+            <div class="client-title">
+              <div>
+                <span>{{item.related_name|| '-'}}</span>
+                <el-tag type="success" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='0'">
+                  自然人</el-tag>
+                <el-tag type="" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='1'">法人
+                </el-tag>
+              </div>
+            </div>
+
+            <el-row :gutter="10" class="info-row">
+              <div class="info-row-flex" v-if="item.organ_flag=='1'"><label>国家或地区</label>
+                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="item.organ_flag=='0'"><label>国籍</label>
+                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件类型</label>
+                <div>{{formatDictMap('id_type_list',item.id_type)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件号码</label>
+                <div>{{item.id_no|| '-'}}</div>
+              </div>
+            </el-row>
+
+            <el-row :gutter="10" class="info-row">
+              <div class="info-row-flex"><label>证件有效期</label>
+                <div>{{item.id_begindate|| '-'}}至{{item.id_enddate|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>出生年月</label>
+                <div>{{item.birthday|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>联系方式</label>
+                <div>{{item.mobno1|| '-'}}</div>
+              </div>
+            </el-row>
+          </div>
+        </el-card>
+        <!-- 附件信息表 -->
+        <div style="padding-top:10px;">
+          <span>附件信息</span>
+          <!--<el-tooltip 
+            class="item" 
+            effect="dark" 
+            content="" 
+            placement="right">
+            <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          </el-tooltip>-->
+          <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          <span style="color:#F56C6C;">请上传法定代表人身份证明文件的复印件</span>
+          <el-table :data="attachmentList.LegalRep" border style="width: 100%;margin-top:10px;" :default-sort = "{prop: 'date', order: 'descending'}">
+            <el-table-column prop="name" label="附件名称" sortable>
+              <template slot-scope="scope">
+                <el-button type="text" @click="handlePreview(scope.row)" class="attachment-btn">
+                  {{ scope.row.name }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column prop="extension" label="附件类型" width="80" />
+            <el-table-column prop="create_time" label="上传时间" width="180" sortable/>
+            <el-table-column prop="file_size" label="附件大小" width="100" sortable>
+              <template slot-scope="scope">
+                {{ formatSize(scope.row.file_size) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="create_by" label="上传人" width="150" sortable/>
+            <el-table-column label="操作" width="100">
+              <template slot-scope="scope">
+                <div class="operation-buttons">
+                  <el-tooltip content="预览">
+                    <el-button type="text" class="el-icon-view" @click="handlePreview(scope.row)"></el-button>
+                  </el-tooltip>
+                  <el-tooltip content="下载">
+                    <el-button type="text" class="el-icon-download" @click="handleDownload(scope.row)"></el-button>
+                  </el-tooltip>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
+      <!--控股股东-->
+      <el-card class="box-card" :name="'controllingShareholder'+this._uid" v-if="organ_flag==='1'">
+        <div slot="header" class="clearfix">
+          <span>控股股东相关信息</span>
+        </div>
+        <div v-if="relatedInfo2.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
+        <el-card v-for="item in relatedInfo2" :key="item.related_id" style="margin-bottom:10px;" class="relat-card">
+          <div class="client-info">
+            <div class="client-title">
+              <div>
+                <span>{{item.related_name|| '-'}}</span>
+                <el-tag type="success" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='0'">
+                  自然人</el-tag>
+                <el-tag type="" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='1'">法人
+                </el-tag>
+              </div>
+            </div>
+
+            <el-row :gutter="10" class="info-row">
+              <div class="info-row-flex" v-if="item.organ_flag=='1'"><label>国家或地区</label>
+                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="item.organ_flag=='0'"><label>国籍</label>
+                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件类型</label>
+                <div>{{formatDictMap('id_type_list',item.id_type)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件号码</label>
+                <div>{{item.id_no|| '-'}}</div>
+              </div>
+            </el-row>
+
+            <el-row :gutter="10" class="info-row">
+              <div class="info-row-flex"><label>证件有效期起始</label>
+                <div>{{item.id_begindate|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件有效期截止</label>
+                <div>{{item.id_enddate|| '-'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="item.organ_flag==='1'"><label>是否政府部门</label>
+                <div>{{item.is_government_dept==='1'?'是':'否'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="item.organ_flag==='0'"><label>出生年月</label>
+                <div>{{item.birthday || '-'}}</div>
+              </div>
+            </el-row>
+          </div>
+        </el-card>
+        <!-- 附件信息表 -->
+        <div style="padding-top:10px;">
+          <span>附件信息</span>
+          <!--<el-tooltip 
+            class="item" 
+            effect="dark" 
+            content="" 
+            placement="right">
+            <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          </el-tooltip>-->
+          <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          <span style="color:#F56C6C;">请上传营业执照复印件（控股股东如为非自然人-公司）、控股股东身份证明文件的复印件（如为自然人）</span>
+          <el-table :data="attachmentList.controllingShareholder" border style="width: 100%;margin-top:10px;" :default-sort = "{prop: 'date', order: 'descending'}">
+            <el-table-column prop="name" label="附件名称" sortable>
+              <template slot-scope="scope">
+                <el-button type="text" @click="handlePreview(scope.row)" class="attachment-btn">
+                  {{ scope.row.name }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column prop="extension" label="附件类型" width="80"/>
+            <el-table-column prop="create_time" label="上传时间" width="180" sortable/>
+            <el-table-column prop="file_size" label="附件大小" width="100" sortable>
+              <template slot-scope="scope">
+                {{ formatSize(scope.row.file_size) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="create_by" label="上传人" width="150" sortable/>
+            <el-table-column label="操作" width="100">
+              <template slot-scope="scope">
+                <div class="operation-buttons">
+                  <el-tooltip content="预览">
+                    <el-button type="text" class="el-icon-view" @click="handlePreview(scope.row)"></el-button>
+                  </el-tooltip>
+                  <el-tooltip content="下载">
+                    <el-button type="text" class="el-icon-download" @click="handleDownload(scope.row)"></el-button>
+                  </el-tooltip>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
+      <!--实际控制人-->
+      <el-card class="box-card" :name="'actualController'+this._uid" v-if="organ_flag==='1'">
+        <div slot="header" class="clearfix">
+          <span>实际控制人相关信息</span>
+        </div>
+        <div v-if="relatedInfo3.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
+        <el-card v-for="item in relatedInfo3" :key="item.related_id" style="margin-bottom:10px;" class="relat-card">
+          <div class="client-info">
+            <div class="client-title">
+              <div>
+                <span>{{item.related_name|| '-'}}</span>
+                <el-tag type="success" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='0'">自然人</el-tag>
+                <el-tag type="" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='1'">法人</el-tag>
+              </div>
+            </div>
+
+            <el-row :gutter="10" class="info-row">
+              <div class="info-row-flex" v-if="item.organ_flag=='1'"><label>国家或地区</label>
+                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="item.organ_flag=='0'"><label>国籍</label>
+                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件类型</label>
+                <div>{{formatDictMap('id_type_list',item.id_type)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件号码</label>
+                <div>{{item.id_no|| '-'}}</div>
+              </div>
+            </el-row>
+
+            <el-row :gutter="10" class="info-row">
+              <div class="info-row-flex"><label>证件有效期起始</label>
+                <div>{{item.id_begindate|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件有效期截止</label>
+                <div>{{item.id_enddate|| '-'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="item.organ_flag==='1'"><label>是否政府部门</label>
+                <div>{{item.is_government_dept==='1'?'是':'否'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="item.organ_flag==='0'"><label>出生年月</label>
+                <div>{{item.birthday || '-'}}</div>
+              </div>
+            </el-row>
+          </div>
+        </el-card>
+        <!-- 附件信息表 -->
+        <div style="padding-top:10px;">
+          <span>附件信息</span>
+          <!--<el-tooltip 
+            class="item" 
+            effect="dark" 
+            content="" 
+            placement="right">
+            <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          </el-tooltip>-->
+          <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          <span style="color:#F56C6C;">请上传营业执照复印件（实际控制人如为非自然人-公司）、实际控制人身份证明文件的复印件（如为自然人）</span>
+          <el-table :data="attachmentList.actualController" border style="width: 100%;margin-top:10px;" :default-sort = "{prop: 'date', order: 'descending'}">
+            <el-table-column prop="name" label="附件名称" sortable>
+              <template slot-scope="scope">
+                <el-button type="text" @click="handlePreview(scope.row)" class="attachment-btn">
+                  {{ scope.row.name }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column prop="extension" label="附件类型" width="80" />
+            <el-table-column prop="create_time" label="上传时间" width="180" sortable/>
+            <el-table-column prop="file_size" label="附件大小" width="100" sortable>
+              <template slot-scope="scope">
+                {{ formatSize(scope.row.file_size) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="create_by" label="上传人" width="150" sortable/>
+            <el-table-column label="操作" width="100">
+              <template slot-scope="scope">
+                <div class="operation-buttons">
+                  <el-tooltip content="预览">
+                    <el-button type="text" class="el-icon-view" @click="handlePreview(scope.row)"></el-button>
+                  </el-tooltip>
+                  <el-tooltip content="下载">
+                    <el-button type="text" class="el-icon-download" @click="handleDownload(scope.row)"></el-button>
+                  </el-tooltip>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
+      <!--授权代表人-->
+      <el-card class="box-card" :name="'authorizedRep'+this._uid" v-if="organ_flag==='1'">
+        <div slot="header" class="clearfix">
+          <span>授权代表人相关信息</span>
+        </div>
+        <div v-if="relatedInfo4.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
+        <el-card v-for="item in relatedInfo4" :key="item.related_id" class="relat-card">
+          <div class="client-info">
+            <div class="client-title">
+              <div>
+                <span>{{item.related_name|| '-'}}</span>
+                <el-tag type="success" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='0'">
+                  自然人</el-tag>
+                <el-tag type="" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='1'">法人
+                </el-tag>
+              </div>
+            </div>
+
+            <el-row :gutter="10" class="info-row">
+              <div class="info-row-flex" v-if="item.organ_flag=='1'"><label>国家或地区</label>
+                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex" v-if="item.organ_flag=='0'"><label>国籍</label>
+                <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件类型</label>
+                <div>{{formatDictMap('id_type_list',item.id_type)|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>证件号码</label>
+                <div>{{item.id_no|| '-'}}</div>
+              </div>
+            </el-row>
+
+            <el-row :gutter="10" class="info-row">
+              <div class="info-row-flex"><label>证件有效期</label>
+                <div>{{item.id_begindate|| '-'}}至{{item.id_enddate|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>出生年月</label>
+                <div>{{item.birthday|| '-'}}</div>
+              </div>
+              <div class="info-row-flex"><label>联系方式</label>
+                <div>{{item.mobno1|| '-'}}</div>
+              </div>
+            </el-row>
+          </div>
+        </el-card>
+        <!-- 附件信息表 -->
+        <div style="padding-top:10px;">
+          <span>附件信息</span>
+          <!--<el-tooltip 
+            class="item" 
+            effect="dark" 
+            content="请上传授权代表人身份证明文件的复印件、授权委托书（授权代表人非法代时适用）" 
+            placement="right">
+            <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          </el-tooltip>-->
+          <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          <span style="color:#F56C6C;">请上传授权代表人身份证明文件的复印件、授权委托书（授权代表人非法代时适用）</span>
+          <el-table :data="attachmentList.authorizedRep" border style="width: 100%;margin-top:10px;" :default-sort = "{prop: 'date', order: 'descending'}">
+            <el-table-column prop="name" label="附件名称" sortable>
+              <template slot-scope="scope">
+                <el-button type="text" @click="handlePreview(scope.row)" class="attachment-btn">
+                  {{ scope.row.name }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column prop="extension" label="附件类型" width="80" />
+            <el-table-column prop="create_time" label="上传时间" width="180" sortable/>
+            <el-table-column prop="file_size" label="附件大小" width="100" sortable>
+              <template slot-scope="scope">
+                {{ formatSize(scope.row.file_size) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="create_by" label="上传人" width="150" sortable/>
+            <el-table-column label="操作" width="100">
+              <template slot-scope="scope">
+                <div class="operation-buttons">
+                  <el-tooltip content="预览">
+                    <el-button type="text" class="el-icon-view" @click="handlePreview(scope.row)"></el-button>
+                  </el-tooltip>
+                  <el-tooltip content="下载">
+                    <el-button type="text" class="el-icon-download" @click="handleDownload(scope.row)"></el-button>
+                  </el-tooltip>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
+      <!--受益所有人-->
+      <el-card class="box-card" :name="'beneficialOwner'+this._uid" v-if="organ_flag==='1'">
+        <div slot="header" class="clearfix">
+          <span>客户受益所有人信息</span>
+          <el-button style="float: right;" type="warning" size="mini" @click="onlineBomisCheck"
+            :disabled="onlineBomisCheckBtnDisable" :loading="bomisChecking">受益所有人信息核验</el-button>
+          <el-button style="float: right; margin-right: 8px;" type="primary" size="mini" plain
+            @click="openBomisHistoryDialog">历史核验信息</el-button>
+        </div>
+        <div v-if="benefitOwnerCardList.length==0" style="color:#8d8b8b;text-align:center">暂无数据</div>
+        <el-card v-for="item in benefitOwnerCardList" :key="item.related_id" style="margin-bottom:10px;"
+          :class="{ 'highlight-border': item.data_status === '0' }" class="relat-card">
+          <div class="client-info">
+            <div class="client-title">
+              <div>
+                <span>{{item.related_name|| '-'}}</span>
+                <el-tag type="success" effect="dark" size="mini" style="margin-left: 10px;"
+                  v-if="item.organ_flag!=='1'">
+                  自然人</el-tag>
+                <el-tag type="" effect="dark" size="mini" style="margin-left: 10px;" v-if="item.organ_flag==='1'">法人
+                </el-tag>
+              </div>
+              <div>
+                <el-tag type="danger" effect="plain" size="mini" style="margin-left: 10px;"
+                  v-if="item.data_status==='0'">数据已变更 请点击表单“保存”或“提交并关闭页面”按钮保存当前草稿数据
+                </el-tag>
+              </div>
+            </div>
+            <!-- 旧版受益人卡片（非 BOMIS）；有 BOMIS 字段时与编辑页一致走新卡片 -->
+            <template v-if="'_$showBomisBtn$_'!='true' && !item.bo_type && !item.company_type && !item.bnf_type && !item.bnf_type_str">
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex" v-if="item.organ_flag==='1'"><label>国家或地区</label>
+                  <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="item.organ_flag==='0'"><label>国籍</label>
+                  <div>{{formatDictMap('nationality_list',item.nationality)|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件类型</label>
+                  <div>{{formatDictMap('id_type_list',item.id_type)|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件号码</label>
+                  <div>{{item.id_no|| '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>证件有效期起始</label>
+                  <div>{{item.id_begindate|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件有效期截止</label>
+                  <div>{{item.id_enddate|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>出生年月</label>
+                  <div>{{item.birthday|| '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>受益所有人类型</label>
+                  <div>{{formatDictMap('beneficiary_list',item.beneficiary)|| '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>股权/表决权比例</label>
+                  <div>{{item.shareholding_ratio?(item.shareholding_ratio+'%'): '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>联系地址</label>
+                  <div>{{item.address|| '-'}}</div>
+                </div>
+              </el-row>
+            </template>
+            <!-- BOMIS 受益人卡片：字段与弹窗表单一致 -->
+            <template v-else>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>受益所有人</label>
+                  <div>{{formatDictMap('benefit_flag_list', item.bo_type) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>企业性质</label>
+                  <div>{{formatDictMap('benefit_company_no_list', item.company_type) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>客户信息披露情况</label>
+                  <div>{{formatFullInfoFlag(item.full_info_flag)}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>受益所有权类型</label>
+                  <div>{{formatMultipleDictMap('bnf_type_new_list', item.bnf_type_str || item.bnf_type) || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA1') || bomisBnfIncludes(item,'NB1') || bomisBnfIncludes(item,'ND1')">
+                <div class="info-row-flex"><label>持有股权、股份或者合伙权益的比例（%）</label>
+                  <div>{{ item.acthdrat != null && item.acthdrat !== '' ? item.acthdrat : '-' }}</div>
+                </div>
+                <div class="info-row-flex"><label>形成日期(权益)</label>
+                  <div>{{item.shareratiostartdate || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>终止日期(权益)</label>
+                  <div>{{item.shareratioenddate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA2-1') || bomisBnfIncludes(item,'NB2-1') || bomisBnfIncludes(item,'ND2-1')">
+                <div class="info-row-flex"><label>持有收益权的比例(%)</label>
+                  <div>{{ item.actownerprofitratio != null && item.actownerprofitratio !== '' ? item.actownerprofitratio : '-' }}</div>
+                </div>
+                <div class="info-row-flex"><label>形成日期(收益权)</label>
+                  <div>{{item.profitratiostartdate || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>终止日期(收益权)</label>
+                  <div>{{item.profitratioenddate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA2-2') || bomisBnfIncludes(item,'NB2-2') || bomisBnfIncludes(item,'ND2-2')">
+                <div class="info-row-flex"><label>持有表决权的比例(%)</label>
+                  <div>{{ item.actownerprofitratiovote != null && item.actownerprofitratiovote !== '' ? item.actownerprofitratiovote : '-' }}</div>
+                </div>
+                <div class="info-row-flex"><label>形成日期(表决权)</label>
+                  <div>{{item.profitratiovotestartdate || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>终止日期(表决权)</label>
+                  <div>{{item.profitratiovoteenddate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA3-1') || bomisBnfIncludes(item,'NA3-2') || bomisBnfIncludes(item,'NB3-1') || bomisBnfIncludes(item,'NB3-2') || bomisBnfIncludes(item,'ND3')">
+                <div class="info-row-flex"><label>实施实际控制的内容/方式</label>
+                  <div>{{formatMultipleDictMap('benefit_actctrltype_list', item.actctrltype_str || item.actctrltype) || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="bomisBnfIncludes(item,'NA3-2') || bomisBnfIncludes(item,'NB3-2') || bomisBnfIncludes(item,'ND3')"><label>其他形式的具体内容</label>
+                  <div>{{item.actotherforms || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>形成日期(实施实际控制)</label>
+                  <div>{{item.obtainactdate || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>终止日期(实施实际控制)</label>
+                  <div>{{item.terminationactdate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA3-1') || bomisBnfIncludes(item,'NB3-1') || bomisBnfIncludes(item,'ND3')">
+                <div class="info-row-flex"><label>是否存在上一层备案主体</label>
+                  <div>{{formatDictMap('benefit_yesno_list', item.actconuppermarket) || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="item.actconuppermarket === 'Y'"><label>上一层备案主体名称</label>
+                  <div>{{item.actconupperentname || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="item.actconuppermarket === 'Y'"><label>统一社会信用代码</label>
+                  <div>{{item.actconuniscid || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row"
+                v-if="bomisBnfIncludes(item,'NA4') || bomisBnfIncludes(item,'NB4')">
+                <div class="info-row-flex"><label>负责日常经营管理的（高级管理）人员职位</label>
+                  <div>{{formatMultipleDictMap('benefit_seniormgrpos_list', item.seniormgrpos_str || item.seniormgrpos) || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="bomisSeniormgrposIncludes(item,'15')"><label>公司章程规定的其他（高级管理）人员的具体职位</label>
+                  <div>{{item.actdailymgmtpostother || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row" v-if="bomisBnfIncludes(item,'NA5')">
+                <div class="info-row-flex"><label>在华最高层级的高级管理人员职位</label>
+                  <div>{{formatMultipleDictMap('benefit_seniormgrposcn_list', item.seniormgrposcn_str || item.seniormgrposcn) || '-'}}</div>
+                </div>
+                <div class="info-row-flex" v-if="bomisSeniormgrposcnIncludes(item,'1')"><label>在华最高层级的高级管理其他职位</label>
+                  <div>{{item.ownerrightmgmtpostother || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>性别</label>
+                  <div>{{formatDictMap('benefit_gender_list', item.gender) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>国籍</label>
+                  <div>{{formatDictMap('nationality_list', item.nationality) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>出生年月</label>
+                  <div>{{item.birthday || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>证件类型</label>
+                  <div>{{formatDictMap('id_type_gr_list', item.id_type) || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件号码</label>
+                  <div>{{item.id_no || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>证件有效期截止</label>
+                  <div>{{item.id_enddate || '-'}}</div>
+                </div>
+              </el-row>
+              <el-row :gutter="10" class="info-row">
+                <div class="info-row-flex"><label>联系方式（手机）</label>
+                  <div>{{item.mobno1 || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>联系方式（固话）</label>
+                  <div>{{item.mobno2 || '-'}}</div>
+                </div>
+                <div class="info-row-flex"><label>联系地址</label>
+                  <div>{{item.address || '-'}}</div>
+                </div>
+              </el-row>
+            </template>
+          </div>
+        </el-card>
+        <!-- 附件信息表（整块在 v-for 外，与授权代表人等模块一致） -->
+        <div style="padding-top:10px;">
+          <span>附件信息</span>
+          <!--<el-tooltip 
+            class="item" 
+            effect="dark"
+            placement="right">
+          </el-tooltip>-->
+          <i class="el-icon-question" style="margin-left: 4px; color: #909399; cursor: pointer;"></i>
+          <span style="color:#F56C6C;font-size:14px;">请上传受益所有人的身份证明文件的复印件；确认受益所有人的证明文件，包括但不限于股权架构图、公司章程、委托持股协议、一致行动协议、表决权差异安排协议、任命文件等；关于股权/表决权等比例计算的说明（如涉及比例）；在受益所有人信息查询管理系统（BOMIS系统）备案的信息截图（如有）</span>
+          <el-table :data="attachmentList.beneficialOwner" border style="width: 100%;margin-top:10px;" :default-sort = "{prop: 'date', order: 'descending'}">
+            <el-table-column prop="name" label="附件名称" sortable>
+              <template slot-scope="scope">
+                <el-button type="text" @click="handlePreview(scope.row)" class="attachment-btn">
+                  {{ scope.row.name }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column prop="extension" label="附件类型" width="80" />
+            <el-table-column prop="create_time" label="上传时间" width="180" sortable/>
+            <el-table-column prop="file_size" label="附件大小" width="100" sortable>
+              <template slot-scope="scope">
+                {{ formatSize(scope.row.file_size) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="create_by" label="上传人" width="150" sortable/>
+            <el-table-column label="操作" width="100">
+              <template slot-scope="scope">
+                <div class="operation-buttons">
+                  <el-tooltip content="预览">
+                    <el-button type="text" class="el-icon-view" @click="handlePreview(scope.row)"></el-button>
+                  </el-tooltip>
+                  <el-tooltip content="下载">
+                    <el-button type="text" class="el-icon-download" @click="handleDownload(scope.row)"></el-button>
+                  </el-tooltip>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
+      <!--底部声明-->
+      <el-card class="box-card">
+        <!-- 标题行 -->
+        <div slot="header">
+          <span class="card-title" v-if="organ_flag=='1'">声明：本机构保证所提供资料的真实性、准确性、完整性、有效性，并对其承担责任；
+                如上述内容发生变更时将及时以书面方式通知贵公司，如因为不能及时完成变更由此产生的一切后果将由本机构承担。<br><br>
+            机构盖章：</span>
+          <span class="card-title" v-if="organ_flag==='0'">声明：本人保证前述所填信息以及所提供资料的真实性、准确性、完整性、有效性，并对其承担责任；
+            如上述内容发生变更时将及时以书面方式通知贵公司，如因为不能及时完成变更由此产生的一切后果将由本人承担。<br><br>
+            签名：<br></span>
+        </div>
+        <div>
+          <el-form label-width="140px">
+            <el-form-item label="建立业务关系日期" prop="associated_date">
+              <el-date-picker type="date" placeholder="选择日期" v-model="basicInfo.associated_date" disabled>
+              </el-date-picker>
+            </el-form-item>
+            <el-form-item label="备注" prop="remark">
+              <el-input type="textarea" autosize style="width:100%" v-model="basicInfo.remark" disabled></el-input>
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-card>
+      <!--pdf导出-->
+      <el-card v-show="false" class="box-card">
+        <div id="pdf-container" style="width:100%;font-size:24px;">
+          <h2 class="pdf-section-title">客户基本信息</h2>
+          <div class="info-div" v-if="organ_flag=='1'">
+            <div class="table-row">
+              <div class="cell-label col-3">客户名称</div>
+              <div class="cell-value col-5">{{basicInfo.client_name || '-'}}</div>
+              <div class="cell-label col-3">办公住所</div>
+              <div class="cell-value col-13 long-text">
+                {{basicInfo.province || ''}}{{basicInfo.city || ''}}{{basicInfo.district ||
+                ''}}{{basicInfo.office_address || '-'}}
+              </div>
+            </div>
+            <div class="table-row">
+              <div class="cell-label col-3">国家或地区</div>
+              <div class="cell-value col-5">{{ basicInfo.register_country ? formatDictMap('nationality_list',
+                basicInfo.register_country) : '-'}}</div>
+              <div class="cell-label col-3">注册资本金币种</div>
+              <div class="cell-value col-5">
+                {{basicInfo.register_money_type}}
+              </div>
+              <div class="cell-label col-3">注册资本金</div>
+              <div class="cell-value col-5">{{basicInfo.register_fund || '-'}}万元</div>
+            </div>
+
+            <!-- 第三行 -->
+            <div class="table-row">
+              <div class="cell-label col-3" v-if="basicInfo.industry_type!='26'">行业分类</div>
+              <div class="cell-value col-5" v-if="basicInfo.industry_type!='26'">
+                {{basicInfo.industry_type?formatDictMap('industry_type_list',basicInfo.industry_type): '-'}}
+              </div>
+              <div class="cell-label col-2" v-if="basicInfo.industry_type=='26'">行业分类</div>
+              <div class="cell-value col-2" v-if="basicInfo.industry_type=='26'">
+                {{basicInfo.industry_type?formatDictMap('industry_type_list',basicInfo.industry_type): '-'}}
+              </div>
+              <div class="cell-label col-2" v-if="basicInfo.industry_type=='26'">请注明</div>
+              <div class="cell-value col-2" v-if="basicInfo.industry_type=='26'">
+                {{basicInfo.industry_name}}
+              </div>
+              <div class="cell-label col-3">成立日期</div>
+              <div class="cell-value col-5">{{basicInfo.setup_date || '-'}}</div>
+              <div class="cell-label col-3">联系电话</div>
+              <div class="cell-value col-5">{{basicInfo.tel || '-'}}</div>
+            </div>
+
+            <!-- 第四行 -->
+            <div class="table-row">
+              <div class="cell-label col-3">证件类型</div>
+              <div class="cell-value col-5">{{basicInfo.id_type?formatDictMap('id_type_list',basicInfo.id_type):'-'}}
+              </div>
+              <div class="cell-label col-3">证件号码</div>
+              <div class="cell-value col-5">{{basicInfo.id_no || '-'}}</div>
+              <div class="cell-label col-3">证件有效期</div>
+              <div class="cell-value col-5">{{basicInfo.id_begindate || '-'}}至{{basicInfo.id_enddate || '-'}}</div>
+            </div>
+            <div class="table-row">
+              <div class="cell-label col-3">经营范围</div>
+              <div class="cell-value col-21 long-text">{{basicInfo.busi_scope || '-'}}</div>
+            </div>
+          </div>
+
+          <div class="info-div" v-if="organ_flag=='0'">
+            <div class="table-row">
+              <div class="cell-label col-3">姓名</div>
+              <div class="cell-value col-5">{{basicInfo.client_name || '-'}}</div>
+              <div class="cell-label col-3">联系地址</div>
+              <div class="cell-value col-13">{{basicInfo.address || '-'}}</div>
+            </div>
+            <div class="table-row">
+              <div class="cell-label col-3">国籍</div>
+              <div class="cell-value col-5">
+                {{basicInfo.nationality?formatDictMap('nationality_list',basicInfo.nationality):'-'}}</div>
+              <div class="cell-label col-3">性别</div>
+              <div class="cell-value col-5">{{(basicInfo.gender=='1'?'男':basicInfo.gender=='2'?'女':'未知')|| '-'}}</div>
+              <div class="cell-label col-3">出生年月</div>
+              <div class="cell-value col-5">{{basicInfo.birthday || '-'}}</div>
+            </div>
+
+            <div class="table-row">
+              <div class="cell-label col-3">联系电话</div>
+              <div class="cell-value col-5">{{basicInfo.tel || '-'}}</div>
+              <div class="cell-label col-3">年收入</div>
+              <div class="cell-value col-5">
+                {{basicInfo.income?formatDictMap('year_income_list',String(basicInfo.income)): '-'}}</div>
+              <div class="cell-label col-3">职业分类</div>
+              <div class="cell-value col-5">
+                {{basicInfo.profession_code?formatDictMap('profession_code_list',basicInfo.profession_code):'-'}}</div>
+            </div>
+            <div class="table-row">
+              <div class="cell-label col-3">证件类型</div>
+              <div class="cell-value col-5">{{basicInfo.id_type?formatDictMap('id_type_list',basicInfo.id_type):'-'}}
+              </div>
+              <div class="cell-label col-3">证件号码</div>
+              <div class="cell-value col-5">{{basicInfo.id_no || '-'}}</div>
+              <div class="cell-label col-3">证件有效期</div>
+              <div class="cell-value col-5">{{basicInfo.id_begindate || '-'}}至{{basicInfo.id_enddate || '-'}}</div>
+            </div>
+            <div class="table-row">
+              <div class="cell-label col-3">证件地址</div>
+              <div class="cell-value col-13">{{basicInfo.id_address || '-'}}</div>
+            </div>
+          </div>
+
+          <div v-if="organ_flag=='1'">
+            <h2 class="pdf-section-sub-title">法定代表人信息</h2>
+            <div class="info-div">
+              <div v-for="(item, index) in relatedInfo1" :key="item.related_id" :class="{'person-divider': index > 0}">
+                <div class="table-row">
+                  <div class="cell-label col-3">法定代表人姓名</div>
+                  <div class="cell-value col-5">{{item.related_name || '-'}}</div>
+                  <div class="cell-label col-3">出生年月</div>
+                  <div class="cell-value col-5">{{item.birthday || '-'}}</div>
+                  <div class="cell-label col-3">国籍</div>
+                  <div class="cell-value col-5">
+                    {{item.nationality?formatDictMap('nationality_list',item.nationality):'-'}}</div>
+                </div>
+                <div class="table-row">
+                  <div class="cell-label col-3">身份证件类型</div>
+                  <div class="cell-value col-5">{{item.id_type?formatDictMap('id_type_list',item.id_type):'-'}}</div>
+                  <div class="cell-label col-3">身份证件号码</div>
+                  <div class="cell-value col-5">{{item.id_no || '-'}}</div>
+                  <div class="cell-label col-3">证件有效期</div>
+                  <div class="cell-value col-5">{{item.id_begindate || '-'}}至{{item.id_enddate || '-'}}</div>
+                </div>
+                <div class="table-row">
+                  <div class="cell-label col-3">联系方式</div>
+                  <div class="cell-value col-5">{{ item.mobno1 }}</div>
+                  <div class="cell-label col-3"></div>
+                  <div class="cell-value col-5">
+                  </div>
+                  <div class="cell-label col-3"></div>
+                  <div class="cell-value col-5"></div>
+                </div>
+              </div>
+              <div v-if="!relatedInfo1 || relatedInfo1.length === 0" class="table-row">
+                <div class="cell-label col-3">法定代表人信息</div>
+                <div class="cell-value col-21 empty-data">暂无数据</div>
+              </div>
+            </div>
+            <h2 class="pdf-section-sub-title">控股股东信息</h2>
+            <div class="info-div">
+              <div v-for="(item, index) in relatedInfo2" :key="item.related_id" :class="{'person-divider': index > 0}">
+                <div class="table-row">
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">控股股东(法人)</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='0'">控股股东(自然人)</div>
+                  <div class="cell-value col-5">{{item.related_name || '-'}}</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">国家或地区</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='0'">国籍</div>
+                  <div class="cell-value col-5">
+                    {{item.nationality?formatDictMap('nationality_list',item.nationality):'-'}}
+                  </div>
+                  <div class="cell-label col-3">证件类型</div>
+                  <div class="cell-value col-5">{{item.id_type?formatDictMap('id_type_list',item.id_type):'-'}}</div>
+                </div>
+                <div class="table-row">
+                  <div class="cell-label col-3">证件号码</div>
+                  <div class="cell-value col-5">{{item.id_no || '-'}}</div>
+                  <div class="cell-label col-3">证件有效期期限</div>
+                  <div class="cell-value col-5">{{item.id_begindate || '-'}}至{{item.id_enddate || '-'}}</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">是否政府部门</div>
+                  <div class="cell-value col-5" v-if="item.organ_flag=='1'">{{item.is_government_dept==='1'?'是':'否'}}
+                  </div>
+                </div>
+              </div>
+              <div v-if="!relatedInfo2 || relatedInfo2.length === 0" class="table-row">
+                <div class="cell-label col-3">控股股东信息</div>
+                <div class="cell-value col-21 empty-data">暂无数据</div>
+              </div>
+            </div>
+            <h2 class="pdf-section-sub-title">实际控制人信息</h2>
+            <div class="info-div">
+              <div v-for="(item, index) in relatedInfo3" :key="item.related_id" :class="{'person-divider': index > 0}">
+                <div class="table-row">
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">实际控制人(法人)</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='0'">实际控制人(自然人)</div>
+                  <div class="cell-value col-5">{{item.related_name || '-'}}</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">国家或地区</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='0'">国籍</div>
+                  <div class="cell-value col-5">
+                    {{item.nationality?formatDictMap('nationality_list',item.nationality):'-'}}
+                  </div>
+                  <div class="cell-label col-3">证件类型</div>
+                  <div class="cell-value col-5">{{item.id_type?formatDictMap('id_type_list',item.id_type):'-'}}</div>
+                </div>
+                <div class="table-row">
+                  <div class="cell-label col-3">证件号码</div>
+                  <div class="cell-value col-5">{{item.id_no || '-'}}</div>
+                  <div class="cell-label col-3">证件有效期期限</div>
+                  <div class="cell-value col-5">{{item.id_begindate || '-'}}至{{item.id_enddate || '-'}}</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">是否政府部门</div>
+                  <div class="cell-value col-5" v-if="item.organ_flag=='1'">{{item.is_government_dept==='1'?'是':'否'}}
+                  </div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='0'">出生年月</div>
+                  <div class="cell-value col-5" v-if="item.organ_flag=='0'">{{item.birthday || '-'}}</div>
+                </div>
+              </div>
+              <div v-if="!relatedInfo3 || relatedInfo3.length === 0" class="table-row">
+                <div class="cell-label col-3">实际控制人信息</div>
+                <div class="cell-value col-21 empty-data">暂无数据</div>
+              </div>
+            </div>
+            <h2 class="pdf-section-sub-title">授权代表人信息</h2>
+            <div class="info-div">
+              <div v-for="(item, index) in relatedInfo4" :key="item.related_id" :class="{'person-divider': index > 0}">
+                <div class="table-row">
+                  <div class="cell-label col-3">授权代表人姓名</div>
+                  <div class="cell-value col-5">{{item.related_name || '-'}}</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">国家或地区</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='0'">国籍</div>
+                  <div class="cell-value col-5">
+                    {{item.nationality?formatDictMap('nationality_list',item.nationality):'-'}}
+                  </div>
+                  <div class="cell-label col-3">证件类型</div>
+                  <div class="cell-value col-5">{{item.id_type?formatDictMap('id_type_list',item.id_type):'-'}}</div>
+                </div>
+                <div class="table-row">
+                  <div class="cell-label col-3">证件号码</div>
+                  <div class="cell-value col-5">{{item.id_no || '-'}}</div>
+                  <div class="cell-label col-3">证件有效期期限</div>
+                  <div class="cell-value col-5">{{item.id_begindate || '-'}}至{{item.id_enddate || '-'}}</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">是否政府部门</div>
+                  <div class="cell-value col-5" v-if="item.organ_flag=='1'">{{item.is_government_dept==='1'?'是':'否'}}
+                  </div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='0'">出生年月</div>
+                  <div class="cell-value col-5" v-if="item.organ_flag=='0'">{{item.birthday || '-'}}</div>
+                </div>
+                <div class="table-row">
+                  <div class="cell-label col-3">联系方式</div>
+                  <div class="cell-value col-5">{{ item.mobno1 }}</div>
+                  <div class="cell-label col-3"></div>
+                  <div class="cell-value col-5">
+                  </div>
+                  <div class="cell-label col-3"></div>
+                  <div class="cell-value col-5"></div>
+                </div>
+              </div>
+              <div v-if="!relatedInfo4 || relatedInfo4.length === 0" class="table-row">
+                <div class="cell-label col-3">授权代表人信息</div>
+                <div class="cell-value col-21 empty-data">暂无数据</div>
+              </div>
+            </div>
+            <h2 class="pdf-section-sub-title">受益所有人信息</h2>
+            <div class="info-div">
+              <div v-for="(item, index) in relatedInfo5" :key="item.related_id" :class="{'person-divider': index > 0}">
+                <div class="table-row">
+                  <div class="cell-label col-3">受益所有人姓名</div>
+                  <div class="cell-value col-5">{{item.related_name || '-'}}</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='1'">国家或地区</div>
+                  <div class="cell-label col-3" v-if="item.organ_flag=='0'">国籍</div>
+                  <div class="cell-value col-5">
+                    {{item.nationality?formatDictMap('nationality_list',item.nationality):'-'}}
+                  </div>
+                  <div class="cell-label col-3">证件类型</div>
+                  <div class="cell-value col-5">{{item.id_type?formatDictMap('id_type_list',item.id_type):'-'}}</div>
+                </div>
+                <div class="table-row">
+                  <div class="cell-label col-3">证件号码</div>
+                  <div class="cell-value col-5">{{item.id_no || '-'}}</div>
+                  <div class="cell-label col-3">证件有效期期限</div>
+                  <div class="cell-value col-5">{{item.id_begindate || '-'}}至{{item.id_enddate || '-'}}</div>
+                  <div class="cell-label col-3">出生年月</div>
+                  <div class="cell-value col-5">{{item.birthday || '-'}}</div>
+                </div>
+                <div class="table-row">
+                  <div class="cell-label col-3">股权/表决权比例</div>
+                  <div class="cell-value col-5">{{item.shareholding_ratio ? (item.shareholding_ratio + '%') : '-'}}
+                  </div>
+                  <div class="cell-label col-3">受益所有人类型</div>
+                  <div class="cell-value col-5">{{item.beneficiary?formatDictMap('beneficiary_list',item.beneficiary) :
+                    '-'}}
+                  </div>
+                  <div class="cell-label col-3">联系地址</div>
+                  <div class="cell-value col-5">{{item.address || '-'}}</div>
+                </div>
+              </div>
+              <div v-if="!relatedInfo5 || relatedInfo5.length === 0" class="table-row">
+                <div class="cell-label col-3">受益所有人信息</div>
+                <div class="cell-value col-21 empty-data">暂无数据</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-div">
+            <div class="table-row">
+              <div class="cell-value" v-if="organ_flag=='1'">声明：本机构保证所提供资料的真实性、准确性、完整性、有效性，并对其承担责任；
+                如上述内容发生变更时将及时以书面方式通知贵公司，如因为不能及时完成变更由此产生的一切后果将由本机构承担。<br><br>
+              </div>
+              <div class="cell-value" v-if="organ_flag=='0'">声明：本人保证前述所填信息以及所提供资料的真实性、准确性、完整性、有效性，并对其承担责任；
+                如上述内容发生变更时将及时以书面方式通知贵公司，如因为不能及时完成变更由此产生的一切后果将由本人承担。<br><br>
+                <div style="font-weight:bold;color:#303133">签名：</div>
+              </div>
+            </div>
+            <div class="table-row" v-if="organ_flag=='1'">
+              <div class="cell-label col-3" style="height:100px;">机构盖章:</div>
+              <div class="cell-value col-21"></div>
+            </div>
+            <div class="table-row">
+              <div class="cell-label col-3">建立业务关系日期</div>
+              <div class="cell-value col-5">{{basicInfo.associated_date}}</div>
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </div>
+  </div>
+
+  <el-dialog title="历史核验信息" :visible.sync="bomisHistoryDialogVisible" width="720px" append-to-body
+    @open="loadBomisFlowHistory">
+    <div v-loading="bomisHistoryLoading" style="min-height: 120px;">
+      <div v-if="!bomisHistoryLoading && bomisHistoryList.length === 0" style="color:#8d8b8b;text-align:center;">
+        暂无核验记录</div>
+      <div v-for="item in bomisHistoryList" :key="item.id"
+        style="border:1px solid #d1d6db;border-radius:2px;padding:8px 10px;margin-bottom:8px;line-height:22px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>{{ item.op_time }}&nbsp;&nbsp;{{ item.op_user_name || '-' }}</span>
+          <el-button type="text" size="mini" @click="showBomisHistoryDetail(item.list)">查看明细</el-button>
+        </div>
+        <div>核验结果：{{ item.result.RETURN_MSG || '-' }}</div>
+        <div>比对受益所有权结果：{{ item.result.COMPARE_REMARK || '-' }}</div>
+        <div v-if="item.batch_nos && item.batch_nos.length">
+          <el-tag v-for="n in item.batch_nos" :key="n" size="mini" style="margin-right:6px;">批次{{ n }} 依据</el-tag>
+        </div>
+      </div>
+    </div>
+    <div slot="footer">
+      <el-button size="mini" @click="bomisHistoryDialogVisible = false">关闭</el-button>
+    </div>
+  </el-dialog>
+
+  <el-dialog title="附件管理" :visible.sync="fileDialogVisible" :close-on-click-modal="false">
+    <el-form>
+      <el-form-item label="附件类型">
+        <el-cascader v-model="selectedMenu" :options="organ_flag==='0'?directoryConfig2:directoryConfig1" clearable
+          style="width:60%;margin-bottom:20px;">
+      </el-form-item>
+      <el-form-item label="上传附件">
+        <el-upload class="upload-demo" ref="upload"
+          action="m?xwl=aml_monitor/workflow/prs01/dataSource/files/upload_file1" name="file1"
+          header="{content-type:'text/html'}" :data="uploadParams" :file-list="fileList" :auto-upload="false"
+          :on-change="handleChange" :on-remove="handleRemove" multiple>
+          <el-button slot="trigger" size="mini" icon="el-icon-upload2">上传文件</el-button>
+          <div slot="tip" class="el-upload__tip">支持扩展名：.rar .zip .doc .docx .pdf .jpg...</div>
+        </el-upload>
+      </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="fileDialogVisible = false">取消</el-button>
+      <el-button type="primary" @click="submitUpload($event.target)">提交</el-button>
+    </div>
+  </el-dialog>
+</div>
+`,
+  data() {
+    return {
+      organ_flag: '_$organ_flag$_',
+      client_id: '_$client_id$_',
+      client_belong: '_$client_belong$_',
+      selectList: app.data.selectList,
+      isScroll: true,
+      attachmentList: {
+        'basicInfo': [],
+        'LegalRep': [],
+        'controllingShareholder': [],
+        'actualController': [],
+        'authorizedRep': [],
+        'beneficialOwner': [],
+        'communication': [],
+        'agree': [],
+        'other': []
+      },
+      navList: [
+        {
+          label: '客户基本信息',
+          value: 'basicInfo',
+          name: '#basicInfo'
+        }, {
+          label: '反洗钱特殊情况',
+          value: 'fxqSpecial',
+          name: '#fxqSpecial'
+        }, {
+          label: '法定代表人',
+          value: 'LegalRep',
+          name: '#LegalRep'
+        }, {
+          label: '控股股东',
+          value: 'controllingShareholder',
+          name: '#controllingShareholder'
+        }, {
+          label: '实际控制人',
+          value: 'actualController',
+          name: '#actualController'
+        }, {
+          label: '授权代表人',
+          value: 'authorizedRep',
+          name: '#authorizedRep'
+        }, {
+          label: '受益所有人',
+          value: 'beneficialOwner',
+          name: '#beneficialOwner'
+        },
+      ],
+      activeNav: 'basicInfo',
+      tempDomArr: [],
+      client_type_arr: [],
+      special_matters_arr: [],
+      basicInfo: app.data.basicInfo,
+      gshcInfo: app.data.gshcInfo,// 工商核查结果
+
+      relatedInfo1: app.data.relatedInfo1,// 法定代表人
+      relatedInfo2: app.data.relatedInfo2,// 控股股东
+      relatedInfo3: app.data.relatedInfo3,// 实际控制人
+      relatedInfo4: app.data.relatedInfo4,// 授权代表人
+      relatedInfo5: app.data.relatedInfo5,// 受益所有人
+      bomisSourceTableData: [], // 待发送核验的受益人数据
+      onlineBomisCheckBtnDisable: true,
+      bomisChecking: false, // 核验请求中
+      bomisHistoryDialogVisible: false,
+      bomisHistoryLoading: false,
+      bomisHistoryList: [],
+      ruleForm1: app.data.forms.ruleForm1,
+      ruleForm2: app.data.forms.ruleForm2,
+      ruleForm3: app.data.forms.ruleForm3,
+      // 省市区
+      proOptions: [],//省
+      cityOptions: [],//市
+      districtOptions: [],//区
+
+      attachments: [],
+      // 非自然人附件目录
+      directoryConfig1: app.data.directory.directoryConfig1,
+      // 自然人附件目录
+      directoryConfig2: app.data.directory.directoryConfig2,
+      fileList: [],
+      fileDialogVisible: false,
+      gshcInfoVisible: false,// 是否显示工商核查信息
+      selectedMenu: [],// 选中的目录
+      uploadParams: {
+        objectId: Wb.getId(),
+        client_id: '_$client_id$_'
+      },
+      uploadParams1: {
+        objectId: Wb.getId(),
+        client_id: '_$client_id$_'
+      },
+      uploadParams2: {
+        objectId: Wb.getId(),
+        client_id: '_$client_id$_'
+      },
+      uploadParams3: {
+        objectId: Wb.getId(),
+        client_id: '_$client_id$_'
+      },
+      loading: true
+    };
+  },
+  computed: {
+    benefitOwnerCardList() {
+      var bomisList = this.bomisSourceTableData || [];
+      if ('_$showBomisBtn$_' === 'true' || bomisList.length > 0) {
+        return bomisList;
+      }
+      return this.relatedInfo5 || [];
+    }
+  },
+  methods: {
+    // 校验时的提示（需换行）
+    showMessage(msg, time, type) {
+      this.$message({
+        showClose: true,
+        dangerouslyUseHTMLString: true,
+        message: msg,
+        duration: time ? time : 0,
+        type: type ? type : 'success'
+      })
+    },
+    formatMoney(s, n) {
+      if (!s && s !== 0) return '';
+      let str = String(s);
+      let cleaned = str.replace(/[^\d\.]/g, "") // 移除所有非数字、非小数点的字符
+        .replace(/\.{2,}/g, '.') // 多个小数点合并为一个
+        .replace(/^\./, ""); // 移除开头的小数点
+
+      if (!cleaned) return "";
+      let num = parseFloat(cleaned);
+      if (isNaN(num)) return "";
+      let fixedNum = num.toFixed(n);
+      let [integerPart, decimalPart] = fixedNum.split('.');
+      let integerWithComma = integerPart.replace(/(?=(\B)(\d{3})+$)/g, ',');
+      return decimalPart ? `${integerWithComma}.${decimalPart}` : integerWithComma;
+    },
+    handleClick(tab, event) {
+      this.isScroll = false;
+      let that = this;
+      let element = document.getElementsByName(tab.name)[0];
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+      setTimeout(() => {
+        that.isScroll = true;
+      }, 500);
+      console.log("滚动监听中...");
+    },
+    // 滚动监听
+    onScroll(e) {
+      if (!this.isScroll) return;
+      var scrollItems = [];
+      this.navList.forEach(ele => {
+        var element = document.getElementsByName(ele.value)[0];
+        scrollItems.push(element);
+      });
+      var scrollTop = e.target.scrollTop;
+      var foundIndex = -1;
+      for (var i = 0; i < scrollItems.length; i++) {
+        var item = scrollItems[i];
+        var threshold = item.offsetTop - scrollItems[0].offsetTop;
+        if (scrollTop >= threshold) {
+          foundIndex = i;
+        } else {
+          break;
+        }
+      }
+      if (foundIndex !== -1) {
+        this.activeNav = this.navList[foundIndex.toString()].value;
+      }
+    },
+    // 页面展示数据字典转换
+    formatDictMap(dictType, key) {
+      const dictData = this.selectList[dictType];
+      const item = dictData?.find(item => item.k === key);
+      return item ? item.v : '-';
+    },
+    formatMultipleDictMap(dictType, key) {
+      var c_key = key || '';
+      if (Array.isArray(c_key)) {
+        c_key = c_key.join(',');
+      }
+      if (c_key === '') { return ' '; }
+      const keyList = c_key.split(',');
+      const dictData = this.selectList[dictType];
+      const item = [];
+      for (let index = 0; index < keyList.length; index++) {
+        item.push(dictData?.find(item => item.k === keyList[index]));
+      }
+      return item.length && !!item[0] ? item.map(i => i.v).join('；') : '-';
+    },
+    formatFullInfoFlag(val) {
+      if (val === '01') {
+        return '透明度较高、信息披露充分的客户（如上市公司、国有企业）';
+      }
+      if (val === '02') {
+        return '受益人信息不规范';
+      }
+      return val || '-';
+    },
+    bomisBnfIncludes(item, code) {
+      if (!item) { return false; }
+      var t = item.bnf_type;
+      if (Array.isArray(t)) {
+        return t.indexOf(code) >= 0;
+      }
+      var s = item.bnf_type_str || t || '';
+      return String(s).split(',').indexOf(code) >= 0;
+    },
+    bomisSeniormgrposIncludes(item, code) {
+      if (!item) { return false; }
+      var t = item.seniormgrpos;
+      if (Array.isArray(t)) {
+        return t.indexOf(code) >= 0;
+      }
+      var s = item.seniormgrpos_str || t || '';
+      return String(s).split(',').indexOf(code) >= 0;
+    },
+    bomisSeniormgrposcnIncludes(item, code) {
+      if (!item) { return false; }
+      var t = item.seniormgrposcn;
+      if (Array.isArray(t)) {
+        return t.indexOf(code) >= 0;
+      }
+      var s = item.seniormgrposcn_str || t || '';
+      return String(s).split(',').indexOf(code) >= 0;
+    },
+    // 格式化附件大小
+    formatSize(bytes) {
+      if (!bytes && bytes !== 0) {
+        return '';
+      } else if (bytes === 0) {
+        return '0 B'
+      };
+
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+      return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+    },
+    loadSelectList(item) {
+      let that = this;
+      if (!Wb.isEmpty(item.KEY_NAME)) {
+        Wb.ajax({
+          url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_key',
+          params: {
+            I_KEY_NAME: item.KEY_NAME
+          },
+          success(resp) {
+            let arr = Wb.decode(resp).items;
+            that.selectList[item.BIND_DATA + "_list"] = arr;
+          }
+        });
+      }
+    },
+    getDictMap(item) {
+      let that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_dict',
+        params: {
+          I_ENTRY_NO: item.ENTRY_NO
+        },
+        success(resp) {
+          let arr = Wb.decode(resp).items;
+          that.selectList[item.BIND_DATA + "_list"] = arr;
+        }
+      })
+    },
+    // 查询客户基本信息
+    getBasicInfo(client_id) {
+      let that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_basic_info',
+        params: {
+          CLIENT_ID: client_id
+        },
+        async:false,
+        success(resp) {
+          let res = Wb.decode(resp).items;
+          console.log("res[0]", res[0])
+          if (res[0]) {
+            that.basicInfo = res[0];
+            that.basicInfo.setup_date = res[0].setup_date ? String(res[0].setup_date).replace(/\s.*$/, '') : '';
+            that.basicInfo.id_begindate = res[0].id_begindate ? String(res[0].id_begindate).replace(/\s.*$/, '') : '';
+            that.basicInfo.id_enddate = res[0].id_enddate ? String(res[0].id_enddate).replace(/\s.*$/, '') : '';
+          }
+          // app.mainContainer.show();
+        }
+      });
+    },
+    getBomisSourceTableData: function () {
+      var that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_bomis_benefit_scinfo',
+        params: { client_id: '_$client_id$_' },
+        json: true,
+        success(resp) {
+          that.bomisSourceTableData = resp.items;
+          that.onlineBomisCheckBtnDisable = !that.bomisSourceTableData.filter(i => {
+            var item = i.company_type || '';
+            return item.startsWith('A') || item.startsWith('B') || item.startsWith('I');
+          }).length;
+        }
+      });
+    },
+    openBomisHistoryDialog: function () {
+      this.bomisHistoryDialogVisible = true;
+    },
+    loadBomisFlowHistory: function () {
+      var that = this;
+      var apprVue = app.apprForm && app.apprForm.vue;
+      if (!apprVue || !apprVue.loadPendingBomisCheck) {
+        Wb.tipWarn('审核意见区未加载完成，请稍后再试');
+        that.bomisHistoryLoading = false;
+        return;
+      }
+      that.bomisHistoryLoading = true;
+      that.bomisHistoryList = [];
+      apprVue.loadPendingBomisCheck(function () {
+        that.bomisHistoryList = apprVue.bomisFlowHistory || [];
+        that.bomisHistoryLoading = false;
+      });
+    },
+    showBomisHistoryDetail: function (list) {
+      if (app.apprForm && app.apprForm.vue && app.apprForm.vue.showBomisDetail) {
+        app.apprForm.vue.showBomisDetail(list);
+      }
+    },
+    onlineBomisCheck: function () {
+      // 受益所有人实时核验
+      var that = this;
+      var params = {
+        client_id: '_$client_id$_',
+        uscc: that.basicInfo.id_no, // 统一社会信用代码
+        orgNm: that.basicInfo.client_name, // 主体名称
+        branchCode: "E1005431000011",
+        branchName: "国泰海通证券股份有限公司",
+        benefitData: that.bomisSourceTableData,
+        orgTp: "1", // 1-公司  2-合伙企业 3-外国公司分支机构 4-豁免主体
+        piid: app.apprForm.vue.flowPiid // 当前在途流程，无在途流程时为空
+      };
+      var lastTime = app.apprForm.vue.bomisLastCheckResult.op_time;
+      var tip = lastTime ? '该客户最近一次核验时间为 ' + lastTime + '，确定重新核验？' : '确定进行受益人信息核验？';
+      that.$confirm(tip, '确认', {
+        distinguishCancelAndClose: true,
+        confirmButtonText: '确认',
+        cancelButtonText: '取消'
+      }).then(() => {
+        that.bomisChecking = true;
+        Wb.ajax({
+          url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/online_bomis_check',
+          params: params,
+          json: true,
+          success(resp) {
+            that.bomisChecking = false;
+            app.apprForm.vue.loadPendingBomisCheck();
+          },
+          failure() {
+            that.bomisChecking = false;
+          }
+        });
+      }).catch(() => { });
+    },
+    // 查询关联人信息
+    getRelatedInfo(client_id, rela_type) {
+      let that = this;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_related_info_hg',
+        params: {
+          CLIENT_ID: client_id,
+          RELATED_TYPE: rela_type,
+          DATA_TYPE:'1'
+        },
+        async:false,
+        success(resp) {
+          let res = Wb.decode(resp).items;
+          if (res.length > 0 && rela_type == '1') {
+            that.relatedInfo1 = res;
+          } else if (res.length > 0 && rela_type == '2') {
+            that.relatedInfo2 = res;
+          } else if (res.length > 0 && rela_type == '3') {
+            that.relatedInfo3 = res;
+          } else if (res.length > 0 && rela_type == '4') {
+            that.relatedInfo4 = res;
+          } else if (res.length > 0 && rela_type == '5') {
+            that.relatedInfo5 = res;
+          }
+        }
+      });
+    },
+    getProvince() {
+      let that = this;
+      // 查询省
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_province',
+        success: function (resp) {
+          let rec = Wb.decode(resp).items;
+          that.proOptions = rec.map(item => ({
+            label: item.pro_name,
+            value: item.pro_code
+          }));
+        }
+      });
+    },
+    getCity() {
+      // 查询市
+      let that = this;
+      let province = that.organ_flag == '1' ? that.ruleForm1.province : that.ruleForm1.province2;
+      if (province) {
+        Wb.ajax({
+          url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_city',
+          params: {
+            I_PRO_CODE: province
+          },
+          success: function (resp) {
+            let rec = Wb.decode(resp).items;
+            console.log("市", rec);
+            that.cityOptions = rec.map(item => ({
+              label: item.area_name,
+              value: item.area_code
+            }));
+          }
+        });
+      } else {
+        Wb.tipWarn('请先选择省');
+      }
+    },
+    getDistrict() {
+      // 查询区
+      let that = this;
+      let province = that.organ_flag == '1' ? that.ruleForm1.province : that.ruleForm1.province2;
+      let city = that.organ_flag == '1' ? that.ruleForm1.city : that.ruleForm1.city2;
+      Wb.ajax({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/select_district',
+        params: {
+          I_PRO_CODE: province,
+          I_AREA_CODE: city.substring(0, 4)
+        },
+        success: function (resp) {
+          let rec = Wb.decode(resp).items;
+          console.log("区", rec);
+          that.districtOptions = rec.map(item => ({
+            label: item.area_name,
+            value: item.area_code
+          }));
+        }
+      });
+    },
+    openFileDialog() {
+      this.fileList = [];
+      this.selectedMenu = []
+      this.fileDialogVisible = true;
+    },
+    handleChange(file, fileList) {
+      this.fileList = fileList
+    },
+    handleDelete(index) {
+    },
+    // 下载附件
+    handleDownload(row) {
+      console.log("当前文件row", row);
+      Wb.download({
+        url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/files/download_file',
+        params: {
+          id: row.id,
+          full_name: row.name + '.' + row.extension
+        }
+      })
+      // this.$message.success(`开始下载：${row.name}`);
+    },
+    submitUpload() {
+      console.log("this.fileList", this.fileList);
+      console.log("this.selectedMenu", this.selectedMenu);
+      if (this.fileList.length === 0) {
+        Wb.tipWarn("请至少选择一个文件");
+        return;
+      }
+      if (this.selectedMenu.length === 0) {
+        Wb.tipWarn("请选择附件类型");
+        return;
+      }
+      this.uploadParams.file_type_no = this.selectedMenu[this.selectedMenu.length - 1]
+      this.$refs.upload.submit();
+    },
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+    },
+    handlePreview(file) {
+      let that = this;
+      params_file = {
+        'id': file.id,
+        'clientId': file.client_id,
+        'fileTypeNo': this.organ_flag == '1' ? '1,2,21,22' : '1,2',
+        'fileName': file.name + '.' + file.extension,
+        'extension': file.extension
+      },
+        Wb.ajax({
+          url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/files/preview_file',
+          params: {
+            id: file.id,
+            clientId: file.client_id,
+            fileTypeNo: this.organ_flag == '1' ? '1,2,21,22' : '1,2',
+            fileName: file.name + '.' + file.extension,
+            extension: file.extension
+          },
+          success(resp) {
+            console.log("resp", resp);
+            let res = Wb.decode(resp);
+            let serverIp = '10.116.131.13';
+            if (res.code == '200') {
+              let previewUrl = res.data.previewUrl;
+              if (previewUrl.indexOf(serverIp) != -1) {
+                previewUrl = res.data.previewUrl.replace(/10\.116\.131\.13:8090/g, '10.181.135.22:8080/ibcm_flow')
+              }
+              window.open(previewUrl, '_blank', 'width=800,height=600')
+            } else {
+              that.$message.error("当前文件类型不支持预览")
+            }
+          }
+        });
+    },
+    uploadSuccess() {
+      Wb.tipSucc("上传成功");
+      this.fileDialogVisible = false;
+    },
+    uploadError() {
+      app.uploadError();
+    },
+    beforeRemove() {
+      app.beforeRemove();
+    },
+    selectFile() {
+      console.log("执行了selectFile")
+      let that = this;
+      // 机构户附件
+      let fileType1 = {
+        'basicInfo': '1,2,21,22',
+        'LegalRep': '23',
+        'controllingShareholder': '3,31,32',
+        'actualController': '4,41,42',
+        'authorizedRep': '5,51,52',
+        'beneficialOwner': '6,61,62,63,64'
+      }
+      // 个人户附件
+      let fileType2 = {
+        'basicInfo': '1,2',
+      }
+      if (this.organ_flag == '1') {
+        for (const key in fileType1) {
+          Wb.ajax({
+            url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/files/select_file',
+            params: {
+              I_CLIENT_ID: '_$client_id$_',
+              I_FILE_TYPE_NO: fileType1[key]
+            },
+            success(resp) {
+              let rows = Wb.decode(resp).items
+              that.attachmentList[key] = rows;
+              console.log("that.attachmentList." + key, that.attachmentList[key])
+            }
+          })
+        }
+      } else {
+        for (const key in fileType2) {
+          Wb.ajax({
+            url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/files/select_file',
+            params: {
+              I_CLIENT_ID: '_$client_id$_',
+              I_FILE_TYPE_NO: fileType2[key]
+            },
+            success(resp) {
+              let rows = Wb.decode(resp).items
+              that.attachmentList[key] = rows;
+              console.log("that.attachmentList." + key, that.attachmentList[key])
+            }
+          })
+        }
+      }
+      // 反洗钱特殊情况 对文件细致分类过的回显时单独用object_id查询
+      const fxq_special_arr = ['communication', 'agree', 'other']
+      fxq_special_arr.forEach(item => {
+        Wb.ajax({
+          url: 'm?xwl=aml_monitor/workflow/prs01/dataSource/files/select_file',
+          params: {
+            I_CLIENT_ID: '_$client_id$_',
+            I_OBJECT_ID: '_$client_id$_' + item
+          },
+          success(resp) {
+            let rows = Wb.decode(resp).items
+            that.attachmentList[item] = rows;
+            console.log("that.attachmentList." + item, that.attachmentList[item])
+          }
+        })
+      })
+    },
+validateBeforeExport() {
+  const isEmpty = val => val === null || val === undefined || String(val).trim() === '';
+  const rules = getRules();
+  const info = this.basicInfo || {};
+  const isOrgan = this.organ_flag == '1';
+  const msgs = [];
+  const checkFields = props => props.forEach(p => {
+    if (isEmpty(info[p])) {
+      msgs.push(rules[p] ? rules[p][0].message : `“${p}”不能为空`);
+    }
+  });
+
+  if (info.is_special == '1') {
+    // 存在反洗钱特殊情况：关联人只校验姓名，再校验特殊情况模块和附件
+    if (isOrgan) {
+      const noName = list => list.length === 0 || list.some(item => !item || isEmpty(item.related_name));
+      if (noName(this.relatedInfo1)) msgs.push('请填写法定代表人姓名');
+      if (noName(this.relatedInfo4)) msgs.push('请填写授权代表人姓名');
+      if (noName(this.relatedInfo5)) msgs.push('请填写受益所有人姓名');
+    }
+    if (isEmpty(info.communication_records)) msgs.push('请上传“与客户沟通记录”文件');
+    if (isEmpty(info.agree_records)) msgs.push('请上传“二级部门负责人同意的记录”文件');
+
+    const clientType = info.client_type ? String(info.client_type).split(',') : [];
+    const matters = info.special_matters ? String(info.special_matters).split(',') : [];
+    const props = ['client_type', 'special_matters', 'special_reason', 'completed_cdd', 'low_risk_explanation', 'take_measures'];
+    if (clientType.includes('99')) props.push('client_type_other');
+    if (matters.includes('1')) props.push('missing_information');
+    if (matters.includes('2')) props.push('missing_draft');
+    if (matters.includes('99')) props.push('special_matters_other');
+    checkFields(props);
+  } else if (isOrgan) {
+    // 机构户：基本信息全部必填，法定代表人、授权代表人、受益所有人至少一条
+    if (this.relatedInfo1.length == 0) msgs.push('请添加法定代表人信息');
+    if (this.relatedInfo4.length == 0) msgs.push('请添加授权代表人信息');
+    if (this.relatedInfo5.length == 0) msgs.push('请添加受益所有人信息');
+
+    const props = ['client_name', 'office_address', 'register_country', 'register_money_type', 'register_fund',
+      'industry_type', 'tel', 'setup_date', 'id_type', 'id_no', 'id_begindate', 'id_enddate', 'busi_scope', 'associated_date'];
+    if (info.industry_type == '26') props.push('industry_name');
+    checkFields(props);
+
+    const validateRelatedPerson = (list, typeName) => {
+      list.forEach(item => {
+        const name = item.related_name || '';
+        if (isEmpty(item.related_name)) msgs.push(`${typeName}的姓名不能为空`);
+        if (item.is_government_dept === '1') return;
+        if (isEmpty(item.nationality)) msgs.push(`${typeName}${name}的国籍不能为空`);
+        if (isEmpty(item.id_type)) msgs.push(`${typeName}${name}的证件类型不能为空`);
+        if (isEmpty(item.id_no)) msgs.push(`${typeName}${name}的证件号码不能为空`);
+        if (isEmpty(item.id_begindate)) msgs.push(`${typeName}${name}的证件开始日期不能为空`);
+        if (isEmpty(item.id_enddate)) msgs.push(`${typeName}${name}的证件结束日期不能为空`);
+        if (item.organ_flag === '1' && item.is_government_dept !== '0' && item.is_government_dept !== '1') {
+          msgs.push(`${typeName}${name}的是否政府部门不能为空`);
+        }
+        if (item.organ_flag === '0' && isEmpty(item.birthday)) msgs.push(`${typeName}${name}的出生日期不能为空`);
+        if (item.related_type === '5') {
+          if (isEmpty(item.beneficiary)) msgs.push(`${typeName}${name}的受益所有人类型不能为空`);
+          if (isEmpty(item.address)) msgs.push(`${typeName}${name}的地址不能为空`);
+          if (['A1', 'A2', 'B1', 'D1'].includes(item.beneficiary) && isEmpty(item.shareholding_ratio)) {
+            msgs.push(`${typeName}${name}的股权/表决权比例不能为空`);
+          }
+        }
+        if ((item.related_type === '1' || item.related_type === '4') && isEmpty(item.mobno1)) {
+          msgs.push(`${typeName}${name}的联系方式不能为空`);
+        }
+      });
+    };
+    validateRelatedPerson(this.relatedInfo1, '法定代表人');
+    validateRelatedPerson(this.relatedInfo2, '控股股东');
+    validateRelatedPerson(this.relatedInfo3, '实际控制人');
+    validateRelatedPerson(this.relatedInfo4, '授权代表人');
+    validateRelatedPerson(this.relatedInfo5, '受益所有人');
+  } else {
+    // 自然人
+    checkFields(['client_name', 'birthday', 'id_address', 'address', 'nationality', 'gender', 'income',
+      'profession_code', 'id_type', 'id_no', 'id_begindate', 'id_enddate', 'associated_date']);
+  }
+
+  if (msgs.length > 0) {
+    this.showMessage('客户信息不完整，请在编辑页补充并提交后再打印导出：<br>' + msgs.join('<br>'), 8000, 'error');
+    return false;
+  }
+  return true;
+},
+    downloadPdf() {
+      if (!this.validateBeforeExport()) return;
+      // this.getBasicInfo('_$client_id$_');
+      // this.getRelatedInfo('_$client_id$_', '1');
+      // this.getRelatedInfo('_$client_id$_', '2');
+      // this.getRelatedInfo('_$client_id$_', '3');
+      // this.getRelatedInfo('_$client_id$_', '4');
+      // this.getRelatedInfo('_$client_id$_', '5');
+      
+      const htmlContent = document.getElementById('pdf-container');
+      const clone = htmlContent.cloneNode(true);
+      clone.style.backgroundColor = '#ffffff'; // 确保背景白色
+      clone.style.padding = '20px';
+      clone.style.width = '1800px';
+      clone.style.maxWidth = 'none';
+      document.body.appendChild(clone);
+
+      setTimeout(() => {
+        html2canvas(clone, {
+          scale: window.devicePixelRatio,//2,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: "#ffffff",
+          fontSize: '24px',
+          boxSizing: 'border-box',
+          // scrollX: 0,
+          // scrollY: -window.scrollY
+        }).then(canvas => {
+          const contentWidth = canvas.width;
+          const contentHeight = canvas.height;
+
+          const pageWidth = 595.28; // A4 pt 宽度
+          const pageHeight = 841.89; // A4 pt 高度
+          const imgWidth = pageWidth - 40; // 两边各留 20pt 边距
+          const imgHeight = (imgWidth / contentWidth) * contentHeight;
+
+          const pageData = canvas.toDataURL('image/jpeg', 1.0);
+          console.log("pageData.length", pageData.length / (1024 * 1024) + "MB");
+          const pdf = new jsPDF('', 'pt', 'a4');
+
+          let leftHeight = imgHeight;
+          let position = 0;
+
+          if (leftHeight < pageHeight) {
+            pdf.addImage(pageData, 'JPEG', 20, 0, imgWidth, imgHeight);
+          } else {
+            while (leftHeight > 0) {
+              pdf.addImage(pageData, 'JPEG', 20, position, imgWidth, imgHeight);
+              leftHeight -= pageHeight;
+              position -= pageHeight;
+
+              if (leftHeight > 0) {
+                pdf.addPage();
+              }
+            }
+          }
+          pdf.save("客户基本信息表-【" + '_$client_name$_' + '(' + '_$client_id$_' + ')' + "】" + ".pdf");
+          document.body.removeChild(clone);
+        }).catch(err => {
+          console.error('PDF导出失败', err);
+          document.body.removeChild(clone);
+        });
+      }, 500);
+    },
+  },
+  watch: {
+  },
+  created: async function () {
+    let that = this;
+    this.activeNav += this._uid;
+    let navList_jg = [
+      {
+        label: '客户基本信息',
+        value: 'basicInfo',
+        name: '#basicInfo'
+      }, {
+        label: '反洗钱特殊情况',
+        value: 'fxqSpecial',
+        name: '#fxqSpecial'
+      }, {
+        label: '法定代表人',
+        value: 'LegalRep',
+        name: '#LegalRep'
+      }, {
+        label: '控股股东',
+        value: 'controllingShareholder',
+        name: '#controllingShareholder'
+      }, {
+        label: '实际控制人',
+        value: 'actualController',
+        name: '#actualController'
+      }, {
+        label: '授权代表人',
+        value: 'authorizedRep',
+        name: '#authorizedRep'
+      }, {
+        label: '受益所有人',
+        value: 'beneficialOwner',
+        name: '#beneficialOwner'
+      },
+    ];
+    let navList_gr = [
+      {
+        label: '客户基本信息',
+        value: 'basicInfo',
+        name: '#basicInfo'
+      }, {
+        label: '反洗钱特殊情况',
+        value: 'fxqSpecial',
+        name: '#fxqSpecial'
+      }
+    ];
+    this.navList = '_$organ_flag$_' === '1' ? navList_jg : navList_gr;
+    this.navList.forEach(ele => {
+      ele.value += that._uid;
+    });
+
+    app.data.list.forEach(async item => {
+      await this.loadSelectList(item);
+    });
+
+    app.data.dict.forEach(async item => {
+      await this.getDictMap(item);
+    });
+
+    // 获取客户基本信息
+    await this.getBasicInfo('_$client_id$_');
+    // 获取法定代表人信息
+    await this.getRelatedInfo('_$client_id$_', '1');
+    // 获取控股股东信息
+    await this.getRelatedInfo('_$client_id$_', '2');
+    // 获取实际控制人信息
+    await this.getRelatedInfo('_$client_id$_', '3');
+    // 获取授权代表人信息
+    await this.getRelatedInfo('_$client_id$_', '4');
+    // 获取受益所有人信息
+    await this.getRelatedInfo('_$client_id$_', '5');
+    if (this.organ_flag === '1') {
+      this.getBomisSourceTableData();
+    }
+    await this.selectFile();
+    await this.getProvince();
+    // 从全局获取数据
+    setTimeout(() => {
+      try {
+        var info = this.basicInfo || {};
+        if (info.client_type) { this.client_type_arr = String(info.client_type).split(',') }
+        if (info.special_matters) { this.special_matters_arr = String(info.special_matters).split(',') }
+      } catch (e) {
+        console.error('mainContainer 初始化收尾失败', e);
+      } finally {
+        this.loading = false;
+      }
+    }, 1000);
+
+  },
+  mounted: function () {
+  },
+  beforeDestroy() {
+  },
+});

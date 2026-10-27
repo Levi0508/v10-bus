@@ -1,0 +1,14 @@
+{
+  "title": "查询历史bomis实时核验接口记录",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var sql = `\n  select t.*\n  from thjs.th_bomis_response t\n  where t.client_id = {?client_id?}\n`;\n\n// 历史批次传入核验记录主键时，精确查询该客户对应的记录。\nif (!Wb.isEmpty(Wb.get('id'))) {\n  sql += ` and t.id = {?id?}`;\n}\n\nsql += ` order by t.op_time desc`;\nWb.send(Wb.getRowx({ sql: sql }));"
+  },
+  "_icon": "module"
+}

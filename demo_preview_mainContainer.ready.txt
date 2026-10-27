@@ -1378,8 +1378,20 @@ comp.vue = new Vue({
       tempDomArr: [],
       client_type_arr: [],
       special_matters_arr: [],
-      basicInfo: app.data.basicInfo,
-      gshcInfo: app.data.gshcInfo,// 工商核查结果
+      basicInfo: app.data.basicInfo || {},
+      // 预览 base_preview.initialize 常无 gshcInfo，需默认值避免 gshcInfo.name 报错
+      gshcInfo: Object.assign({
+        name: '',
+        office_address: '',
+        register_money_type: '',
+        register_fund: '',
+        setup_date: '',
+        id_begindate: '',
+        id_enddate: '',
+        busi_scope: '',
+        id_type: '',
+        id_no: ''
+      }, app.data.gshcInfo || {}),
 
       relatedInfo1: app.data.relatedInfo1,// 法定代表人
       relatedInfo2: app.data.relatedInfo2,// 控股股东

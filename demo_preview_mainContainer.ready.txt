@@ -1425,7 +1425,8 @@ comp.vue = new Vue({
         objectId: Wb.getId(),
         client_id: '_$client_id$_'
       },
-      loading: true
+      // 预览页勿长期挡 loading；审核页 demo_appr 为 true + 延迟关闭
+      loading: false
     };
   },
   computed: {
@@ -1700,7 +1701,7 @@ comp.vue = new Vue({
         params: {
           CLIENT_ID: client_id,
           RELATED_TYPE: rela_type,
-          DATA_TYPE:'1'
+          DATA_TYPE: '_$data_type$_' || '1'
         },
         async:false,
         success(resp) {
@@ -2078,6 +2079,8 @@ validateBeforeExport() {
   },
   created: async function () {
     let that = this;
+    this.loading = true;
+    try {
     this.activeNav += this._uid;
     let navList_jg = [
       {
@@ -2151,19 +2154,14 @@ validateBeforeExport() {
     }
     await this.selectFile();
     await this.getProvince();
-    // 从全局获取数据
-    setTimeout(() => {
-      try {
-        var info = this.basicInfo || {};
-        if (info.client_type) { this.client_type_arr = String(info.client_type).split(',') }
-        if (info.special_matters) { this.special_matters_arr = String(info.special_matters).split(',') }
-      } catch (e) {
-        console.error('mainContainer 初始化收尾失败', e);
-      } finally {
-        this.loading = false;
-      }
-    }, 1000);
-
+    var info = this.basicInfo || {};
+    if (info.client_type) { this.client_type_arr = String(info.client_type).split(',') }
+    if (info.special_matters) { this.special_matters_arr = String(info.special_matters).split(',') }
+    } catch (e) {
+      console.error('预览 mainContainer 初始化失败', e);
+    } finally {
+      this.loading = false;
+    }
   },
   mounted: function () {
   },

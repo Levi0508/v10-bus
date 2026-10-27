@@ -5,6 +5,7 @@
   "hideInMenu": "true",
   "items": [
     "projlist_form_container.xwl",
+    "beforeProjlistformTab.xwl",
     "projlist_form_tab_sumbit.xwl",
     "projlist_form_tab_sumbit1.xwl",
     "projlist_form.xwl",

@@ -7,7 +7,9 @@
     "base.xwl",
     "base_preview.xwl",
     "base_edit.xwl",
+    "base_edit_pdf.xwl",
     "base_edit_test.xwl",
-    "base_appr.xwl"
+    "base_appr.xwl",
+    "base_appr_pdf.xwl"
   ]
 }

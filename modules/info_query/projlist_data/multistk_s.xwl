@@ -1,1 +1,14 @@
-{"title":"清单关联上市公司信息保存","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"let res = Wb.sql(`{call thjs.p_projlist_multistk_s(\n  i_projid => {?i_projid?},\n  i_fill_id => {?i_fill_id?},\n  i_comp_name => {?i_comp_name?},\n  i_stk_name => {?i_stk_name?},\n  i_stk_code => {?i_stk_code?},\n  i_write_date => {?i_write_date?},\n  i_projlist_status => {?i_projlist_status?},\n  i_submit_status =>{?i_submit_status?},\n  i_related_property =>{?i_related_property?},\n  i_ralated_ramark =>{?i_ralated_ramark?},\n  i_usercode =>{?i_usercode?},\n  o_return_msg => {*O_RETURN_MSG*},\n  o_return_code => {*O_RETURN_CODE*})`);\n\nWb.send(res);"},"_icon":"module"}
+{
+  "title": "清单关联上市公司信息保存",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let res = Wb.sql(`{call thjs.p_projlist_multistk_s(\n  i_projid => {?i_projid?},\n  i_fill_id => {?i_fill_id?},\n  i_comp_name => {?i_comp_name?},\n  i_stk_name => {?i_stk_name?},\n  i_stk_code => {?i_stk_code?},\n  i_write_date => {?i_write_date?},\n  i_projlist_status => {?i_projlist_status?},\n  i_submit_status =>{?i_submit_status?},\n  i_related_property =>{?i_related_property?},\n  i_ralated_ramark =>{?i_ralated_ramark?},\n  i_clear_flag =>{?i_clear_flag?},\n  i_usercode =>{?i_usercode?},\n  o_return_msg => {*O_RETURN_MSG*},\n  o_return_code => {*O_RETURN_CODE*})`);\n\nWb.send(res);"
+  },
+  "_icon": "module"
+}

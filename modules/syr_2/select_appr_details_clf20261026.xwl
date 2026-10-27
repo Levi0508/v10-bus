@@ -1,0 +1,14 @@
+{
+  "title": "查询审核记录",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx({\n  sql: `WITH RankedAudits AS (\n    SELECT \n        a.audit_id,\n        b.display_name as create_user,\n        a.create_time,\n        a.remark,\n        a.bomis_check_result,\n        a.bomis_resp_id,\n        a.piid,\n        ROW_NUMBER() OVER (ORDER BY a.create_time DESC) as batch_num\n    FROM thjs.T_TH_APPR_LIST a\n    left join basic_thjs.wb_user b\n    on a.create_user = b.user_name\n    WHERE client_id = {?I_CLIENT_ID?}\n)\nSELECT \n    d.*,\n    ra.create_user as batch_create_user,\n    ra.create_time as batch_create_time,\n    ra.remark as batch_remark,\n    ra.bomis_check_result as batch_bomis_check_result,\n    ra.bomis_resp_id as batch_bomis_resp_id,\n    ra.piid as batch_piid,\n    coalesce(u.display_name,u1.display_name,ra.create_user) as batch_display_name\nFROM RankedAudits ra\nleft join thjs.t_th_appr_detail d on d.audit_id=ra.audit_id and d.client_id = {?I_CLIENT_ID?}\nLEFT JOIN basic_thjs.wb_user u ON d.create_user = u.user_name or d.create_user = u.staff_id\nleft join basic_thjs.wb_user_hg u1 on u1.user_name = d.create_user\nWHERE  ra.batch_num = {?I_BATCH_NUM?} + 1;`\n});"
+  },
+  "_icon": "module"
+}

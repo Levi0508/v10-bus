@@ -1,0 +1,18 @@
+{
+  "title": "流程表单前置校验",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.set({\n  projid: Wb.get('projid'),\n  i_op_flag: Wb.get('i_op_flag'),         // 1 - 只有从关联信息修改入口进来时传递1\n  state: Wb.get('state'),                 // info，只有双击查看时显示这个参数\n  piid1: Wb.get('piid1'),                 // 流程1参数 - 清单自查流程 流程id\n  check_batch_id:Wb.get('checkBatchId'),  // 流程1参数 - 清单自查流程 自查批次编号\n  piid2:Wb.get('piid2'),                  // 流程2参数 - 隔离墙操作变动审核流程 流程id\n  nodeCode:Wb.get('nodeCode'),            // 流程2参数 - 隔离墙操作变动审核流程 当前流程节点\n  staff_id:Wb.get('staff_id'),            // 流程2参数 - 隔离墙操作变动审核流程 项目组节点流程接收人\n  deptmananame:Wb.get('depemananame'),    // 流程2参数 - 隔离墙操作变动审核流程 项目组节点流程接收人中文名\n  deptname:Wb.get('deptname'),            // 流程2参数 - 隔离墙操作变动审核流程 项目组节点流程接收人所在部门\n  usercode:Wb.get('usercode')             // 自查流程和操作变动流程共用参数，表示打开当前流程表单的实际全链接登录用户\n});"
+  },
+  "_icon": "module",
+  "events": {
+    "initialize": "if ('_$usercode$_' && '_$usercode$_' == '_$sys.username$_') {\n  Wb.open({\n    url: xpath + '/../projlist_form_tab_sumbit',\n    params: {\n      projid: '_$projid$_',\n      i_op_flag: '_$i_op_flag$_',         // 1 - 只有从关联信息修改入口进来时传递1\n      state: '_$state$_',                 // info，只有双击查看时显示这个参数\n      piid1: '_$piid1$_',                 // 流程1参数 - 清单自查流程 流程id\n      check_batch_id: '_$checkBatchId$_',  // 流程1参数 - 清单自查流程 自查批次编号\n      piid2: '_$piid2$_',                  // 流程2参数 - 隔离墙操作变动审核流程 流程id\n      nodeCode: '_$nodeCode$_',            // 流程2参数 - 隔离墙操作变动审核流程 当前流程节点\n      staff_id: '_$staff_id$_',            // 流程2参数 - 隔离墙操作变动审核流程 项目组节点流程接收人\n      deptmananame: '_$depemananame$_',    // 流程2参数 - 隔离墙操作变动审核流程 项目组节点流程接收人中文名\n      deptname: '_$deptname$_',            // 流程2参数 - 隔离墙操作变动审核流程 项目组节点流程接收人所在部门\n      usercode: '_$usercode$_'\n    }\n  });\n} else {\n  Wb.confirm(`检测到全链接登录账号已发生变更，为确保两个系统操作用户一致，点击【确定】按钮<br>系统将自动登出当前投行合规管理系统登录用户` + '_$sys.username$_' + `，请稍后重新从全链接打开该页面。`, () => {\n    Wb.tipInfo(\"即将自动关闭页面...\");\n    Wb.ajax('logout');\n    setTimeout(() => {\n      window.close();\n    }, 3000);\n  }, null, true);\n}"
+  },
+  "items": []
+}

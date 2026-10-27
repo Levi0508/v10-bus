@@ -21,7 +21,7 @@
         "cid": "viewport1"
       },
       "events": {
-        "ready": "console.log(\"sys.username\",'_$sys.username$_')\nWb.ajax('logout');"
+        "ready": "console.log(\"sys.username\",'_$sys.username$_')\nWb.ajax('logout');\n\n// -- ★ 新增：清空逻辑提到最前面，不受 i_comp_name 限制\n//   if i_clear_flag = '1' and v_count = 1 then\n//     -- 1. 清空主表中的 multistk_id\n//     update thjs.tb_projlist_main m\n//        set m.multistk_id = ''\n//      where m.projid = i_projid;\n//     -- 2. 删除关联公司明细表中的旧数据\n//     delete from thjs.tb_projlist_multistk\n//      where projid = i_projid;\n//     commit;\n    \n//     o_return_msg  := '执行成功';\n//     o_return_code := 0;\n//     return;  -- ★ 清空完成后直接返回，不再执行后续逻辑\n//   end if;\n\n//   -- 原有的正常保存逻辑（只有 i_comp_name 不为空时才执行 insert）\n//   if v_count = 1 and i_comp_name is not null then"
       }
     }
   ]

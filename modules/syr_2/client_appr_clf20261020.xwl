@@ -3,7 +3,7 @@
   "icon": "",
   "img": "",
   "tags": "",
-  "hideInMenu": "false",
+  "hideInMenu": "true",
   "text": "module",
   "cls": "Wb.Module",
   "properties": {

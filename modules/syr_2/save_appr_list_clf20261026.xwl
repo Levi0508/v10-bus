@@ -1,0 +1,14 @@
+{
+  "title": "保存审核意见",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx(`insert into thjs.t_th_appr_list(\n  client_id,\n  audit_id,\n  remark,\n  create_user,\n  create_time,\n  bomis_check_result,\n  bomis_resp_id,\n  piid\n) values (\n  {?CLIENT_ID?},\n  {?AUDIT_ID?},\n  {?REMARK?},\n  {?CREATE_USER?},\n  sysdate,\n  {?BOMIS_CHECK_RESULT?},\n  {?BOMIS_RESP_ID?},\n  {?PIID?}\n)`);"
+  },
+  "_icon": "module"
+}

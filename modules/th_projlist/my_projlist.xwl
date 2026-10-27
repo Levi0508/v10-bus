@@ -430,7 +430,8 @@
                   "properties": {
                     "cid": "CHECK_DATE_col",
                     "fieldName": "check_date",
-                    "text": "自查日期"
+                    "text": "自查日期",
+                    "render": "if (value) {\n  return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;\n} else {\n  return value;\n}"
                   }
                 }
               ]

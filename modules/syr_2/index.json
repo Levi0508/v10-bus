@@ -7,11 +7,19 @@
     "KYC01050_clf20261020.xwl",
     "client_edit_clf20261020.xwl",
     "base_edit_clf20261020.xwl",
+    "update_client_clf20261026.xwl",
     "KYC01020_clf20261020.xwl",
     "client_appr_clf20261020.xwl",
     "base_appr_clf20261020.xwl",
-    "client_add_clf20261026.xwl",
-    "base_add_clf20261026.xwl",
+    "add_bomis_benefit_scinfo_clf20261026.xwl",
+    "edit_bomis_benefit_scinfo_clf20261026.xwl",
+    "del_bomis_benefit_scinfo_clf20261026.xwl",
+    "client_preview_clf20261027.xwl",
+    "base_preview_clf20261027.xwl",
+    "select_flow_bomis_history_clf20261026.xwl",
+    "save_appr_list_clf20261026.xwl",
+    "select_appr_details_clf20261026.xwl",
+    "online_bomis_check_clf20261026.xwl",
     "KYC01010_clf20261026.xwl"
   ]
 }

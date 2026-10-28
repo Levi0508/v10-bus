@@ -72,10 +72,13 @@ comp.vue = new Vue({
       </div>
       <div style="font-weight:bold;margin:10px 0 0;">核验明细：</div>
       <el-table :data="bomisLastCheckResultList" border style="width: 100%;margin: 0.5em 0 0;"
-        :header-cell-style="{ background: '#EDF3FE' }" size="mini" max-height="400">
+        :header-cell-style="{ background: '#EDF3FE' }" :cell-style="bomisCellStyle" size="mini" max-height="400">
         <el-table-column v-for="col in bomisColumns" :key="col.prop" :prop="col.prop" :label="col.label"
-          :width="col.width" :fixed="col.fixed || false">
-          <template slot-scope="scope">{{ col.dict ? formatMultipleDictMap(col.dict, scope.row[col.prop]) : scope.row[col.prop] }}</template>
+          :width="col.width" :fixed="col.fixed || false" :show-overflow-tooltip="col.prop === 'diff_desc'">
+          <template slot-scope="scope">
+            <span v-if="col.prop === 'diff_desc'" style="color:#F56C6C">{{ scope.row.diff_desc || '-' }}</span>
+            <span v-else>{{ col.dict ? formatMultipleDictMap(col.dict, scope.row[col.prop]) : scope.row[col.prop] }}</span>
+          </template>
         </el-table-column>
       </el-table>
     </div>
@@ -134,10 +137,13 @@ comp.vue = new Vue({
 
   <el-dialog title="核验明细" :visible.sync="bomisDetailVisible" width="80%" append-to-body>
     <el-table :data="bomisDetailList" border style="width: 100%;" :header-cell-style="{ background: '#EDF3FE' }"
-      size="mini" max-height="500">
+      :cell-style="bomisCellStyle" size="mini" max-height="500">
         <el-table-column v-for="col in bomisColumns" :key="col.prop" :prop="col.prop" :label="col.label"
-          :width="col.width" :fixed="col.fixed || false">
-          <template slot-scope="scope">{{ col.dict ? formatMultipleDictMap(col.dict, scope.row[col.prop]) : scope.row[col.prop] }}</template>
+          :width="col.width" :fixed="col.fixed || false" :show-overflow-tooltip="col.prop === 'diff_desc'">
+          <template slot-scope="scope">
+            <span v-if="col.prop === 'diff_desc'" style="color:#F56C6C">{{ scope.row.diff_desc || '-' }}</span>
+            <span v-else>{{ col.dict ? formatMultipleDictMap(col.dict, scope.row[col.prop]) : scope.row[col.prop] }}</span>
+          </template>
         </el-table-column>
     </el-table>
   </el-dialog>
@@ -183,6 +189,7 @@ comp.vue = new Vue({
       bomisFlowHistory: [], // 供左侧「历史核验信息」弹窗使用
       bomisColumns: [
         { prop: 'check_type_name', label: '差异类型', width: 150, fixed: 'left' },
+        { prop: 'diff_desc', label: '不一致项', width: 280, fixed: 'left' },
         { prop: 'name', label: '姓名', width: 120 },
         { prop: 'gender', label: '性别', width: 70, dict: 'benefit_gender_list' },
         { prop: 'ntlty', label: '国籍', width: 160, dict: 'bomis_nationality_list' },
@@ -193,6 +200,10 @@ comp.vue = new Vue({
         { prop: 'addr', label: '联系地址', width: 300 },
         { prop: 'mobno1', label: '联系电话(手机)', width: 300 },
         { prop: 'mobno2', label: '联系电话(固定电话)', width: 300 },
+        { prop: 'actctrl', label: '是否持股25%以上', width: 150, dict: 'benefit_yesno_list' },
+        { prop: 'pribenfit', label: '是否享有25%以上收益权/表决权', width: 200, dict: 'benefit_yesno_list' },
+        { prop: 'seniormgr', label: '是否负责日常经营管理', width: 180, dict: 'benefit_yesno_list' },
+        { prop: 'seniormgrcn', label: '是否在华最高层级高管', width: 180, dict: 'benefit_yesno_list' },
         { prop: 'acthdrat', label: '持有股权、股份或者合伙权益的比例（%)', width: 160 },
         { prop: 'shareratiostartdate', label: '形成日期(股权、股份或者合伙权益)', width: 160 },
         { prop: 'shareratioenddate', label: '终止日期(股权、股份或者合伙权益)', width: 160 },
@@ -479,17 +490,141 @@ comp.vue = new Vue({
       const item = this.bomisCheckConclusionOptions.find(i => i.k === key);
       return item ? item.k + '-' + item.v : '-';
     },
-    // 解析一条核验记录，返回核验结果摘要和明细列表
-    parseBomisResponse(row) {
-      if (!row || !row.response_info) { return null; }
-      var response_info;
+    bomisNormVal(value) {
+      if (value == null || value === '') { return ''; }
+      if (Object.prototype.toString.call(value) === '[object Array]' && value.length === 0) { return ''; }
+      if (Object.prototype.toString.call(value) === '[object Array]') { return value.map(function (i) { return String(i); }).join(','); }
+      return String(value).trim();
+    },
+    bomisDisplayVal(value) {
+      var text = this.bomisNormVal(value);
+      if (text === '') { return '空'; }
+      if (text === 'Y') { return '是'; }
+      if (text === 'N') { return '否'; }
+      return text;
+    },
+    bomisParseJson(raw) {
+      if (!raw) { return null; }
+      if (typeof raw === 'object') { return raw; }
       try {
-        response_info = JSON.parse(JSON.parse(row.response_info));
+        var value = JSON.parse(raw);
+        if (typeof value === 'string') { value = JSON.parse(value); }
+        return value;
       } catch (e) {
         return null;
       }
+    },
+    bomisFlattenPerson(item, preferSubmitAlias) {
+      var out = {};
+      for (var key in item) {
+        if (Object.prototype.hasOwnProperty.call(item, key)) {
+          out[key.toLowerCase()] = item[key];
+        }
+      }
+      if (preferSubmitAlias) {
+        var aliases = {
+          name: item.name != null ? item.name : item.related_name,
+          ntlty: item.ntlty,
+          gender: item.gender,
+          birthdt: item.birthDt != null ? item.birthDt : (item.birthday != null ? item.birthday : item.birthdt),
+          idtp: item.idTp != null ? item.idTp : item.idtp,
+          idnb: item.idNb != null ? item.idNb : item.idnb,
+          iddate: item.idDate,
+          addr: item.addr,
+          mobno1: item.mobNo1,
+          mobno2: item.mobNo2,
+          actctrl: item.actCtrl != null ? item.actCtrl : item.actctrl,
+          acthdrat: item.actHdRat != null ? item.actHdRat : item.acthdrat,
+          shareratiostartdate: item.shareRatioStartDate != null ? item.shareRatioStartDate : item.shareratiostartdate,
+          shareratioenddate: item.shareRatioEndDate != null ? item.shareRatioEndDate : item.shareratioenddate,
+          actctrltype: item.actCtrlType != null ? item.actCtrlType : item.actctrltype,
+          actotherforms: item.actOtherForms != null ? item.actOtherForms : item.actotherforms,
+          obtainactdate: item.obtainActDate != null ? item.obtainActDate : item.obtainactdate,
+          terminationactdate: item.terminationActDate != null ? item.terminationActDate : item.terminationactdate,
+          actconuppermarket: item.actConUpperMarket != null ? item.actConUpperMarket : item.actconuppermarket,
+          actconupperentname: item.actConUpperEntName != null ? item.actConUpperEntName : item.actconupperentname,
+          actconuniscid: item.actConUniScid != null ? item.actConUniScid : item.actconuniscid,
+          pribenfit: item.priBenfit != null ? item.priBenfit : item.pribenfit,
+          actownerprofitratio: item.actOwnerProfitRatio != null ? item.actOwnerProfitRatio : item.actownerprofitratio,
+          profitratiostartdate: item.profitRatioStartDate != null ? item.profitRatioStartDate : item.profitratiostartdate,
+          profitratioenddate: item.profitRatioEndDate != null ? item.profitRatioEndDate : item.profitratioenddate,
+          actownerprofitratiovote: item.actOwnerProfitRatioVote != null ? item.actOwnerProfitRatioVote : item.actownerprofitratiovote,
+          profitratiovotestartdate: item.profitRatioVoteStartDate != null ? item.profitRatioVoteStartDate : item.profitratiovotestartdate,
+          profitratiovoteenddate: item.profitRatioVoteEndDate != null ? item.profitRatioVoteEndDate : item.profitratiovoteenddate,
+          seniormgr: item.seniorMgr != null ? item.seniorMgr : item.seniormgr,
+          seniormgrpos: item.seniorMgrPos != null ? item.seniorMgrPos : item.seniormgrpos,
+          actdailymgmtpostother: item.actDailyMgmtPostOther != null ? item.actDailyMgmtPostOther : item.actdailymgmtpostother,
+          seniormgrcn: item.seniorMgrCN != null ? item.seniorMgrCN : item.seniormgrcn,
+          seniormgrposcn: item.seniorMgrPosCN != null ? item.seniorMgrPosCN : item.seniormgrposcn,
+          ownerrightmgmtpostother: item.ownerRightMgmtPostOther != null ? item.ownerRightMgmtPostOther : item.ownerrightmgmtpostother
+        };
+        Object.keys(aliases).forEach(function (k) {
+          if (aliases[k] !== undefined) { out[k] = aliases[k]; }
+        });
+      }
+      return out;
+    },
+    bomisGetSubmitList(row) {
+      var requestInfo = this.bomisParseJson(row && row.request_info);
+      var body = (requestInfo && requestInfo.body) || requestInfo || {};
+      var bolist = body.bolist || [];
+      var that = this;
+      return bolist.map(function (item) { return that.bomisFlattenPerson(item, true); });
+    },
+    bomisMatchSubmit(list, returned) {
+      var name = this.bomisNormVal(returned.name);
+      var idnb = this.bomisNormVal(returned.idnb);
+      var that = this;
+      var hit = list.find(function (item) {
+        return that.bomisNormVal(item.name) === name && idnb !== '' && that.bomisNormVal(item.idnb) === idnb;
+      });
+      if (hit) { return hit; }
+      return list.find(function (item) { return name !== '' && that.bomisNormVal(item.name) === name; });
+    },
+    bomisDiffPerson(submitted, returned) {
+      var fields = [
+        ['name', '姓名'], ['gender', '性别'], ['ntlty', '国籍'], ['birthdt', '出生日期'],
+        ['idtp', '证件类型'], ['idnb', '证件号码'], ['iddate', '证件有效期'], ['addr', '联系地址'],
+        ['mobno1', '联系电话(手机)'], ['mobno2', '联系电话(固定电话)'],
+        ['actctrl', '是否持股25%以上'], ['acthdrat', '持股比例'],
+        ['shareratiostartdate', '形成日期(股权)'], ['shareratioenddate', '终止日期(股权)'],
+        ['pribenfit', '是否享有25%以上收益权/表决权'], ['actownerprofitratio', '收益权比例'],
+        ['profitratiostartdate', '形成日期(收益权)'], ['profitratioenddate', '终止日期(收益权)'],
+        ['actownerprofitratiovote', '表决权比例'], ['profitratiovotestartdate', '形成日期(表决权)'],
+        ['profitratiovoteenddate', '终止日期(表决权)'], ['actctrltype', '实施实际控制的内容/方式'],
+        ['actotherforms', '其他形式的具体内容'], ['obtainactdate', '形成日期(实施实际控制)'],
+        ['terminationactdate', '终止日期(实施实际控制)'], ['actconuppermarket', '是否存在上一层备案主体'],
+        ['actconupperentname', '上一层备案主体名称'], ['actconuniscid', '上一层统一社会信用代码'],
+        ['seniormgr', '是否负责日常经营管理'], ['seniormgrpos', '日常经营管理职位'],
+        ['actdailymgmtpostother', '其他日常经营管理职位'], ['seniormgrcn', '是否在华最高层级高管'],
+        ['seniormgrposcn', '在华最高层级高管职位'], ['ownerrightmgmtpostother', '在华高管其他职位']
+      ];
+      var diffs = [];
+      var that = this;
+      fields.forEach(function (f) {
+        var left = that.bomisNormVal(submitted[f[0]]);
+        var right = that.bomisNormVal(returned[f[0]]);
+        if (left !== right) {
+          diffs.push({ key: f[0], label: f[1], submitted: that.bomisDisplayVal(left), returned: that.bomisDisplayVal(right) });
+        }
+      });
+      return diffs;
+    },
+    bomisCellStyle({ row, column }) {
+      var keys = row.diff_keys || [];
+      if (column.property && keys.indexOf(column.property) !== -1) {
+        return { background: '#FEF0F0', color: '#F56C6C' };
+      }
+      return {};
+    },
+    // 解析一条核验记录，返回核验结果摘要和明细列表
+    parseBomisResponse(row) {
+      if (!row || !row.response_info) { return null; }
+      var response_info = this.bomisParseJson(row.response_info);
+      if (!response_info) { return null; }
       response_info.op_time = row.op_time;
       var list = [];
+      var submitList = this.bomisGetSubmitList(row);
       var noDiff = (response_info.NoDiffList || [])[0];
       if (noDiff) {
         var checkTypes = [
@@ -500,15 +635,25 @@ comp.vue = new Vue({
           { count: 'PERP_COUNT', list: 'PerpList', code: 'perp', name: '备案主体填报类型为承诺免报' },
           { count: 'SCEC_COUNT', list: 'ScecList', code: 'scec', name: '备案主体填报类型为国有公司' }
         ];
+        var that = this;
         checkTypes.forEach(function (t) {
           if (noDiff[t.count] > 0) {
-            list = list.concat(noDiff[t.list].map(item => {
-              const newItem = {};
-              for (const key in item) {
-                newItem[key.toLowerCase()] = item[key];
-              }
+            list = list.concat((noDiff[t.list] || []).map(function (item) {
+              const newItem = that.bomisFlattenPerson(item, false);
               newItem.check_type_code = t.code;
               newItem.check_type_name = t.name;
+              if (t.code === 'elmt' && submitList.length > 0) {
+                var submitted = that.bomisMatchSubmit(submitList, newItem);
+                if (submitted) {
+                  var diffs = that.bomisDiffPerson(submitted, newItem);
+                  newItem.diff_keys = diffs.map(function (d) { return d.key; });
+                  newItem.diff_map = {};
+                  diffs.forEach(function (d) { newItem.diff_map[d.key] = d; });
+                  newItem.diff_desc = diffs.map(function (d) {
+                    return d.label + '：录入' + d.submitted + ' / 备案' + d.returned;
+                  }).join('；');
+                }
+              }
               return newItem;
             }));
           }

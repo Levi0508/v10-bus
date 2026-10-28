@@ -6,8 +6,10 @@
   "items": [
     "beforeCutomerInfoCheck.xwl",
     "customerInfoCheck.xwl",
+    "customerInfoCheck_clf20261028.xwl",
     "customerInfoCheck",
     "togo.xwl",
+    "togo_20261028.xwl",
     "togo2.xwl",
     "dataquery",
     "pageQuery",

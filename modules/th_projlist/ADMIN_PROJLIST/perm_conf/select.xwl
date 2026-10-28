@@ -1,1 +1,14 @@
-{"title":"查询","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"// let res = Wb.sql(`{call thjs.p_projlist_main_mq11({*cursor|result*},{?PROJID?},{?CUSTNAME?},{?i_projname?},{?STKCODE?},{?STKNAME?},{?PROJTYPE?},{?DIRECTOR?},{?DEPTNAME?},{?LISTTYPE?},{?INOUTTYPE?},{?DATETYPE?},{?BEGINDATE?},{?ENDATE?},{?sys.username?},{?bigint|_from?},{?bigint|_size?},{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*INTEGER|O_RETURN_CODE*})}`);\n// let total = res.O_TOTAL_COUNT;\n// Wb.log(res);\n// Wb.log(Number(total));\n// Wb.send(re);\nlet order = Wb.getOrderSql();\nWb.sendRowx({\n  sql: `{call thjs.p_projlist_main_mq11({*cursor|result*},{?PROJID?},{?CUSTNAME?},{?i_projname?},{?STKCODE?},{?STKNAME?},{?PROJTYPE?},{?DIRECTOR?},{?DEPTNAME?},{?LISTTYPE?},{?INOUTTYPE?},{?DATETYPE?},{?BEGINDATE?},{?ENDDATE?},{?sys.username?},'1','${order}',{?CHECK_RESULT?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n  kv: {\n    projlist_status: 'projlist_status',\n    ro_inout_reason: 'ro_inout_reason',\n    rl_inout_reason: 'rl_inout_reason',\n    co_inout_reason: 'co_inout_reason',\n    cl_inout_reason: 'cl_inout_reason'\n  }\n});\n"},"_icon":"module"}
+{
+  "title": "查询",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "// let res = Wb.sql(`{call thjs.p_projlist_main_mq11({*cursor|result*},{?PROJID?},{?CUSTNAME?},{?i_projname?},{?STKCODE?},{?STKNAME?},{?PROJTYPE?},{?DIRECTOR?},{?DEPTNAME?},{?LISTTYPE?},{?INOUTTYPE?},{?DATETYPE?},{?BEGINDATE?},{?ENDATE?},{?sys.username?},{?bigint|_from?},{?bigint|_size?},{*O_TOTAL_COUNT*},{*O_RETURN_MSG*},{*INTEGER|O_RETURN_CODE*})}`);\n// let total = res.O_TOTAL_COUNT;\n// Wb.log(res);\n// Wb.log(Number(total));\n// Wb.send(re);\nlet order = Wb.getOrderSql();\nWb.sendRowx({\n  sql: `{call thjs.p_projlist_main_mq11({*cursor|result*},{?PROJID?},{?PROJCODE?},{?CUSTNAME?},{?i_projname?},{?STKCODE?},{?STKNAME?},{?PROJTYPE?},{?DIRECTOR?},{?DEPTNAME?},{?LISTTYPE?},{?INOUTTYPE?},{?DATETYPE?},{?BEGINDATE?},{?ENDDATE?},{?sys.username?},'1','${order}',{?CHECK_RESULT?},{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n  kv: {\n    projlist_status: 'projlist_status',\n    ro_inout_reason: 'ro_inout_reason',\n    rl_inout_reason: 'rl_inout_reason',\n    co_inout_reason: 'co_inout_reason',\n    cl_inout_reason: 'cl_inout_reason'\n  }\n});\n// let order = Wb.getOrderSql();\n// // Wb.send({PROJID: Wb.get('PROJID')});\n// Wb.sendRowx({\n//   sql: `{call thjs.p_projlist_main_mq11({*cursor|result*},null,'','','','','','','','','','','','','','','1','${order}','',{*O_RETURN_MSG*},{*O_RETURN_CODE*})}`,\n//   kv: {\n//     projlist_status: 'projlist_status',\n//     ro_inout_reason: 'ro_inout_reason',\n//     rl_inout_reason: 'rl_inout_reason',\n//     co_inout_reason: 'co_inout_reason',\n//     cl_inout_reason: 'cl_inout_reason'\n//   }\n// });"
+  },
+  "_icon": "module"
+}

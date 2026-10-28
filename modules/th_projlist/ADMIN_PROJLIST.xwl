@@ -29,7 +29,8 @@
       },
       "_expanded": true,
       "events": {
-        "keydown": "if (e.keyCode == '13') {\n  app.seekBtn.fireClick()\n}"
+        "keydown": "if (e.keyCode == '13') {\n  app.seekBtn.fireClick()\n}",
+        "ready": "app.grid1.load({\n  params: {\n    PROJID: '_$i_projid$_' \n  }\n})"
       },
       "items": [
         {
@@ -43,7 +44,7 @@
             "minWidth": "200",
             "gap": "8"
           },
-          "_expanded": false,
+          "_expanded": true,
           "hasDupCid": 0,
           "items": [
             {
@@ -52,6 +53,20 @@
               "cls": "Wb.Text",
               "properties": {
                 "cid": "PROJID",
+                "text": "项目编号",
+                "placeholder": "请输入",
+                "clearButton": "true",
+                "value": "_$i_projid$_",
+                "visible": "false"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "PROJCODE",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "PROJCODE",
                 "text": "项目编号",
                 "placeholder": "请输入",
                 "clearButton": "true"
@@ -208,7 +223,8 @@
             "url": "@xpath + '/perm_conf/select'",
             "emptyHint": "true",
             "textSelectable": "true",
-            "columnsSortable": "true"
+            "columnsSortable": "true",
+            "autoLoad": "false"
           },
           "_expanded": true,
           "hasDupCid": 0,
@@ -288,7 +304,7 @@
               "properties": {
                 "cid": "columns"
               },
-              "_expanded": true,
+              "_expanded": false,
               "hasDupCid": 1,
               "items": [
                 {
@@ -683,7 +699,7 @@
       "_icon": "window",
       "text": "selectUserWin",
       "cls": "Wb.Window",
-      "_expanded": true,
+      "_expanded": false,
       "properties": {
         "cid": "selectUserWin",
         "width": "675",

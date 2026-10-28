@@ -1,0 +1,14 @@
+{
+  "title": "附件预览",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var url = 'http://10.116.131.13:8094/thfxq/previewInoutCommentFile';\n\nvar resp = Packages.cn.hutool.http.HttpUtil\n  .createPost(url)\n  .form(\"filepath\", Wb.get('filepath'))\n  .execute()\n  .body();\n\nWb.info(\"resp===============\");\nWb.info(resp);\nWb.send(resp);"
+  },
+  "_icon": "module"
+}

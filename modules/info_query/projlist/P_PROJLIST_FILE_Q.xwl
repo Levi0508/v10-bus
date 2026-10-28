@@ -81,7 +81,7 @@
           "_expanded": true,
           "hasDupCid": 0,
           "events": {
-            "click": "let link = e.target.closest('.my-link');\nif (link) {\n  let row = this.findItemByEl(link);\n  console.log(\"=====row\", row)\n  Wb.download({\n    url: xpath + '/download_file',\n    params: {\n      disk_url: row.data.filepath\n    }\n  })\n}"
+            "click": "let preview = e.target.closest('.my-preview');\nif (preview) {\n  let row = this.findItemByEl(preview);\n  if (!row || !row.data.filepath) {\n    Wb.info('暂无附件');\n    return;\n  }\n  Wb.ajax({\n    url: xpath + '/preview_file',\n    params: {\n      filepath: row.data.filepath\n    },\n    success(resp) {\n      let res = Wb.decode(resp);\n      let serverIp = '10.116.131.13';\n      if (res.code == '200') {\n        let previewUrl = res.data && res.data.previewUrl;\n        if (!previewUrl) {\n          Wb.info('当前文件类型不支持预览');\n          return;\n        }\n        if (previewUrl.indexOf(serverIp) != -1) {\n          previewUrl = previewUrl.replace(/10\\.116\\.131\\.13:8090/g, '10.181.135.22:8080/ibcm_flow');\n        }\n        window.open(previewUrl, '_blank', 'width=800,height=600');\n      } else {\n        Wb.info('当前文件类型不支持预览');\n      }\n    }\n  });\n  return;\n}\nlet link = e.target.closest('.my-link');\nif (link) {\n  let row = this.findItemByEl(link);\n  console.log(\"=====row\", row)\n  Wb.download({\n    url: xpath + '/download_file',\n    params: {\n      disk_url: row.data.filepath\n    }\n  })\n}"
           },
           "items": [
             {
@@ -286,9 +286,9 @@
                     "cid": "downloadCol",
                     "fieldName": "rl_inout_reason",
                     "keyValue": "true",
-                    "text": "下载",
-                    "render": "// return `<a href=`+data.filepath+` target=\"_blank\" download>下载</a>`;\n// console.log(\"el----\",el)\n// // this.el = `<td class=\"w-text\">下载</td>`\n// let html = `<a>111</a>`\n// return html;\n\nlet a = el.addEl('my-link', 'a');\nel.cls = 'w-ta-center';\na.textContent = '下载';",
-                    "width": "80"
+                    "text": "操作",
+                    "render": "// return `<a href=`+data.filepath+` target=\"_blank\" download>下载</a>`;\n// console.log(\"el----\",el)\n// // this.el = `<td class=\"w-text\">下载</td>`\n// let html = `<a>111</a>`\n// return html;\n\nlet preview = el.addEl('my-preview', 'a');\npreview.textContent = '预览';\npreview.style.marginRight = '8px';\nlet a = el.addEl('my-link', 'a');\nel.cls = 'w-ta-center';\na.textContent = '下载';",
+                    "width": "120"
                   }
                 }
               ]

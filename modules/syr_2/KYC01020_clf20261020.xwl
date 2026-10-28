@@ -214,7 +214,7 @@
                   },
                   "hasDupCid": 0,
                   "events": {
-                    "click": "Wb.open({\n  url:xpath + '/../KYC01010'\n});"
+                    "click": "Wb.open({\n  url: 'm?xwl=aml_monitor/KYC01010'\n});"
                   },
                   "_expanded": true
                 },
@@ -233,7 +233,7 @@
                     "height": "30px"
                   },
                   "events": {
-                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec----\", rec.data_type);\n// 先查询用户是否有反馈结果页面查看权限\nWb.ajax({\n  url: xpath + '/select_fk_flag',\n  params: {\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    let fk_flag = res[0].fk_flag || '0';\n    Wb.open({\n      url: 'm?xwl=aml_monitor/KYC01010/client_edit',\n      params: {\n        CLIENT_ID: rec.client_id,//'_$client_id$_'\n        ORGAN_FLAG: rec.organ_flag,\n        CLIENT_STATUS: rec.client_status,\n        CLIENT_NAME: rec.client_name,\n        CLIENT_BELONG: rec.client_belong,\n        FK_FLAG: fk_flag,\n        DATA_TYPE: rec.data_type\n      },\n      title: '客户基本信息维护'\n    });\n  }\n})\n"
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec----\", rec.data_type);\n// 先查询用户是否有反馈结果页面查看权限\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/select_fk_flag',\n  params: {\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    let fk_flag = res[0].fk_flag || '0';\n    Wb.open({\n      url: 'm?xwl=aml_monitor/KYC01010/client_edit',\n      params: {\n        CLIENT_ID: rec.client_id,//'_$client_id$_'\n        ORGAN_FLAG: rec.organ_flag,\n        CLIENT_STATUS: rec.client_status,\n        CLIENT_NAME: rec.client_name,\n        CLIENT_BELONG: rec.client_belong,\n        FK_FLAG: fk_flag,\n        DATA_TYPE: rec.data_type\n      },\n      title: '客户基本信息维护'\n    });\n  }\n})\n"
                   },
                   "_expanded": true,
                   "hasDupCid": 0
@@ -253,7 +253,7 @@
                     "height": "30px"
                   },
                   "events": {
-                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '1') {\n  Wb.tipError(\"该客户状态为已失效\");\n  return;\n}\nWb.ajax({\n  url: xpath + '/select_client_proj',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_CLIENT_NAME: rec.client_name,\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    console.log(\"res\", res);\n    let message = res[0].message;\n    if (message && message != '') {\n      Wb.info(\"<div style='max-width:800px;'>\"+message+\"</div>\", null, true);\n    } else {\n      Wb.confirm(\"确认将客户置为失效？\", function () {\n        Wb.ajax({\n          url: xpath + '/update_client_status',\n          params: {\n            I_CLIENT_ID: rec.client_id,\n            I_OP_FLAG: '1',\n            I_USER_NAME: '_$sys.username$_'\n          },\n          success(resp) {\n            app.grid1.reload();\n            Wb.tipSucc(\"操作成功\");\n          }\n        });\n      });\n    }\n  }\n})"
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '1') {\n  Wb.tipError(\"该客户状态为已失效\");\n  return;\n}\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/select_client_proj',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_CLIENT_NAME: rec.client_name,\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    console.log(\"res\", res);\n    let message = res[0].message;\n    if (message && message != '') {\n      Wb.info(\"<div style='max-width:800px;'>\"+message+\"</div>\", null, true);\n    } else {\n      Wb.confirm(\"确认将客户置为失效？\", function () {\n        Wb.ajax({\n          url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n          params: {\n            I_CLIENT_ID: rec.client_id,\n            I_OP_FLAG: '1',\n            I_USER_NAME: '_$sys.username$_'\n          },\n          success(resp) {\n            app.grid1.reload();\n            Wb.tipSucc(\"操作成功\");\n          }\n        });\n      });\n    }\n  }\n})"
                   },
                   "_expanded": true
                 },
@@ -272,7 +272,7 @@
                     "height": "30px"
                   },
                   "events": {
-                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status !== '1') {\n  Wb.tipError(\"请选择状态为已失效的客户\");\n  return;\n}\n\nWb.ajax({\n  url: xpath + '/update_client_status',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_OP_FLAG: '0',\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    app.grid1.reload();\n    Wb.tipSucc(\"恢复成功\");\n  }\n});\n"
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status !== '1') {\n  Wb.tipError(\"请选择状态为已失效的客户\");\n  return;\n}\n\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_OP_FLAG: '0',\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    app.grid1.reload();\n    Wb.tipSucc(\"恢复成功\");\n  }\n});\n"
                   }
                 },
                 {
@@ -335,7 +335,7 @@
                           },
                           "hasDupCid": 0,
                           "events": {
-                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '2') {\n  Wb.tipError(\"该客户状态为已限制\");\n  return;\n}\nWb.confirm(\"确认将客户置为限制状态？\", function () {\n  Wb.ajax({\n    url: xpath + '/update_client_status',\n    params: {\n      I_CLIENT_ID: rec.client_id,\n      I_OP_FLAG: '2',\n      I_USER_NAME: '_$sys.username$_'\n    },\n    success(resp) {\n      app.grid1.reload();\n    }\n  });\n});"
+                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '2') {\n  Wb.tipError(\"该客户状态为已限制\");\n  return;\n}\nWb.confirm(\"确认将客户置为限制状态？\", function () {\n  Wb.ajax({\n    url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n    params: {\n      I_CLIENT_ID: rec.client_id,\n      I_OP_FLAG: '2',\n      I_USER_NAME: '_$sys.username$_'\n    },\n    success(resp) {\n      app.grid1.reload();\n    }\n  });\n});"
                           }
                         },
                         {
@@ -349,7 +349,7 @@
                             "bindModule": "aml_monitor/KYC01020/buttons/restrictive.xwl"
                           },
                           "events": {
-                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '2') {\n  Wb.tipError(\"该客户状态为已限制\");\n  return;\n}else if (rec.client_status === '3') {\n  Wb.tipError(\"该客户状态为弱限制\");\n  return;\n}\n\nWb.confirm(\"确认将客户置为弱限制状态？\", function () {\n  Wb.ajax({\n    url: xpath + '/update_client_status',\n    params: {\n      I_CLIENT_ID: rec.client_id,\n      I_OP_FLAG: '3',\n      I_USER_NAME: '_$sys.username$_'\n    },\n    success(resp) {\n      app.grid1.reload();\n    }\n  });\n});"
+                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '2') {\n  Wb.tipError(\"该客户状态为已限制\");\n  return;\n}else if (rec.client_status === '3') {\n  Wb.tipError(\"该客户状态为弱限制\");\n  return;\n}\n\nWb.confirm(\"确认将客户置为弱限制状态？\", function () {\n  Wb.ajax({\n    url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n    params: {\n      I_CLIENT_ID: rec.client_id,\n      I_OP_FLAG: '3',\n      I_USER_NAME: '_$sys.username$_'\n    },\n    success(resp) {\n      app.grid1.reload();\n    }\n  });\n});"
                           }
                         },
                         {
@@ -363,7 +363,7 @@
                             "bindModule": "aml_monitor/KYC01020/buttons/restrictive.xwl"
                           },
                           "events": {
-                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status !== '2' && rec.client_status !== '3') {\n  Wb.tipError(\"请选择状态为已限制的客户\");\n  return;\n}\n\n\nWb.ajax({\n  url: xpath + '/update_client_status',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_OP_FLAG: '0',\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    Wb.tipSucc(\"恢复成功\")\n    app.grid1.reload();\n  }\n});\n"
+                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status !== '2' && rec.client_status !== '3') {\n  Wb.tipError(\"请选择状态为已限制的客户\");\n  return;\n}\n\n\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_OP_FLAG: '0',\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    Wb.tipSucc(\"恢复成功\")\n    app.grid1.reload();\n  }\n});\n"
                           }
                         }
                       ]
@@ -399,7 +399,7 @@
                     "height": "30px"
                   },
                   "events": {
-                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nconsole.log(app.grid1.selectionData);\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec-------\",rec)\nWb.open({\n  url: xpath + '/his_proj_table',\n  params: {\n    CLIENT_ID: rec.client_id,\n    CLIENT_NAME: rec.client_name\n  },\n  success() {\n\n  }\n})"
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nconsole.log(app.grid1.selectionData);\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec-------\",rec)\nWb.open({\n  url: 'm?xwl=aml_monitor/KYC01020/his_proj_table',\n  params: {\n    CLIENT_ID: rec.client_id,\n    CLIENT_NAME: rec.client_name\n  },\n  success() {\n\n  }\n})"
                   },
                   "hasDupCid": 0
                 },
@@ -1465,7 +1465,7 @@
         "padding": "20"
       },
       "events": {
-        "ok": "Wb.ajax({\n  url: xpath + '/../KYC01030/edit',\n  params: {\n    NEW_MAINTAINER: app.I_NEW_MAINTAINER.value,\n    CLIENT_ID: app.I_CLIENT_ID.value\n  },\n  success(resp) {\n    let res = Wb.decode(resp);\n    console.log(\"res\", res);\n    if (res.O_RETURN_CODE == '0') {\n      app.editWin.hide();\n      Wb.tipSucc(\"修改成功\");\n      // 下发维护人变更流程\n      const client_ids_arr = app.I_CLIENT_ID.value.split(',');\n      const client_names_arr = app.I_CLIENT_NAME.value.split(',');\n      const organ_flag_arr = app.I_ORGAN_FLAG.value.split(',');\n\n      const client_arr = client_ids_arr.map((id, index) => ({\n        CLIENT_ID: id,\n        CLIENT_NAME: client_names_arr[index],\n        ORGAN_FLAG: organ_flag_arr[index]\n      }));\n      console.log(\"client_arr\", client_arr);\n      // 下发清单自查流程\n      // if ('_$sys.username$_' == 'chenhaiyang'||'_$sys.username$_'==='huangzhichang') {\n      var dealRequest = Wb.ajax({\n        url: xpath + '/flow_request_deal1',\n        params: {\n          'x-flow-systemId': 'IBCM',//当前发送全连接流程类型\n          'x-userId': '_$sys.userid$_',//当前登录人id\n          'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),//当前登录人name\n          'url': 'http://10.116.131.13:8094/auto/submit',\n          'formDatas': client_arr,\n          \"todoTitle\": '维护人变更',// 工作台待办名称\n          \"sysGuid\": \"IBCM\",\n          \"flowCode\": \"IBCM004\",\n          \"templateName\": '维护人变更',// 待办表单打开后标题\n          \"flowVer\": \"1\",\n          \"nodeCode\": \"draft\",\n          \"applyTable\": \"T_TH_MAINTAIN_FLOW\",\n          \"candidates\": app.I_NEW_MAINTAINER_ID.value,// 项目负责人\n        },\n        success(resp) {\n          // if(resp.)\n          let res = Wb.decode(resp);\n          console.log(\"resp\", resp);\n          if (res.code === 0) {\n            Wb.tipSucc(\"成功发送【客户维护人变更】流程\");\n          } else {\n            Wb.tipError(res.msg);\n          }\n        },\n        //错误返回则删除数据\n        failure(resp) {\n          clearTimeout(timeoutId); // 成功响应时清除超时计时器\n        }\n      });\n      var timeoutId = setTimeout(function () {\n        // 如果存在 XMLHttpRequest 对象，则中止请求\n        if (dealRequest && typeof dealRequest.abort === 'function') {\n          dealRequest.abort();\n          console.log('请求超时');\n        }\n      }, 60000);\n      // }\n      app.grid1.reload();\n    } else {\n      Wb.tipError(\"修改失败：\" + rec.O_RETURN_MSG);\n    }\n  }\n});"
+        "ok": "Wb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01030/edit',\n  params: {\n    NEW_MAINTAINER: app.I_NEW_MAINTAINER.value,\n    CLIENT_ID: app.I_CLIENT_ID.value\n  },\n  success(resp) {\n    let res = Wb.decode(resp);\n    console.log(\"res\", res);\n    if (res.O_RETURN_CODE == '0') {\n      app.editWin.hide();\n      Wb.tipSucc(\"修改成功\");\n      // 下发维护人变更流程\n      const client_ids_arr = app.I_CLIENT_ID.value.split(',');\n      const client_names_arr = app.I_CLIENT_NAME.value.split(',');\n      const organ_flag_arr = app.I_ORGAN_FLAG.value.split(',');\n\n      const client_arr = client_ids_arr.map((id, index) => ({\n        CLIENT_ID: id,\n        CLIENT_NAME: client_names_arr[index],\n        ORGAN_FLAG: organ_flag_arr[index]\n      }));\n      console.log(\"client_arr\", client_arr);\n      // 下发清单自查流程\n      // if ('_$sys.username$_' == 'chenhaiyang'||'_$sys.username$_'==='huangzhichang') {\n      var dealRequest = Wb.ajax({\n        url: 'm?xwl=aml_monitor/KYC01020/flow_request_deal1',\n        params: {\n          'x-flow-systemId': 'IBCM',//当前发送全连接流程类型\n          'x-userId': '_$sys.userid$_',//当前登录人id\n          'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),//当前登录人name\n          'url': 'http://10.116.131.13:8094/auto/submit',\n          'formDatas': client_arr,\n          \"todoTitle\": '维护人变更',// 工作台待办名称\n          \"sysGuid\": \"IBCM\",\n          \"flowCode\": \"IBCM004\",\n          \"templateName\": '维护人变更',// 待办表单打开后标题\n          \"flowVer\": \"1\",\n          \"nodeCode\": \"draft\",\n          \"applyTable\": \"T_TH_MAINTAIN_FLOW\",\n          \"candidates\": app.I_NEW_MAINTAINER_ID.value,// 项目负责人\n        },\n        success(resp) {\n          // if(resp.)\n          let res = Wb.decode(resp);\n          console.log(\"resp\", resp);\n          if (res.code === 0) {\n            Wb.tipSucc(\"成功发送【客户维护人变更】流程\");\n          } else {\n            Wb.tipError(res.msg);\n          }\n        },\n        //错误返回则删除数据\n        failure(resp) {\n          clearTimeout(timeoutId); // 成功响应时清除超时计时器\n        }\n      });\n      var timeoutId = setTimeout(function () {\n        // 如果存在 XMLHttpRequest 对象，则中止请求\n        if (dealRequest && typeof dealRequest.abort === 'function') {\n          dealRequest.abort();\n          console.log('请求超时');\n        }\n      }, 60000);\n      // }\n      app.grid1.reload();\n    } else {\n      Wb.tipError(\"修改失败：\" + rec.O_RETURN_MSG);\n    }\n  }\n});"
       },
       "items": [
         {

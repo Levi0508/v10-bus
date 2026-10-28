@@ -171,7 +171,7 @@
                     "height": "30px"
                   },
                   "events": {
-                    "click": "if (app.grid1.selectionsData.length != 1) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nWb.open({\n  url: xpath + '/client_audit_table',\n  title:'审核信息查询',\n  params: {\n    CLIENT_ID: rec.client_id\n  },\n  success() {\n\n  }\n})"
+                    "click": "if (app.grid1.selectionsData.length != 1) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nWb.open({\n  url: 'm?xwl=syr_2/client_audit_table_clf20261028',\n  title:'审核信息查询',\n  params: {\n    CLIENT_ID: rec.client_id\n  },\n  success() {\n\n  }\n})"
                   }
                 },
                 {

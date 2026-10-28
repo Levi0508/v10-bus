@@ -214,7 +214,7 @@
                   },
                   "hasDupCid": 0,
                   "events": {
-                    "click": "Wb.open({\n  url: 'm?xwl=aml_monitor/KYC01010'\n});"
+                    "click": "Wb.open({\n  url: 'm?xwl=syr_2/KYC01010_clf20261026'\n});"
                   },
                   "_expanded": true
                 },
@@ -233,7 +233,7 @@
                     "height": "30px"
                   },
                   "events": {
-                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec----\", rec.data_type);\n// 先查询用户是否有反馈结果页面查看权限\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/select_fk_flag',\n  params: {\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    let fk_flag = res[0].fk_flag || '0';\n    Wb.open({\n      url: 'm?xwl=aml_monitor/KYC01010/client_edit',\n      params: {\n        CLIENT_ID: rec.client_id,//'_$client_id$_'\n        ORGAN_FLAG: rec.organ_flag,\n        CLIENT_STATUS: rec.client_status,\n        CLIENT_NAME: rec.client_name,\n        CLIENT_BELONG: rec.client_belong,\n        FK_FLAG: fk_flag,\n        DATA_TYPE: rec.data_type\n      },\n      title: '客户基本信息维护'\n    });\n  }\n})\n"
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec----\", rec.data_type);\n// 先查询用户是否有反馈结果页面查看权限\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/select_fk_flag',\n  params: {\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    let fk_flag = res[0].fk_flag || '0';\n    Wb.open({\n      url: 'm?xwl=syr_2/client_edit_clf20261020',\n      params: {\n        CLIENT_ID: rec.client_id,//'_$client_id$_'\n        ORGAN_FLAG: rec.organ_flag,\n        CLIENT_STATUS: rec.client_status,\n        CLIENT_NAME: rec.client_name,\n        CLIENT_BELONG: rec.client_belong,\n        FK_FLAG: fk_flag,\n        DATA_TYPE: rec.data_type\n      },\n      title: '客户基本信息维护'\n    });\n  }\n})\n"
                   },
                   "_expanded": true,
                   "hasDupCid": 0

@@ -1,0 +1,15 @@
+{
+  "title": "绑定BOMIS核验记录与审核批次",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var client_id = Wb.get('client_id');\nvar audit_id = Wb.get('audit_id');\nvar bomis_resp_id = Wb.get('bomis_resp_id');\nvar rs = { O_RETURN_CODE: 0, O_RETURN_MSG: '执行成功' };\n\nif (Wb.isEmpty(client_id) || Wb.isEmpty(audit_id) || Wb.isEmpty(bomis_resp_id)) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = '缺少客户号、审核批次或核验记录ID';\n} else {\n  // 只绑定本批次实际引用的核验记录；已有 PIID 不影响批次绑定。\n  // 允许同批次重试，禁止覆盖其他批次；核对审核主表，防止错误关联。\n  var sql = `\n    update thjs.th_bomis_response t\n    set t.audit_id = {?audit_id?}\n    where t.client_id = {?client_id?}\n      and t.id = {?bomis_resp_id?}\n      and (t.audit_id is null or trim(t.audit_id) = '' or t.audit_id = {?audit_id?})\n      and exists (\n        select 1 from thjs.t_th_appr_list a\n        where a.client_id = t.client_id\n          and a.audit_id = {?audit_id?}\n          and a.bomis_resp_id = t.id\n      )\n  `;\n  try {\n    var updated = Wb.sql({ sql: sql, trans: true, commit: true });\n    if (Number(updated) !== 1) {\n      rs.O_RETURN_CODE = -1;\n      rs.O_RETURN_MSG = '未能绑定核验记录：记录不存在、已属于其他批次或与审核记录不匹配';\n    }\n  } catch (e) {\n    Wb.log('bind_bomis_audit failed: ' + e);\n    rs.O_RETURN_CODE = -1;\n    rs.O_RETURN_MSG = '核验记录批次绑定失败，请重试';\n  }\n}\n\nWb.send(rs);"
+  },
+  "_icon": "module",
+  "items": []
+}

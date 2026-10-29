@@ -386,8 +386,9 @@ BEGIN
     );
 
     -- batchList 不是空数组时，拆成关联人多行写入本版。无编号或 tmp_ 开头则新生成编号
-    -- 受益人类型等数组字段去掉 []" 后按列宽截断；比例转成数字
-    IF I_BATCH_JSON IS NOT NULL AND TRIM(I_BATCH_JSON) IS NOT NULL AND TRIM(I_BATCH_JSON) <> '[]' THEN
+    -- 方括号用 CHR(91)、CHR(93) 拼，避免达梦执行窗口把方括号当成语法
+    IF I_BATCH_JSON IS NOT NULL AND TRIM(I_BATCH_JSON) IS NOT NULL
+       AND TRIM(I_BATCH_JSON) <> CHR(91) || CHR(93) THEN
         INSERT INTO THJS.T_TH_RELAT_INFO_DFT (
             CLIENT_ID, RELATED_ID, RELATED_TYPE, ORGAN_FLAG, RELATED_NAME, NATIONALITY, ID_TYPE, ID_NO,
             ID_BEGINDATE, ID_ENDDATE, BIRTHDAY, SHAREHOLDING_RATIO, BENEFICIARY, ADDRESS, IS_GOVERNMENT_DEPT,
@@ -407,17 +408,17 @@ BEGIN
                j.shareholding_ratio, j.beneficiary, j.address, SUBSTR(j.is_government_dept, 1, 1), j.object_id,
                NVL(I_UPDATE_USER, 'admin'), SYSDATE, I_UPDATE_USER, SYSDATE, '0', j.gender, j.mobno1, j.mobno2,
                TO_NUMBER(NULLIF(TRIM(j.acthdrat), '')),
-               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.actctrltype, ''), '[', ''), ']', ''), '"', ''), 1, 10),
+               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.actctrltype, ''), CHR(91), ''), CHR(93), ''), '"', ''), 1, 10),
                j.actotherforms, j.actconuppermarket, j.actconupperentname, j.actconuniscid,
                TO_NUMBER(NULLIF(TRIM(j.actownerprofitratio), '')),
                TO_NUMBER(NULLIF(TRIM(j.actownerprofitratiovote), '')),
-               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrpos, ''), '[', ''), ']', ''), '"', ''), 1, 10),
+               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrpos, ''), CHR(91), ''), CHR(93), ''), '"', ''), 1, 10),
                j.actdailymgmtpostother,
-               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrposcn, ''), '[', ''), ']', ''), '"', ''), 1, 10),
+               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrposcn, ''), CHR(91), ''), CHR(93), ''), '"', ''), 1, 10),
                j.ownerrightmgmtpostother,
-               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.bnf_type, ''), '[', ''), ']', ''), '"', ''), 1, 20),
+               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.bnf_type, ''), CHR(91), ''), CHR(93), ''), '"', ''), 1, 20),
                j.bo_type, j.company_type, j.full_info_flag, v_ver_id
-          FROM JSON_TABLE(I_BATCH_JSON, '$[*]' COLUMNS (
+          FROM JSON_TABLE(I_BATCH_JSON, '$' || CHR(91) || '*' || CHR(93) COLUMNS (
                    related_id VARCHAR2(64) PATH '$.RELATED_ID',
                    related_type VARCHAR2(10) PATH '$.RELATED_TYPE',
                    organ_flag VARCHAR2(10) PATH '$.ORGAN_FLAG',

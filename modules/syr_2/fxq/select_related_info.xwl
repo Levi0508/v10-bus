@@ -1,0 +1,14 @@
+{
+  "title": "查询关联人信息",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let verId = Wb.get('VER_ID');\nif (verId) {\n  Wb.sendRowx(`select a.* from thjs.t_th_relat_info_dft a\\n    where a.client_id = {?CLIENT_ID?}\\n      and a.related_type = {?RELATED_TYPE?}\\n      and a.ver_id = {?VER_ID?}`);\n} else {\n  Wb.sendRowx(`select a.* from thjs.t_th_relat_info a\\n    where a.client_id = {?CLIENT_ID?}\\n      and a.related_type = {?RELATED_TYPE?}`);\n}\n"
+  },
+  "_icon": "module"
+}

@@ -1,0 +1,14 @@
+{
+  "title": "查询客户基本信息",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "let verId = Wb.get('VER_ID');\nif (verId) {\n  Wb.sendRowx(`select d.*, v.base_ver_id, v.dft_status\\n    from thjs.t_th_client_info_dft d\\n    join thjs.t_th_client_dft_ver v on v.ver_id = d.ver_id\\n    where v.ver_id = {?VER_ID?}`);\n} else {\n  Wb.sendRowx(`select d.*, v.base_ver_id, v.dft_status\\n    from thjs.t_th_client_info_dft d\\n    join thjs.t_th_client_dft_ver v on v.ver_id = d.ver_id\\n    where v.client_id = {?CLIENT_ID?}\\n      and v.dft_status in ('0','1','2')\\n      and v.ver_no = (select max(v2.ver_no) from thjs.t_th_client_dft_ver v2 where v2.client_id = v.client_id)\\n    union all\\n    select a.*, null as ver_id, null as base_ver_id, null as dft_status\\n    from thjs.t_th_client_info a\\n    where a.client_id = {?CLIENT_ID?}\\n      and not exists (\\n        select 1 from thjs.t_th_client_dft_ver v\\n        where v.client_id = a.client_id\\n          and v.dft_status in ('0','1','2')\\n          and v.ver_no = (select max(v2.ver_no) from thjs.t_th_client_dft_ver v2 where v2.client_id = v.client_id)\\n      )`);\n}\n"
+  },
+  "_icon": "module"
+}

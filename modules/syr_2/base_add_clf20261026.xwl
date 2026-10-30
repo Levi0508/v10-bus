@@ -112,7 +112,7 @@
                       },
                       "_expanded": true,
                       "events": {
-                        "click": "app.data.nextStep = true;\napp.saveBtn.fireClick();//执行预览前先把当前页面数据保存\n\nWb.open({\n  url: 'm?xwl=aml_monitor/KYC01010/client_edit',\n  title: '编辑客户页面',\n  params: {\n    CLIENT_ID: '_$client_id$_' ? '_$client_id$_' : app.basicInfo.vue.client_id,\n    ORGAN_FLAG: '_$organ_flag$_',\n    CLIENT_STATUS: '0',//'_$client_status$_',\n    FK_FLAG: '_$fk_flag$_',\n    CLIENT_BELONG: '_$client_belong$_',\n    KEY: '_$key$_',\n    CUR_USER: '_$cur_user$_',\n    DATA_TYPE: '0'\n  },\n  title: '反洗钱客户维护',\n  success(scope) {\n  }\n});"
+                        "click": "app.data.nextStep = true;\napp.saveBtn.fireClick();//执行预览前先把当前页面数据保存\n\nWb.open({\n  url: 'm?xwl=syr_2/client_edit_clf20261020',\n  title: '编辑客户页面',\n  params: {\n    CLIENT_ID: '_$client_id$_' ? '_$client_id$_' : app.basicInfo.vue.client_id,\n    ORGAN_FLAG: '_$organ_flag$_',\n    CLIENT_STATUS: '0',//'_$client_status$_',\n    FK_FLAG: '_$fk_flag$_',\n    CLIENT_BELONG: '_$client_belong$_',\n    KEY: '_$key$_',\n    CUR_USER: '_$cur_user$_',\n    DATA_TYPE: '0'\n  },\n  title: '反洗钱客户维护',\n  success(scope) {\n  }\n});"
                       }
                     }
                   ]

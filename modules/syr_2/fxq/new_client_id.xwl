@@ -1,0 +1,1 @@
+{"title":"新增时生成新客户号（草稿）","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx({sql: `select thjs.seq_fxq_custid.nextval as v_client_id from dual;`});"},"_icon":"module"}

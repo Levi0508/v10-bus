@@ -1,0 +1,1649 @@
+{
+  "title": "反洗钱客户管理(react专用)",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "links": "[\"wb/custom-made/vue/vue.js\",\"wb/custom-made/vue/element.js\",\"wb/custom-made/vue/element.css\"]"
+  },
+  "_icon": "module",
+  "_expanded": true,
+  "items": [
+    {
+      "_icon": "viewport",
+      "text": "viewport1",
+      "cls": "Wb.Viewport",
+      "properties": {
+        "cid": "viewport1"
+      },
+      "_expanded": true,
+      "events": {
+        "keydown": "if (e.keyCode == '13') {\n  app.seekBtn.fireClick()\n}"
+      },
+      "items": [
+        {
+          "_icon": "panel",
+          "text": "header",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "header",
+            "html": "<div style=\"font-size:16px;font-weight:bold;padding:20px;\">反洗钱客户信息管理</div>",
+            "maxHeight": "80",
+            "style": "display:none"
+          },
+          "_expanded": true,
+          "items": [
+            {
+              "cls": "Wb.Container",
+              "events": {
+                "ready": "let comp = this;\ncomp.vue = new Vue({\n  el: comp.el.addEl(),\n  template: `\n<div style=\"padding:15px 0 0 20px;\">\n  <el-breadcrumb separator=\"/\">\n  <el-breadcrumb-item>反洗钱系统</el-breadcrumb-item>\n  <el-breadcrumb-item>反洗钱客户信息管理</el-breadcrumb-item>\n  </el-breadcrumb>\n</div>\n`,\n  data() {\n    return {\n    }\n  },\n  methods: {\n  }\n});"
+              },
+              "properties": {
+                "cid": "headers",
+                "isProperty": "true"
+              },
+              "text": "headers",
+              "_expanded": true,
+              "_icon": "container",
+              "hasDupCid": 0
+            }
+          ]
+        },
+        {
+          "_icon": "splitter",
+          "text": "splitter1",
+          "cls": "Wb.Splitter",
+          "properties": {
+            "cid": "splitter1"
+          }
+        },
+        {
+          "_icon": "panel",
+          "text": "panel1",
+          "cls": "Wb.Panel",
+          "properties": {
+            "cid": "panel1",
+            "border": "false",
+            "layout": "grid3"
+          },
+          "_expanded": false,
+          "hasDupCid": 0,
+          "items": [
+            {
+              "_icon": "text",
+              "text": "CLIENT_NAME",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "CLIENT_NAME",
+                "text": "客户名称",
+                "placeholder": "请输入客户名称",
+                "clearButton": "true"
+              }
+            },
+            {
+              "_icon": "combo",
+              "text": "CLIENT_BELONG",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "CLIENT_BELONG",
+                "text": "客户归属",
+                "placeholder": "请选择客户归属",
+                "clearButton": "true",
+                "data": "[['融资端','融资端'],['投资端','投资端']]"
+              },
+              "hasDupCid": 0
+            },
+            {
+              "_icon": "combo",
+              "text": "GRADE_VALUE",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "GRADE_VALUE",
+                "text": "风险等级",
+                "placeholder": "请选择风险等级",
+                "keyName": "grade_value",
+                "clearButton": "true"
+              }
+            },
+            {
+              "_icon": "combo",
+              "text": "IF_RISK_LIST",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "IF_RISK_LIST",
+                "text": "是否风险名单",
+                "placeholder": "请选择是否风险名单",
+                "clearButton": "true",
+                "keyName": "if_risk_list"
+              },
+              "_expanded": true
+            },
+            {
+              "_icon": "combo",
+              "text": "CLIENT_STATUS",
+              "cls": "Wb.Select",
+              "properties": {
+                "cid": "CLIENT_STATUS",
+                "text": "状态",
+                "clearButton": "true",
+                "multiSelect": "true",
+                "keyName": "client_status",
+                "maxHeight": "10em",
+                "noWrap": "true",
+                "tagWidth": "calc(100% - 5em)",
+                "tagWrap": "true",
+                "placeholder": "请选择客户状态"
+              },
+              "_expanded": false
+            },
+            {
+              "_icon": "text",
+              "text": "MAINTAINER",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "MAINTAINER",
+                "text": "维护人",
+                "placeholder": "请输入维护人"
+              },
+              "hasDupCid": 0
+            }
+          ]
+        },
+        {
+          "_icon": "grid",
+          "text": "grid1",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid1",
+            "pagingBar": "pageNums",
+            "pageSize": "100",
+            "full": "true",
+            "border": "false",
+            "url": "m?xwl=aml_monitor/KYC01020/select",
+            "bindModule": "aml_monitor/KYC01020/select.xwl",
+            "emptyHint": "true",
+            "disabled": "false",
+            "exportFilename": "反洗钱客户导出",
+            "columnsSortable": "true",
+            "textSelectable": "true",
+            "sorters": "[{name:'update_time',desc:true}]",
+            "clickSelect": "true",
+            "fireSelected": "true",
+            "stickSelect": "true",
+            "editable": "true",
+            "multiSelect": "false"
+          },
+          "_expanded": true,
+          "events": {
+            "itemdblclick": "let rec = app.grid1.selectionData;\n// 先查询用户是否有反馈结果页面查看权限\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/select_fk_flag',\n  params: {\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    let fk_flag = res[0].fk_flag || '0';\n    Wb.open({\n      // url: 'm?xwl=aml_monitor/KYC01010/client_preview',\n      url: 'm?xwl=syr_2/client_preview_clf20261027',\n\n      // url: 'm?xwl=aml_monitor/KYC01010/client_edit',\n      params: {\n        CLIENT_ID: rec.client_id,//'_$client_id$_'\n        ORGAN_FLAG: rec.organ_flag,\n        CLIENT_STATUS: rec.client_status,\n        CLIENT_NAME: rec.client_name,\n        CLIENT_BELONG: rec.client_belong,\n        FK_FLAG: fk_flag,\n        DATA_TYPE: rec.data_type,\n        FLOW_CODE: '1'\n      },\n      title: '客户基本信息维护'\n    });\n  }\n})",
+            "selectionchange": "// console.log(\"selection\", app.grid1.selectionData);\n// let checked = app.grid1.selectionData.checked || false;\n// app.grid1.selectionData.checked = !checked;\n// console.log(\"selection--checked\", app.grid1.selectionData.checked);\n// console.log(\"selectionsData\", app.grid1.selectionsData);\n\n// console.log(\"options\",app.grid1.options)",
+            "itemclick": "console.log(\"item\",item);\n// row.addFooter({\n//   cname: 'toggle', returnType: 'int', value, toggleAlign: 'center', clickToggle: true,\n//   events: {\n//     change(value) {\n//       // If there is no need to synchronously update other fields, this is more efficient\n//       // row.data.checked = value; // only update checked field value\n//       row.set('checked', value); // update whole row\n//       app.checkCol1.syncHeaderCheck(); // manual sync header check of checkCol1\n//     }\n//   }\n// }, el);\n\n// let value = item.data.checked;\n// item.set('checked',value);\n// app.checkCol1.syncHeaderCheck();"
+          },
+          "items": [
+            {
+              "_icon": "toolbar",
+              "text": "tbar",
+              "cls": "Wb.Toolbar",
+              "properties": {
+                "cid": "tbar",
+                "gap": "true",
+                "layout": "form-compact",
+                "isProperty": "true",
+                "border": "false"
+              },
+              "_expanded": true,
+              "hasDupCid": 0,
+              "items": [
+                {
+                  "_icon": "button",
+                  "text": "addBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "addBtn",
+                    "text": "新建",
+                    "roundBorder": "true",
+                    "bindModule": "aml_monitor/KYC01020/buttons/add.xwl",
+                    "style": "background-color:#5cbc85;color:#fff",
+                    "icon": "add",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "hasDupCid": 0,
+                  "events": {
+                    "click": "Wb.open({\n  url: 'm?xwl=syr_2/KYC01010_clf20261026'\n});"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "button",
+                  "text": "editBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "editBtn",
+                    "text": "修改",
+                    "roundBorder": "true",
+                    "bindModule": "aml_monitor/KYC01020/buttons/edit.xwl",
+                    "style": "background-color:#f0ad4e;color:#fff",
+                    "icon": "edit",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec----\", rec.data_type);\n// 先查询用户是否有反馈结果页面查看权限\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/select_fk_flag',\n  params: {\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    let fk_flag = res[0].fk_flag || '0';\n    Wb.open({\n      url: 'm?xwl=syr_2/client_edit_clf20261020',\n      params: {\n        CLIENT_ID: rec.client_id,//'_$client_id$_'\n        ORGAN_FLAG: rec.organ_flag,\n        CLIENT_STATUS: rec.client_status,\n        CLIENT_NAME: rec.client_name,\n        CLIENT_BELONG: rec.client_belong,\n        FK_FLAG: fk_flag,\n        DATA_TYPE: rec.data_type\n      },\n      title: '客户基本信息维护'\n    });\n  }\n})\n"
+                  },
+                  "_expanded": true,
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "button",
+                  "text": "invalidBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "invalidBtn",
+                    "text": "失效",
+                    "roundBorder": "true",
+                    "bindModule": "aml_monitor/KYC01020/buttons/invalid.xwl",
+                    "style": "background-color:#d9534f;color:#fff",
+                    "icon": "delete",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '1') {\n  Wb.tipError(\"该客户状态为已失效\");\n  return;\n}\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/select_client_proj',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_CLIENT_NAME: rec.client_name,\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    console.log(\"res\", res);\n    let message = res[0].message;\n    if (message && message != '') {\n      Wb.info(\"<div style='max-width:800px;'>\"+message+\"</div>\", null, true);\n    } else {\n      Wb.confirm(\"确认将客户置为失效？\", function () {\n        Wb.ajax({\n          url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n          params: {\n            I_CLIENT_ID: rec.client_id,\n            I_OP_FLAG: '1',\n            I_USER_NAME: '_$sys.username$_'\n          },\n          success(resp) {\n            app.grid1.reload();\n            Wb.tipSucc(\"操作成功\");\n          }\n        });\n      });\n    }\n  }\n})"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "button",
+                  "text": "recoverBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "recoverBtn",
+                    "text": "恢复",
+                    "roundBorder": "true",
+                    "bindModule": "aml_monitor/KYC01020/buttons/recover.xwl",
+                    "style": "background-color:#337ab7;color:#fff",
+                    "icon": "refresh",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status !== '1') {\n  Wb.tipError(\"请选择状态为已失效的客户\");\n  return;\n}\n\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_OP_FLAG: '0',\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    app.grid1.reload();\n    Wb.tipSucc(\"恢复成功\");\n  }\n});\n"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "apprBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "apprBtn",
+                    "text": "审核",
+                    "roundBorder": "true",
+                    "bindModule": "aml_monitor/KYC01020/buttons/appr.xwl",
+                    "style": "background-color:#f0ad4e;color:#fff",
+                    "icon": "edit",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "// if (!app.grid1.selection) {\n//   Wb.info(\"请至少选中 1 条数据\");\n//   return;\n// }\n// let rec = app.grid1.selectionData;\n\n// console.log(\"rec\",rec);\n// // 先查询用户是否有反馈结果页面查看权限\n// Wb.ajax({\n//   url: 'm?xwl=aml_monitor/KYC01020/select_fk_flag',\n//   params: {\n//     I_USER_NAME: '_$sys.username$_'\n//   },\n//   success(resp) {\n//     let res = Wb.decode(resp).items;\n//     let fk_flag = res[0].fk_flag || '0';\n//     Wb.open({\n//       url: 'm?xwl=syr_2/client_appr_clf20261020',\n//       params: {\n//         CLIENT_ID: rec.client_id,//'_$client_id$_'\n//         ORGAN_FLAG: rec.organ_flag,\n//         CLIENT_STATUS: rec.client_status,\n//         CLIENT_NAME: rec.client_name,\n//         CLIENT_BELONG: rec.client_belong,\n//         MAINTAINER: rec.work_no, //最新维护人的work_no，（即wb_user表的user_id）全链接工作流接收候选人是这个参数\n//         FK_FLAG: fk_flag,\n//       },\n//       title: '客户信息详情'\n//     });\n//   }\n// });\n// 在门户中新开页签，用 iframe 打开 KS-v10 重构后的页面（与 React 里的 openPortalPage 一致）\n\n\n// const REACT_BASE = 'wb/ks/index.html#';\nconst REACT_BASE = 'https://localhost:3002/#';\nconst openReactPage = (route, title, params) => {\n  const query = Object.keys(params)\n    .filter(k => params[k] !== undefined && params[k] !== null)\n    .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))\n    .join('&');\n  const url = REACT_BASE + route + (query ? '?' + query : '');\n  const tab = Globals.WbMainTab;\n  if (!tab) {\n    window.open(url, '_blank');\n    return;\n  }\n  const card = tab.insertAfter({ icon: 'module', title: title, path: ':', layout: 'fit', ksV10Page: true }, tab.activeCard);\n  card.el.innerHTML = '<iframe class=\"w-iframe\"></iframe>';\n  card.el.firstChild.src = url;\n  card.show();\n};\n\nif (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\n// 先查询用户是否有反馈结果页面查看权限\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/select_fk_flag',\n  params: {\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    let res = Wb.decode(resp).items;\n    let fk_flag = res[0].fk_flag || '0';\n    openReactPage('/aml/client_appr', '客户信息详情', {\n      CLIENT_ID: rec.client_id,\n      ORGAN_FLAG: rec.organ_flag,\n      CLIENT_STATUS: rec.client_status,\n      CLIENT_NAME: rec.client_name,\n      CLIENT_BELONG: rec.client_belong,\n      MAINTAINER: rec.work_no, //最新维护人的work_no，（即wb_user表的user_id）全链接工作流接收候选人是这个参数\n      FK_FLAG: fk_flag\n    });\n  }\n});\n"
+                  },
+                  "_expanded": false
+                },
+                {
+                  "_icon": "item",
+                  "text": "restrictiveBtn",
+                  "cls": "Wb.Item",
+                  "_expanded": false,
+                  "properties": {
+                    "cid": "restrictiveBtn",
+                    "text": "限制措施",
+                    "icon": "ellipsis",
+                    "iconAlign": "right",
+                    "roundBorder": "true",
+                    "bindModule": "aml_monitor/KYC01020/buttons/restrictive.xwl",
+                    "style": "background-color:#337ab7;color:#fff",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "hasDupCid": 0,
+                  "items": [
+                    {
+                      "_icon": "menu2",
+                      "text": "menu",
+                      "cls": "Wb.Menu",
+                      "properties": {
+                        "cid": "menu",
+                        "isProperty": "true"
+                      },
+                      "_expanded": true,
+                      "hasDupCid": 0,
+                      "items": [
+                        {
+                          "_icon": "item",
+                          "text": "item1",
+                          "cls": "Wb.Item",
+                          "_expanded": true,
+                          "properties": {
+                            "cid": "item1",
+                            "text": "强限制",
+                            "bindModule": "aml_monitor/KYC01020/buttons/restrictive.xwl"
+                          },
+                          "hasDupCid": 0,
+                          "events": {
+                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '2') {\n  Wb.tipError(\"该客户状态为已限制\");\n  return;\n}\nWb.confirm(\"确认将客户置为限制状态？\", function () {\n  Wb.ajax({\n    url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n    params: {\n      I_CLIENT_ID: rec.client_id,\n      I_OP_FLAG: '2',\n      I_USER_NAME: '_$sys.username$_'\n    },\n    success(resp) {\n      app.grid1.reload();\n    }\n  });\n});"
+                          }
+                        },
+                        {
+                          "_icon": "item",
+                          "text": "item2",
+                          "cls": "Wb.Item",
+                          "_expanded": true,
+                          "properties": {
+                            "cid": "item2",
+                            "text": "弱限制",
+                            "bindModule": "aml_monitor/KYC01020/buttons/restrictive.xwl"
+                          },
+                          "events": {
+                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status === '2') {\n  Wb.tipError(\"该客户状态为已限制\");\n  return;\n}else if (rec.client_status === '3') {\n  Wb.tipError(\"该客户状态为弱限制\");\n  return;\n}\n\nWb.confirm(\"确认将客户置为弱限制状态？\", function () {\n  Wb.ajax({\n    url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n    params: {\n      I_CLIENT_ID: rec.client_id,\n      I_OP_FLAG: '3',\n      I_USER_NAME: '_$sys.username$_'\n    },\n    success(resp) {\n      app.grid1.reload();\n    }\n  });\n});"
+                          }
+                        },
+                        {
+                          "_icon": "item",
+                          "text": "item3",
+                          "cls": "Wb.Item",
+                          "_expanded": true,
+                          "properties": {
+                            "cid": "item3",
+                            "text": "解除限制",
+                            "bindModule": "aml_monitor/KYC01020/buttons/restrictive.xwl"
+                          },
+                          "events": {
+                            "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;\nif (rec.client_status !== '2' && rec.client_status !== '3') {\n  Wb.tipError(\"请选择状态为已限制的客户\");\n  return;\n}\n\n\nWb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01020/update_client_status',\n  params: {\n    I_CLIENT_ID: rec.client_id,\n    I_OP_FLAG: '0',\n    I_USER_NAME: '_$sys.username$_'\n  },\n  success(resp) {\n    Wb.tipSucc(\"恢复成功\")\n    app.grid1.reload();\n  }\n});\n"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "_icon": "button",
+                  "text": "editBtn1",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "editBtn1",
+                    "text": "修改维护人",
+                    "roundBorder": "true",
+                    "style": "background-color:#f0ad4e;color:#fff",
+                    "icon": "edit",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "let allData = app.grid1.data;\nconst checkedData = allData.filter(item=> item.checked ===1);\n\nconsole.log(\"checkedData\",checkedData);\n\nif (checkedData.length === 0) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nconst maintianers = new Set(checkedData.map(item=>item.new_maintainer_id));\nif(maintianers.size>1){\n  Wb.info(\"请选择当前维护人相同的数据\");\n  return;\n}\n\nconst client_names = checkedData.map(item => item.client_name).join(',');\nconst client_ids = checkedData.map(item => item.client_id).join(',');\nconst organ_flags = checkedData.map(item => item.organ_flag).join(',');\n// console.log(\"selections\", app.grid1.data)\n// console.log(app.grid1.selectionData);\n// let rec = app.grid1.selectionData;\napp.I_CLIENT_ID.setValue(client_ids);\napp.I_ORGAN_FLAG.setValue(organ_flags);\napp.I_CLIENT_NAME.setValue(client_names);\napp.I_MAINTAINER.setValue(checkedData[0].new_maintainer);\napp.editWin.show();"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "button",
+                  "text": "hisBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "hisBtn",
+                    "text": "历史工作室信息",
+                    "roundBorder": "true",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请至少选中 1 条数据\");\n  return;\n}\nconsole.log(app.grid1.selectionData);\nlet rec = app.grid1.selectionData;\nconsole.log(\"rec-------\",rec)\nWb.open({\n  url: 'm?xwl=aml_monitor/KYC01020/his_proj_table',\n  params: {\n    CLIENT_ID: rec.client_id,\n    CLIENT_NAME: rec.client_name\n  },\n  success() {\n\n  }\n})"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "right1",
+                  "text": "fill1",
+                  "cls": "Wb.Fill",
+                  "properties": {
+                    "cid": "fill1"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "button",
+                  "text": "seekBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "seekBtn",
+                    "text": "查询",
+                    "type": "primary",
+                    "roundBorder": "true",
+                    "style": "background-color:#337ab7;color:#fff",
+                    "icon": "search",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "let data = Wb.getValue(app.panel1)\nif(Wb.verify(app.panel1)){\n  app.grid1.load({\n    comps:app.panel1,\n    params:{\n      CLIENT_STATUS:app.CLIENT_STATUS.value.map(item=>item[1]).join(',')\n    },\n  })\n}\n"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "resetBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "resetBtn",
+                    "text": "重置",
+                    "roundBorder": "true",
+                    "style": "background-color:#5cbc85;color:#fff",
+                    "icon": "loading3",
+                    "iconColor": "#ffffff",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "app.CLIENT_BELONG.setValue('');\napp.GRADE_VALUE.setValue('');\napp.IF_RISK_LIST.setValue('');\napp.CLIENT_NAME.setValue('');"
+                  }
+                },
+                {
+                  "_icon": "button",
+                  "text": "exportBtn",
+                  "cls": "Wb.Button",
+                  "properties": {
+                    "cid": "exportBtn",
+                    "text": "导出",
+                    "type": "primary",
+                    "roundBorder": "true",
+                    "visible": "false",
+                    "height": "30px"
+                  },
+                  "events": {
+                    "click": "if (!app.grid1.selection) {\n  Wb.info(\"请选中 1 条数据\");\n  return;\n}\nlet rec = app.grid1.selectionData;"
+                  }
+                }
+              ]
+            },
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "_expanded": false,
+              "hasDupCid": 1,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "checkCol1",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "checkCol1",
+                    "rowNum": "false",
+                    "isProperty": "false",
+                    "visible": "true",
+                    "fieldName": "checked",
+                    "menuText": "Check",
+                    "checkBox": "int",
+                    "checkRefresh": "true",
+                    "sortable": "false",
+                    "headerCheck": "true",
+                    "render": "let row = this;\nvalue = row.data.checked;\nrow.addFooter({\n  cname: 'check', returnType: 'int', value, toggleAlign: 'center', clickToggle: true,\n  events: {\n    change(value) {\n      console.log(\"row\",row)\n      // If there is no need to synchronously update other fields, this is more efficient\n      // row.data.checked = value; // only update checked field value\n      row.set('checked', value); // update whole row\n      row.selected = value === 1 ? true : false;\n      app.checkCol1.syncHeaderCheck(); // manual sync header check of checkCol1\n    }\n  }\n}, el);",
+                    "freeze": "true"
+                  },
+                  "_expanded": true,
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "rownum_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum_Col",
+                    "rowNum": "true",
+                    "width": "75",
+                    "align": "center",
+                    "render": "if (value) {\n  const result = value.replace(/true|false$/gi, '');\n  return Number(numStr)\n} else {\n  return value;\n}",
+                    "freeze": "false"
+                  },
+                  "hasDupCid": 1,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CLIENT_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CLIENT_NAME_Col",
+                    "text": "客户名称",
+                    "fieldName": "client_name",
+                    "minWidth": "250",
+                    "sortable": "true",
+                    "width": "300"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CLIENT_BELONG_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CLIENT_BELONG_Col",
+                    "text": "客户归属",
+                    "fieldName": "client_belong",
+                    "sortable": "true"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": false
+                },
+                {
+                  "_icon": "column",
+                  "text": "CLIENT_STATUS_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CLIENT_STATUS_Col",
+                    "text": "状态",
+                    "fieldName": "client_status",
+                    "keyValue": "true",
+                    "sortable": "true"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "OP_TIME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "OP_TIME_Col",
+                    "text": "操作时间",
+                    "fieldName": "op_time",
+                    "width": "180",
+                    "sortable": "true"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "OP_USER_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "OP_USER_Col",
+                    "text": "状态操作人",
+                    "fieldName": "op_user_name",
+                    "sortable": "true"
+                  },
+                  "_expanded": false
+                },
+                {
+                  "_icon": "column",
+                  "text": "IF_RISK_CLIENT_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "IF_RISK_CLIENT_Col",
+                    "text": "风险名单筛查",
+                    "fieldName": "if_risk_client",
+                    "sortable": "true"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "GRADE_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "GRADE_NAME_Col",
+                    "text": "风险等级",
+                    "fieldName": "grade_name",
+                    "sortable": "true"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "IF_RISK_LIST_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "IF_RISK_LIST_Col",
+                    "text": "是否风险名单",
+                    "fieldName": "if_risk_list",
+                    "sortable": "true"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "RISK_LIST_TYPE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RISK_LIST_TYPE_Col",
+                    "text": "风险名单类型",
+                    "fieldName": "risk_list_type",
+                    "render": "if (value) { return Wb.decode(value).join(','); }",
+                    "sortable": "true"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "STAFF_ID_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "STAFF_ID_Col",
+                    "text": "维护人工号",
+                    "fieldName": "staff_id"
+                  },
+                  "hasDupCid": 1,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "NEW_MAINTAINER_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "NEW_MAINTAINER_Col",
+                    "text": "维护人",
+                    "fieldName": "new_maintainer"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "UPDATE_USER_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "UPDATE_USER_NAME_Col",
+                    "text": "最近更新人",
+                    "fieldName": "update_user_name"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "UPDATE_TIME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "UPDATE_TIME_Col",
+                    "text": "最近更新时间",
+                    "fieldName": "update_time",
+                    "sortable": "true",
+                    "width": "180"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "CREATE_USER_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CREATE_USER_NAME_Col",
+                    "text": "初始填报人",
+                    "fieldName": "create_user_name",
+                    "sortable": "true"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "CREATE_TIME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CREATE_TIME_Col",
+                    "text": "初始填报时间",
+                    "fieldName": "create_time",
+                    "sortable": "true",
+                    "width": "180"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "ORGAN_FLAG_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ORGAN_FLAG_Col",
+                    "text": "客户类型",
+                    "fieldName": "organ_flag",
+                    "keyValue": "true",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "WORK_NO_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "WORK_NO_Col",
+                    "fieldName": "work_no",
+                    "text": "WORK_NO",
+                    "visible": "false",
+                    "hideInMenu": "true"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "NEW_MAINTAINER_ID_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "NEW_MAINTAINER_ID_Col",
+                    "text": "维护人代码",
+                    "fieldName": "new_maintainer_id",
+                    "visible": "false"
+                  },
+                  "hasDupCid": 0,
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "CLIENT_ID_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CLIENT_ID_Col",
+                    "text": "客户ID",
+                    "fieldName": "client_id",
+                    "visible": "false"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "DATA_TYPE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DATA_TYPE_Col",
+                    "text": "数据状态",
+                    "fieldName": "data_type",
+                    "keyValue": "true",
+                    "visible": "false"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "IS_OBJECT_REPORT_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "IS_OBJECT_REPORT_Col",
+                    "text": "工作室主体/非主体填报",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "ID_TYPE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ID_TYPE_Col",
+                    "text": "证件类型",
+                    "fieldName": "id_type",
+                    "keyValue": "true",
+                    "visible": "false",
+                    "render": "return value;"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "ID_NO_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ID_NO_Col",
+                    "text": "证件号码",
+                    "fieldName": "id_no",
+                    "visible": "false"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "ID_BEGINDATE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ID_BEGINDATE_Col",
+                    "text": "证照有效起始",
+                    "fieldName": "id_begindate",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "ID_ENDDATE_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ID_ENDDATE_Col",
+                    "text": "证照有效截止",
+                    "fieldName": "id_enddate",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "RELATED_NAME1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "RELATED_NAME1_Col",
+                    "text": "法人代表姓名",
+                    "fieldName": "related_name1",
+                    "visible": "false"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "BIRTHDAY1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "BIRTHDAY1_Col",
+                    "text": "出生年月",
+                    "fieldName": "birthday1",
+                    "visible": "false"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "ID_TYPE1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ID_TYPE1_Col",
+                    "text": "身份证件类型",
+                    "fieldName": "id_type1",
+                    "keyValue": "true",
+                    "visible": "false",
+                    "render": "return value;"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "ID_NO1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ID_NO1_Col",
+                    "text": "身份证件号码",
+                    "fieldName": "id_no1",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "ID_BEGINDATE1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ID_BEGINDATE1_Col",
+                    "text": "身份证件有效起始",
+                    "fieldName": "id_begindate1",
+                    "visible": "false"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "ID_ENDDATE1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "ID_ENDDATE1_Col",
+                    "text": "身份证件有效截止",
+                    "fieldName": "id_enddate1",
+                    "visible": "false"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "Controlling_shareholder_JG",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "Controlling_shareholder_JG",
+                    "text": "控股股东(法人)信息",
+                    "visible": "false"
+                  },
+                  "_expanded": true,
+                  "items": [
+                    {
+                      "_icon": "column",
+                      "text": "RELATED_NAME21_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "RELATED_NAME21_Col",
+                        "text": "姓名",
+                        "fieldName": "related_name21"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_TYPE21_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_TYPE21_Col",
+                        "text": "证件类型",
+                        "fieldName": "id_type21",
+                        "keyValue": "false",
+                        "render": "return value;"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_NO21_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_NO21_Col",
+                        "text": "证件号码",
+                        "fieldName": "id_no21"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_BEGINDATE21_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_BEGINDATE21_Col",
+                        "text": "证件有效起始",
+                        "fieldName": "id_begindate21"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_ENDDATE21_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_ENDDATE21_Col",
+                        "text": "证件有效截止",
+                        "fieldName": "id_enddate21"
+                      },
+                      "hasDupCid": 0
+                    }
+                  ]
+                },
+                {
+                  "_icon": "column",
+                  "text": "Controlling_shareholder_GR",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "Controlling_shareholder_GR",
+                    "text": "控股股东(自然人)信息",
+                    "visible": "false"
+                  },
+                  "_expanded": true,
+                  "items": [
+                    {
+                      "_icon": "column",
+                      "text": "RELATED_NAME22_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "RELATED_NAME22_Col",
+                        "text": "姓名",
+                        "fieldName": "related_name22"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "BIRTHDAY22_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "BIRTHDAY22_Col",
+                        "text": "出生年月",
+                        "fieldName": "birthday22"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_TYPE22_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_TYPE22_Col",
+                        "text": "证件类型",
+                        "fieldName": "id_type22",
+                        "keyValue": "false",
+                        "render": "return value;"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_NO22_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_NO22_Col",
+                        "text": "证件号码",
+                        "fieldName": "id_no22"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_BEGINDATE22_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_BEGINDATE22_Col",
+                        "text": "证件有效起始",
+                        "fieldName": "id_begindate22"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_ENDDATE22_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_ENDDATE22_Col",
+                        "text": "证件有效截止",
+                        "fieldName": "id_enddate22"
+                      },
+                      "hasDupCid": 0
+                    }
+                  ]
+                },
+                {
+                  "_icon": "column",
+                  "text": "Actual_controller_JG",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "Actual_controller_JG",
+                    "text": "实控人(法人)信息",
+                    "visible": "false"
+                  },
+                  "_expanded": true,
+                  "items": [
+                    {
+                      "_icon": "column",
+                      "text": "RELATED_NAME31_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "RELATED_NAME31_Col",
+                        "text": "姓名",
+                        "fieldName": "related_name31"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_TYPE31_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_TYPE31_Col",
+                        "text": "证件类型",
+                        "fieldName": "id_type31",
+                        "keyValue": "false",
+                        "render": "return value;"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_NO31_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_NO31_Col",
+                        "text": "证件号码",
+                        "fieldName": "id_no31"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_BEGINDATE31_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_BEGINDATE31_Col",
+                        "text": "证件有效起始",
+                        "fieldName": "id_begindate31"
+                      },
+                      "hasDupCid": 0,
+                      "_expanded": true
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_ENDDATE31_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_ENDDATE31_Col",
+                        "text": "证件有效截止",
+                        "fieldName": "id_enddate31"
+                      },
+                      "hasDupCid": 0,
+                      "_expanded": true
+                    }
+                  ]
+                },
+                {
+                  "_icon": "column",
+                  "text": "Actual_controller_GR",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "Actual_controller_GR",
+                    "text": "实控人(自然人)信息",
+                    "visible": "false"
+                  },
+                  "_expanded": true,
+                  "items": [
+                    {
+                      "_icon": "column",
+                      "text": "RELATED_NAME32_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "RELATED_NAME32_Col",
+                        "text": "姓名",
+                        "fieldName": "related_name32"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "BIRTHDAY32_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "BIRTHDAY32_Col",
+                        "text": "出生年月",
+                        "fieldName": "birthday32"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_TYPE32_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_TYPE32_Col",
+                        "text": "证件类型",
+                        "fieldName": "id_type32",
+                        "keyValue": "false",
+                        "render": "return value;"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_NO32_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_NO32_Col",
+                        "text": "证件号码",
+                        "fieldName": "id_no32"
+                      },
+                      "hasDupCid": 0,
+                      "_expanded": true
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_BEGINDATE32_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_BEGINDATE32_Col",
+                        "text": "证件有效起始",
+                        "fieldName": "id_begindate32"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_ENDDATE32_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_ENDDATE32_Col",
+                        "text": "证件有效截止",
+                        "fieldName": "id_enddate32"
+                      },
+                      "hasDupCid": 0
+                    }
+                  ]
+                },
+                {
+                  "_icon": "column",
+                  "text": "Authorized_representative",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "Authorized_representative",
+                    "text": "授权代表人信息",
+                    "visible": "false"
+                  },
+                  "_expanded": true,
+                  "items": [
+                    {
+                      "_icon": "column",
+                      "text": "RELATED_NAME4_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "RELATED_NAME4_Col",
+                        "text": "姓名",
+                        "fieldName": "related_name4"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "BIRTHDAY4_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "BIRTHDAY4_Col",
+                        "text": "出生年月",
+                        "fieldName": "birthday4"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_TYPE4_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_TYPE4_Col",
+                        "text": "证件类型",
+                        "fieldName": "id_type4",
+                        "keyValue": "false",
+                        "render": "return value;"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_NO4_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_NO4_Col",
+                        "text": "证件号码",
+                        "fieldName": "id_no4"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_BEGINDATE4_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_BEGINDATE4_Col",
+                        "text": "证件有效起始",
+                        "fieldName": "id_begindate4"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_ENDDATE4_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_ENDDATE4_Col",
+                        "text": "证件有效截止",
+                        "fieldName": "id_enddate4"
+                      },
+                      "hasDupCid": 0
+                    }
+                  ]
+                },
+                {
+                  "_icon": "column",
+                  "text": "Beneficial_owner",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "Beneficial_owner",
+                    "text": "受益所有人信息",
+                    "visible": "false"
+                  },
+                  "_expanded": true,
+                  "items": [
+                    {
+                      "_icon": "column",
+                      "text": "RELATED_NAME5_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "RELATED_NAME5_Col",
+                        "text": "姓名",
+                        "fieldName": "related_name5"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "NATIONALITY5_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "NATIONALITY5_Col",
+                        "text": "国籍",
+                        "fieldName": "nationality5"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_TYPE5_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_TYPE5_Col",
+                        "text": "证件类型",
+                        "fieldName": "id_type5",
+                        "keyValue": "false",
+                        "render": "return value;"
+                      },
+                      "hasDupCid": 0,
+                      "_expanded": true
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_NO5_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_NO5_Col",
+                        "text": "证件号码",
+                        "fieldName": "id_no5"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_BEGINDATE5_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_BEGINDATE5_Col",
+                        "text": "证件有效起始",
+                        "fieldName": "id_begindate5"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ID_ENDDATE5_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ID_ENDDATE5_Col",
+                        "text": "证件有效截止",
+                        "fieldName": "id_enddate5"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ADDRESS5_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ADDRESS5_Col",
+                        "text": "联系地址",
+                        "fieldName": "address5",
+                        "visible": "false"
+                      },
+                      "hasDupCid": 0,
+                      "_expanded": true
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "BENEFICIARY_Col",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "BENEFICIARY_Col",
+                        "text": "受益所有人类型",
+                        "fieldName": "beneficiary5",
+                        "visible": "false"
+                      },
+                      "hasDupCid": 0
+                    },
+                    {
+                      "_icon": "column",
+                      "text": "ADDRESS5_Col2",
+                      "cls": "Wb.Column",
+                      "properties": {
+                        "cid": "ADDRESS5_Col2",
+                        "text": "受益所有人股权比例",
+                        "fieldName": "address5",
+                        "visible": "false"
+                      },
+                      "hasDupCid": 0
+                    }
+                  ]
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJNAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJNAME_Col",
+                    "text": "最新工作室名称",
+                    "fieldName": "projname",
+                    "minWidth": "300",
+                    "sortable": "true"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "CREATETIME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "CREATETIME_Col",
+                    "text": "工作室操作时间",
+                    "fieldName": "create_time",
+                    "width": "180",
+                    "sortable": "true"
+                  },
+                  "_expanded": true
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJTYPE1_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJTYPE1_Col",
+                    "text": "项目类型一级",
+                    "fieldName": "projtype",
+                    "minWidth": "300",
+                    "visible": "false",
+                    "render": "if (value) {\n  return value.split(\"_\")[0];\n} else return ''"
+                  },
+                  "hasDupCid": 0
+                },
+                {
+                  "_icon": "column",
+                  "text": "PROJTYPE2_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "PROJTYPE2_Col",
+                    "text": "项目类型二级",
+                    "fieldName": "projtype",
+                    "minWidth": "300",
+                    "visible": "false",
+                    "render": "if (value) {\n  return value.split(\"_\")[1];\n} else return ''"
+                  },
+                  "hasDupCid": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_icon": "window",
+      "text": "editWin",
+      "cls": "Wb.Window",
+      "_expanded": false,
+      "properties": {
+        "cid": "editWin",
+        "title": "修改维护人",
+        "dialog": "true",
+        "width": "450",
+        "padding": "20"
+      },
+      "events": {
+        "ok": "Wb.ajax({\n  url: 'm?xwl=aml_monitor/KYC01030/edit',\n  params: {\n    NEW_MAINTAINER: app.I_NEW_MAINTAINER.value,\n    CLIENT_ID: app.I_CLIENT_ID.value\n  },\n  success(resp) {\n    let res = Wb.decode(resp);\n    console.log(\"res\", res);\n    if (res.O_RETURN_CODE == '0') {\n      app.editWin.hide();\n      Wb.tipSucc(\"修改成功\");\n      // 下发维护人变更流程\n      const client_ids_arr = app.I_CLIENT_ID.value.split(',');\n      const client_names_arr = app.I_CLIENT_NAME.value.split(',');\n      const organ_flag_arr = app.I_ORGAN_FLAG.value.split(',');\n\n      const client_arr = client_ids_arr.map((id, index) => ({\n        CLIENT_ID: id,\n        CLIENT_NAME: client_names_arr[index],\n        ORGAN_FLAG: organ_flag_arr[index]\n      }));\n      console.log(\"client_arr\", client_arr);\n      // 下发清单自查流程\n      // if ('_$sys.username$_' == 'chenhaiyang'||'_$sys.username$_'==='huangzhichang') {\n      var dealRequest = Wb.ajax({\n        url: 'm?xwl=aml_monitor/KYC01020/flow_request_deal1',\n        params: {\n          'x-flow-systemId': 'IBCM',//当前发送全连接流程类型\n          'x-userId': '_$sys.userid$_',//当前登录人id\n          'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),//当前登录人name\n          'url': 'http://10.116.131.13:8094/auto/submit',\n          'formDatas': client_arr,\n          \"todoTitle\": '维护人变更',// 工作台待办名称\n          \"sysGuid\": \"IBCM\",\n          \"flowCode\": \"IBCM004\",\n          \"templateName\": '维护人变更',// 待办表单打开后标题\n          \"flowVer\": \"1\",\n          \"nodeCode\": \"draft\",\n          \"applyTable\": \"T_TH_MAINTAIN_FLOW\",\n          \"candidates\": app.I_NEW_MAINTAINER_ID.value,// 项目负责人\n        },\n        success(resp) {\n          // if(resp.)\n          let res = Wb.decode(resp);\n          console.log(\"resp\", resp);\n          if (res.code === 0) {\n            Wb.tipSucc(\"成功发送【客户维护人变更】流程\");\n          } else {\n            Wb.tipError(res.msg);\n          }\n        },\n        //错误返回则删除数据\n        failure(resp) {\n          clearTimeout(timeoutId); // 成功响应时清除超时计时器\n        }\n      });\n      var timeoutId = setTimeout(function () {\n        // 如果存在 XMLHttpRequest 对象，则中止请求\n        if (dealRequest && typeof dealRequest.abort === 'function') {\n          dealRequest.abort();\n          console.log('请求超时');\n        }\n      }, 60000);\n      // }\n      app.grid1.reload();\n    } else {\n      Wb.tipError(\"修改失败：\" + rec.O_RETURN_MSG);\n    }\n  }\n});"
+      },
+      "items": [
+        {
+          "_icon": "text",
+          "text": "I_CLIENT_ID",
+          "cls": "Wb.Text",
+          "properties": {
+            "cid": "I_CLIENT_ID",
+            "visible": "false",
+            "text": "客户号"
+          }
+        },
+        {
+          "_icon": "text",
+          "text": "I_ORGAN_FLAG",
+          "cls": "Wb.Text",
+          "properties": {
+            "cid": "I_ORGAN_FLAG",
+            "visible": "false",
+            "text": "机构标识"
+          }
+        },
+        {
+          "_icon": "textarea",
+          "text": "I_CLIENT_NAME",
+          "cls": "Wb.TextArea",
+          "properties": {
+            "cid": "I_CLIENT_NAME",
+            "text": "客户名称",
+            "labelWidth": "100",
+            "padding": "10",
+            "readonly": "true"
+          }
+        },
+        {
+          "_icon": "text",
+          "text": "I_MAINTAINER",
+          "cls": "Wb.Text",
+          "properties": {
+            "cid": "I_MAINTAINER",
+            "text": "原维护人",
+            "padding": "10",
+            "labelWidth": "100",
+            "readonly": "true"
+          },
+          "_expanded": true
+        },
+        {
+          "_icon": "text",
+          "text": "I_NEW_MAINTAINER_ID",
+          "cls": "Wb.Text",
+          "properties": {
+            "cid": "I_NEW_MAINTAINER_ID",
+            "text": "新维护人user_id",
+            "padding": "10",
+            "labelWidth": "100",
+            "readonly": "true",
+            "visible": "false"
+          },
+          "_expanded": true
+        },
+        {
+          "_icon": "combo",
+          "text": "I_NEW_MAINTAINER",
+          "cls": "Wb.Select",
+          "properties": {
+            "cid": "I_NEW_MAINTAINER",
+            "text": "新维护人",
+            "labelWidth": "100",
+            "padding": "10",
+            "required": "true",
+            "valueField": "user_id",
+            "textField": "textfield",
+            "forceSelect": "true",
+            "matchMode": "includesIC"
+          },
+          "events": {
+            "click": "app.userSelectWin.show()"
+          }
+        }
+      ]
+    },
+    {
+      "_icon": "window",
+      "text": "userSelectWin",
+      "cls": "Wb.Window",
+      "_expanded": true,
+      "properties": {
+        "cid": "userSelectWin",
+        "title": "查询负责人",
+        "width": "600",
+        "height": "600"
+      },
+      "items": [
+        {
+          "_icon": "text",
+          "text": "query",
+          "cls": "Wb.Text",
+          "properties": {
+            "cid": "query",
+            "placeholder": "用户ID或用户名"
+          },
+          "events": {
+            "change": "app.grid2.load({params:{query:value}})"
+          },
+          "_expanded": false
+        },
+        {
+          "_icon": "grid",
+          "text": "grid2",
+          "cls": "Wb.Grid",
+          "properties": {
+            "cid": "grid2",
+            "url": "m?xwl=aml_monitor/KYC01030/selectUser",
+            "full": "true"
+          },
+          "events": {
+            "itemdblclick": "app.userSelectWin.close();\n// console.log(\"选中行item\",item.data)\napp.I_NEW_MAINTAINER.setValue(item.data.user_name)\napp.I_NEW_MAINTAINER_ID.setValue(item.data.user_id)"
+          },
+          "hasDupCid": 0,
+          "_expanded": false,
+          "items": [
+            {
+              "_icon": "array",
+              "text": "columns",
+              "cls": "Wb.Array",
+              "properties": {
+                "cid": "columns"
+              },
+              "hasDupCid": 1,
+              "_expanded": true,
+              "items": [
+                {
+                  "_icon": "column",
+                  "text": "rownum_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "rownum_Col",
+                    "rowNum": "true"
+                  },
+                  "hasDupCid": 1
+                },
+                {
+                  "_icon": "column",
+                  "text": "STAFF_ID_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "STAFF_ID_Col",
+                    "text": "工号",
+                    "fieldName": "staff_id"
+                  },
+                  "hasDupCid": 1
+                },
+                {
+                  "_icon": "column",
+                  "text": "USER_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "USER_NAME_Col",
+                    "text": "用户名",
+                    "fieldName": "user_name"
+                  }
+                },
+                {
+                  "_icon": "column",
+                  "text": "DISPLAY_NAME_Col",
+                  "cls": "Wb.Column",
+                  "properties": {
+                    "cid": "DISPLAY_NAME_Col",
+                    "text": "姓名",
+                    "fieldName": "display_name"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

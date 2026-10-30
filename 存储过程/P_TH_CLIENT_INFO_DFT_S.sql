@@ -255,7 +255,11 @@ CREATE OR REPLACE PROCEDURE THJS.P_TH_CLIENT_INFO_DFT_S (
     v_save_type    VARCHAR2(10);
     v_cnt          INT;
     v_formal       INT;
+    v_sql          VARCHAR2(8000);
+    v_error_msg    VARCHAR2(4000);
 BEGIN
+    SAVEPOINT sp_client_info_dft_s;
+
     -- 默认成功。SAVE_TYPE 空当成 save；submit 状态 1，否则 0
     O_RETURN_CODE := 0;
     O_RETURN_MSG := '成功';
@@ -389,71 +393,65 @@ BEGIN
     -- 方括号用 CHR(91)、CHR(93) 拼，避免达梦执行窗口把方括号当成语法
     IF I_BATCH_JSON IS NOT NULL AND TRIM(I_BATCH_JSON) IS NOT NULL
        AND TRIM(I_BATCH_JSON) <> CHR(91) || CHR(93) THEN
-        INSERT INTO THJS.T_TH_RELAT_INFO_DFT (
-            CLIENT_ID, RELATED_ID, RELATED_TYPE, ORGAN_FLAG, RELATED_NAME, NATIONALITY, ID_TYPE, ID_NO,
-            ID_BEGINDATE, ID_ENDDATE, BIRTHDAY, SHAREHOLDING_RATIO, BENEFICIARY, ADDRESS, IS_GOVERNMENT_DEPT,
-            OBJECT_ID, CREATE_USER, CREATE_TIME, UPDATE_USER, UPDATE_TIME, DATA_STATUS, GENDER, MOBNO1, MOBNO2,
-            ACTHDRAT, ACTCTRLTYPE, ACTOTHERFORMS, ACTCONUPPERMARKET, ACTCONUPPERENTNAME, ACTCONUNISCID,
-            ACTOWNERPROFITRATIO, ACTOWNERPROFITRATIOVOTE, SENIORMGRPOS, ACTDAILYMGMTPOSTOTHER, SENIORMGRPOSCN,
-            OWNERRIGHTMGMTPOSTOTHER, BNF_TYPE, BO_TYPE, COMPANY_TYPE, FULL_INFO_FLAG, VER_ID
-        )
-        SELECT I_CLIENT_ID,
-               CASE
-                   WHEN j.related_id IS NULL OR TRIM(j.related_id) = '' OR j.related_id LIKE 'tmp_%' THEN SYS_GUID()
-                   ELSE SUBSTR(j.related_id, 1, 32)
-               END,
-               SUBSTR(j.related_type, 1, 1),
-               SUBSTR(j.organ_flag, 1, 1),
-               j.related_name, j.nationality, j.id_type, j.id_no, j.id_begindate, j.id_enddate, j.birthday,
-               j.shareholding_ratio, j.beneficiary, j.address, SUBSTR(j.is_government_dept, 1, 1), j.object_id,
-               NVL(I_UPDATE_USER, 'admin'), SYSDATE, I_UPDATE_USER, SYSDATE, '0', j.gender, j.mobno1, j.mobno2,
-               TO_NUMBER(NULLIF(TRIM(j.acthdrat), '')),
-               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.actctrltype, ''), CHR(91), ''), CHR(93), ''), '"', ''), 1, 10),
-               j.actotherforms, j.actconuppermarket, j.actconupperentname, j.actconuniscid,
-               TO_NUMBER(NULLIF(TRIM(j.actownerprofitratio), '')),
-               TO_NUMBER(NULLIF(TRIM(j.actownerprofitratiovote), '')),
-               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrpos, ''), CHR(91), ''), CHR(93), ''), '"', ''), 1, 10),
-               j.actdailymgmtpostother,
-               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrposcn, ''), CHR(91), ''), CHR(93), ''), '"', ''), 1, 10),
-               j.ownerrightmgmtpostother,
-               SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.bnf_type, ''), CHR(91), ''), CHR(93), ''), '"', ''), 1, 20),
-               j.bo_type, j.company_type, j.full_info_flag, v_ver_id
-          FROM JSON_TABLE(I_BATCH_JSON, '$' || CHR(91) || '*' || CHR(93) COLUMNS (
-                   related_id VARCHAR2(64) PATH '$.RELATED_ID',
-                   related_type VARCHAR2(10) PATH '$.RELATED_TYPE',
-                   organ_flag VARCHAR2(10) PATH '$.ORGAN_FLAG',
-                   related_name VARCHAR2(200) PATH '$.RELATED_NAME',
-                   nationality VARCHAR2(50) PATH '$.NATIONALITY',
-                   id_type VARCHAR2(10) PATH '$.ID_TYPE',
-                   id_no VARCHAR2(50) PATH '$.ID_NO',
-                   id_begindate VARCHAR2(20) PATH '$.ID_BEGINDATE',
-                   id_enddate VARCHAR2(20) PATH '$.ID_ENDDATE',
-                   birthday VARCHAR2(20) PATH '$.BIRTHDAY',
-                   shareholding_ratio VARCHAR2(20) PATH '$.SHAREHOLDING_RATIO',
-                   beneficiary VARCHAR2(20) PATH '$.BENEFICIARY',
-                   address VARCHAR2(300) PATH '$.ADDRESS',
-                   is_government_dept VARCHAR2(10) PATH '$.IS_GOVERNMENT_DEPT',
-                   object_id VARCHAR2(4000) PATH '$.OBJECT_ID',
-                   gender VARCHAR2(4) PATH '$.GENDER',
-                   mobno1 VARCHAR2(16) PATH '$.MOBNO1',
-                   mobno2 VARCHAR2(16) PATH '$.MOBNO2',
-                   acthdrat VARCHAR2(40) PATH '$.ACTHDRAT',
-                   actctrltype VARCHAR2(200) PATH '$.ACTCTRLTYPE',
-                   actotherforms VARCHAR2(48) PATH '$.ACTOTHERFORMS',
-                   actconuppermarket VARCHAR2(2) PATH '$.ACTCONUPPERMARKET',
-                   actconupperentname VARCHAR2(128) PATH '$.ACTCONUPPERENTNAME',
-                   actconuniscid VARCHAR2(18) PATH '$.ACTCONUNISCID',
-                   actownerprofitratio VARCHAR2(40) PATH '$.ACTOWNERPROFITRATIO',
-                   actownerprofitratiovote VARCHAR2(40) PATH '$.ACTOWNERPROFITRATIOVOTE',
-                   seniormgrpos VARCHAR2(200) PATH '$.SENIORMGRPOS',
-                   actdailymgmtpostother VARCHAR2(48) PATH '$.ACTDAILYMGMTPOSTOTHER',
-                   seniormgrposcn VARCHAR2(200) PATH '$.SENIORMGRPOSCN',
-                   ownerrightmgmtpostother VARCHAR2(48) PATH '$.OWNERRIGHTMGMTPOSTOTHER',
-                   bnf_type VARCHAR2(200) PATH '$.BNF_TYPE',
-                   bo_type VARCHAR2(5) PATH '$.BO_TYPE',
-                   company_type VARCHAR2(5) PATH '$.COMPANY_TYPE',
-                   full_info_flag VARCHAR2(5) PATH '$.FULL_INFO_FLAG'
-               )) j;
+        v_sql := 'INSERT INTO THJS.T_TH_RELAT_INFO_DFT ('
+            || 'CLIENT_ID, RELATED_ID, RELATED_TYPE, ORGAN_FLAG, RELATED_NAME, NATIONALITY, ID_TYPE, ID_NO, '
+            || 'ID_BEGINDATE, ID_ENDDATE, BIRTHDAY, SHAREHOLDING_RATIO, BENEFICIARY, ADDRESS, IS_GOVERNMENT_DEPT, '
+            || 'OBJECT_ID, CREATE_USER, CREATE_TIME, UPDATE_USER, UPDATE_TIME, DATA_STATUS, GENDER, MOBNO1, MOBNO2, '
+            || 'ACTHDRAT, ACTCTRLTYPE, ACTOTHERFORMS, ACTCONUPPERMARKET, ACTCONUPPERENTNAME, ACTCONUNISCID, '
+            || 'ACTOWNERPROFITRATIO, ACTOWNERPROFITRATIOVOTE, SENIORMGRPOS, ACTDAILYMGMTPOSTOTHER, SENIORMGRPOSCN, '
+            || 'OWNERRIGHTMGMTPOSTOTHER, BNF_TYPE, BO_TYPE, COMPANY_TYPE, FULL_INFO_FLAG, VER_ID) '
+            || 'SELECT ?, CASE WHEN j.related_id IS NULL OR TRIM(j.related_id) = '''' OR j.related_id LIKE ''tmp_%'' THEN SYS_GUID() ELSE SUBSTR(j.related_id, 1, 32) END, '
+            || 'SUBSTR(j.related_type, 1, 1), SUBSTR(j.organ_flag, 1, 1), '
+            || 'j.related_name, j.nationality, j.id_type, j.id_no, j.id_begindate, j.id_enddate, j.birthday, '
+            || 'j.shareholding_ratio, j.beneficiary, j.address, SUBSTR(j.is_government_dept, 1, 1), j.object_id, '
+            || 'NVL(?, ''admin''), SYSDATE, ?, SYSDATE, ''0'', j.gender, j.mobno1, j.mobno2, '
+            || 'TO_NUMBER(NULLIF(TRIM(j.acthdrat), '''')), '
+            || 'SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.actctrltype, ''''), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), 1, 10), '
+            || 'j.actotherforms, j.actconuppermarket, j.actconupperentname, j.actconuniscid, '
+            || 'TO_NUMBER(NULLIF(TRIM(j.actownerprofitratio), '''')), '
+            || 'TO_NUMBER(NULLIF(TRIM(j.actownerprofitratiovote), '''')), '
+            || 'SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrpos, ''''), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), 1, 10), '
+            || 'j.actdailymgmtpostother, '
+            || 'SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrposcn, ''''), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), 1, 10), '
+            || 'j.ownerrightmgmtpostother, '
+            || 'SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.bnf_type, ''''), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), 1, 20), '
+            || 'j.bo_type, j.company_type, j.full_info_flag, ? '
+            || 'FROM JSON_TABLE(?, ''' || CHR(36) || CHR(91) || CHR(42) || CHR(93) || ''' COLUMNS ('
+            || 'related_id VARCHAR2(64) PATH ''$.RELATED_ID'', '
+            || 'related_type VARCHAR2(10) PATH ''$.RELATED_TYPE'', '
+            || 'organ_flag VARCHAR2(10) PATH ''$.ORGAN_FLAG'', '
+            || 'related_name VARCHAR2(200) PATH ''$.RELATED_NAME'', '
+            || 'nationality VARCHAR2(50) PATH ''$.NATIONALITY'', '
+            || 'id_type VARCHAR2(10) PATH ''$.ID_TYPE'', '
+            || 'id_no VARCHAR2(50) PATH ''$.ID_NO'', '
+            || 'id_begindate VARCHAR2(20) PATH ''$.ID_BEGINDATE'', '
+            || 'id_enddate VARCHAR2(20) PATH ''$.ID_ENDDATE'', '
+            || 'birthday VARCHAR2(20) PATH ''$.BIRTHDAY'', '
+            || 'shareholding_ratio VARCHAR2(20) PATH ''$.SHAREHOLDING_RATIO'', '
+            || 'beneficiary VARCHAR2(20) PATH ''$.BENEFICIARY'', '
+            || 'address VARCHAR2(300) PATH ''$.ADDRESS'', '
+            || 'is_government_dept VARCHAR2(10) PATH ''$.IS_GOVERNMENT_DEPT'', '
+            || 'object_id VARCHAR2(4000) PATH ''$.OBJECT_ID'', '
+            || 'gender VARCHAR2(4) PATH ''$.GENDER'', '
+            || 'mobno1 VARCHAR2(16) PATH ''$.MOBNO1'', '
+            || 'mobno2 VARCHAR2(16) PATH ''$.MOBNO2'', '
+            || 'acthdrat VARCHAR2(40) PATH ''$.ACTHDRAT'', '
+            || 'actctrltype VARCHAR2(200) PATH ''$.ACTCTRLTYPE'', '
+            || 'actotherforms VARCHAR2(48) PATH ''$.ACTOTHERFORMS'', '
+            || 'actconuppermarket VARCHAR2(2) PATH ''$.ACTCONUPPERMARKET'', '
+            || 'actconupperentname VARCHAR2(128) PATH ''$.ACTCONUPPERENTNAME'', '
+            || 'actconuniscid VARCHAR2(18) PATH ''$.ACTCONUNISCID'', '
+            || 'actownerprofitratio VARCHAR2(40) PATH ''$.ACTOWNERPROFITRATIO'', '
+            || 'actownerprofitratiovote VARCHAR2(40) PATH ''$.ACTOWNERPROFITRATIOVOTE'', '
+            || 'seniormgrpos VARCHAR2(200) PATH ''$.SENIORMGRPOS'', '
+            || 'actdailymgmtpostother VARCHAR2(48) PATH ''$.ACTDAILYMGMTPOSTOTHER'', '
+            || 'seniormgrposcn VARCHAR2(200) PATH ''$.SENIORMGRPOSCN'', '
+            || 'ownerrightmgmtpostother VARCHAR2(48) PATH ''$.OWNERRIGHTMGMTPOSTOTHER'', '
+            || 'bnf_type VARCHAR2(200) PATH ''$.BNF_TYPE'', '
+            || 'bo_type VARCHAR2(5) PATH ''$.BO_TYPE'', '
+            || 'company_type VARCHAR2(5) PATH ''$.COMPANY_TYPE'', '
+            || 'full_info_flag VARCHAR2(5) PATH ''$.FULL_INFO_FLAG'')) j';
+        EXECUTE IMMEDIATE v_sql USING I_CLIENT_ID, I_UPDATE_USER, I_UPDATE_USER, v_ver_id, I_BATCH_JSON;
     END IF;
 
     -- 正式客户还不存在、维护人表也没有时，补一条维护人。不写客户主数据
@@ -468,7 +466,8 @@ BEGIN
 EXCEPTION
     -- 异常返回 -1，消息用数据库报错原文
     WHEN OTHERS THEN
+        v_error_msg := SQLERRM;
+        ROLLBACK TO SAVEPOINT sp_client_info_dft_s;
         O_RETURN_CODE := -1;
-        O_RETURN_MSG := SQLERRM;
+        O_RETURN_MSG := v_error_msg;
 END;
-/

@@ -1,0 +1,1 @@
+{"title":"查询正式客户数据状态","icon":"","img":"","tags":"","hideInMenu":"false","text":"module","cls":"Wb.Module","properties":{"cid":"module","serverScript":"Wb.sendRowx(`select data_status from thjs.t_th_client_info where client_id = {?CLIENT_ID?}`);"},"_icon":"module"}

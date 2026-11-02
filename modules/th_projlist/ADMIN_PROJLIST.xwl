@@ -1,7 +1,7 @@
 {
   "title": "我管理的清单列表",
   "icon": "",
-  "img": "",
+  "img": "gear",
   "tags": "",
   "hideInMenu": "false",
   "text": "module",
@@ -53,11 +53,10 @@
               "cls": "Wb.Text",
               "properties": {
                 "cid": "PROJID",
-                "text": "项目编号",
+                "text": "项目ID",
                 "placeholder": "请输入",
                 "clearButton": "true",
-                "value": "_$i_projid$_",
-                "visible": "false"
+                "value": "_$i_projid$_"
               },
               "hasDupCid": 0
             },

@@ -2,7 +2,7 @@
   "title": "信息查询",
   "icon": "cube",
   "img": "",
-  "hideInMenu": "false",
+  "hideInMenu": "true",
   "items": [
     "P_USER_PROJECT_UQ.xwl",
     "P_USER_PROJECT_Q.xwl",

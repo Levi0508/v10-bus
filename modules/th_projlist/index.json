@@ -1,5 +1,5 @@
 {
-  "title": "清单管理（新 该菜单仅测试人员可见）",
+  "title": "清单管理",
   "icon": "excel",
   "img": "",
   "hideInMenu": "false",
@@ -18,7 +18,6 @@
     "PROJLIST_REVIEW_CONF.xwl",
     "PROJLIST_REVIEW_CONF",
     "th_projlist_data",
-    "test.xwl",
-    "test1.xwl"
+    "test.xwl"
   ]
 }

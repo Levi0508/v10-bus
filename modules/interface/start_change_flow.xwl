@@ -1,0 +1,14 @@
+{
+  "title": "补操作变动流程脚本",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "// 隔离墙操作变动流程 流程下发接口\n\n// 测试场景  合规人员 huangzhichang_112065_018152，项目负责人 chenhaiyang_114398_035937\n// case1：合规人员主动发起审核。 开始 -> 合规起草 -> 项目负责人阅知 -> 结束\n// case2: 清单操作变更发起       开始 -> 项目负责人起草 -> 合规人员审核 -> 项目负责人阅知 -> 结束\n\n// 重要路径控制参数\n// 1.IS_MANAUL：是否手工发起 1-合规人员手动发起 0-清单操作变更发起\n// 2.CHECK_RESULT_FLAG：最终审核结果标识  0-全部准确 1-至少有一条不准确\n\nWb.info(\"隔离墙操作变动流程 流程下发接口调用\");\n\nvar HttpUtil = Packages.cn.hutool.http.HttpUtil;\nvar Method = Packages.cn.hutool.http.Method;\n\n\n// 1.江苏斯菲尔电气股份有限公司IPO\nvar obj = {\n    \"todoTitle\":\"武汉回盛生物科技股份有限公司项目清单审核意见反馈\",\n    \"sysGuid\":\"IBCM\",\n    \"flowCode\":\"IBCM003\",\n    \"formData\":\"{\\\"PROJ_ID\\\":\\\"0A893FA9F3FE4AC6870C5C6DBC6A262A\\\",\\\"BATCH_ID\\\":\\\"247D3BBFA9BDB31141B82DF453EC1205\\\",\\\"DEPTMANANAME\\\":\\\"李培哲\\\",\\\"KHNAME\\\":\\\"武汉回盛生物科技股份有限公司\\\",\\\"PROJCODE\\\":\\\"265067\\\",\\\"STOCKCODE\\\":\\\"\\\",\\\"STOCKNAME\\\":\\\"\\\",\\\"STAFF_ID\\\":\\\"116262\\\",\\\"DEPTNAME\\\":\\\"投行三部\\\",\\\"PROJLIST_STATUS\\\":\\\"0\\\",\\\"OP_CONTENT\\\":\\\"清单状态变更-入 观察清单\\\",\\\"OP_TIME\\\":\\\"2026/11/02 16:01:41\\\",\\\"CHECK_RESULT\\\":\\\"\\\",\\\"CHECK_TIME\\\":\\\"\\\",\\\"PROJNAME\\\":\\\"武汉回盛生物科技股份有限公司2026可转债\\\",\\\"IS_MANAUL\\\":\\\"0\\\",\\\"PROJTYPE\\\":\\\"股权融资_可转债\\\",\\\"DEPT_USER_ID\\\":\\\"036742\\\"}\",\n    \"templateName\":\"武汉回盛生物科技股份有限公司项目清单审核意见反馈\",\n    \"flowVer\":\"1\",\n    \"nodeCode\":\"draft\",\n    \"applyTable\":\"T_PROJ_CHANGE_FLOW\",\n    \"candidates\":\"038622\"\n}\n\nvar data = JSON.stringify(obj);\n\nWb.info(\"Packages.cn.hutool.json.JSONUtil.toJsonStr处理后的data\");\nWb.info(Packages.cn.hutool.json.JSONUtil.toJsonStr(data))\n\nvar url = \"http://10.116.131.13:8094/auto/submit\";\n\n//调用接口\nvar resp = Packages.cn.hutool.http.HttpUtil\n  .createPost(url)\n  .header(\"Content-Type\", \"application/json;charset=utf-8\")\n  .header(\"x-flow-systemId\", \"IBCM\")\n  .header(\"x-userId\", \"036742\")\n  .header(\"x-userName\", \"lipeizhe\")\n  .body(Packages.cn.hutool.json.JSONUtil.toJsonStr(data))\n  .execute()\n  .body();\n\nWb.info(resp);\nWb.send(resp);"
+  },
+  "_icon": "module"
+}

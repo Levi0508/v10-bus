@@ -2,7 +2,7 @@
   "title": "清单管理",
   "icon": "excel",
   "img": "",
-  "hideInMenu": "false",
+  "hideInMenu": "true",
   "items": [
     "my_projlist.xwl",
     "ADMIN_PROJLIST.xwl",

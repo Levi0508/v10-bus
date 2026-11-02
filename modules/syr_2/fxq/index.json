@@ -3,5 +3,7 @@
   "icon": "",
   "img": "",
   "hideInMenu": "true",
-  "items": []
+  "items": [
+    "select_bomis_benefit_scinfo.xwl"
+  ]
 }

@@ -1,0 +1,286 @@
+Create or Replace procedure "THJS"."P_PROJLIST_INOUT_BATCH_Q" (rt_cursor     out sys_refcursor, --返回游标结果集
+                                                          i_projid      in varchar2,
+                                                          i_batch_num   in integer,
+                                                          i_usercode    in varchar2, --查询用户
+                                                          o_return_msg  out varchar2,
+                                                          o_return_code out integer) is
+  ----------------------------------------------------------------------------------
+  --版    权：GTJA
+  --版    本：1.0.0
+  --开发人员：CZC@GTJA
+  --创建日期：20210427
+  --模块编号：
+  --模块名称：清单管理 - 清单填报页清单批次信息查询
+  --功能名称：清单填报页信息查询
+  ----------------------------------------------------------------------------------
+  --==============================================================================
+  --固定变量
+  v_userexp exception; -- 用户定义错
+  v_tradedate    varchar2(8); -- 任务执行时间(业务日期)
+  v_exec_func_id integer default '0'; -- 任务id
+  v_func_own     varchar2(20) default 'thjs'; -- 任务归属用户（schema）
+  v_func_name    varchar2(2000) default 'p_projlist_inout_batch_q'; -- 任务名称(存储过程的名字)
+  v_sqlerrm      varchar2(4000); -- 错误提示信息
+  v_sqlcode      number; -- 错误代码
+  v_sqlerrl      varchar2(4000); -- 错误行号
+  --==============================================================================
+  ---------------------------------------------------------------------------------------
+  --业务变量
+  v_batch_id varchar2(100);
+  --=============================================================
+  -- 业务处理过程
+  --=============================================================
+
+begin
+
+  v_tradedate := to_char(sysdate, 'yyyyMMdd');
+
+  select t.batch_id
+    into v_batch_id
+    from dual
+    left join (select t.projid,
+                      t.batch_id,
+                      t.first_inout_time,
+                      row_number() over(partition by t.projid order by t.first_inout_time) as batch_num
+                 from (select t.projid,
+                              t.batch_id,
+                              min(t.create_time) as first_inout_time
+                         from thjs.tb_projlist_inout t
+                        where t.projid = i_projid
+                        group by t.projid, t.batch_id) t) t
+      on t.batch_num = i_batch_num;
+
+  open rt_cursor for
+    select c.projid, --项目编号
+           c.projname, --项目名称      
+           v_batch_id as batch_id,     
+           ro.inout_date as ro_inout_date, --入观察清单日期
+           ro.inout_reason as ro_inout_reason, --入观察清单事由
+           ro.fill_date as ro_report_date, --入观察清单填报日期
+           ro.inout_remark as ro_inout_remark, --入观察清单备注
+           ro.filepath as ro_filepath, --入观察清单附件
+           co.inout_date as co_inout_date, --出观察清单日期
+           co.fill_date as co_report_date, --出观察清单填报日期
+           co.inout_reason as co_inout_reason, --出观察清单事由
+           co.inout_remark as co_inout_remark, --出观察清单备注
+           co.filepath as co_filepath, --出观察清单附件
+           rl.inout_date as rl_inout_date, --入限制清单日期
+           rl.fill_date as rl_report_date, --入限制清单填报日期
+           rl.inout_reason as rl_inout_reason, --入限制清单事由
+           rl.inout_remark as rl_inout_remark, --入限制清单备注
+           rl.filepath as rl_filepath, --入限制清单附件
+           cl.inout_date as cl_inout_date, --出限制清单日期
+           cl.fill_date as cl_report_date, --出限制清单填报日期
+           cl.inout_reason as cl_inout_reason, --出限制清单事由
+           cl.inout_remark as cl_inout_remark, --出限制清单备注
+           cl.filepath as cl_filepath, --出限制清单附件
+           rq.inout_date as rq_inout_date, --入静默期日期
+           rq.fill_date as rq_report_date, --入静默期填报日期
+           rq.inout_reason as rq_inout_reason, --入静默期事由
+           rq.inout_remark as rq_inout_remark, --入静默期备注
+           rq.filepath as rq_filepath, --入静默期附件
+           cq.inout_date as cq_inout_date, --出静默期日期
+           cq.fill_date as cq_report_date, --出静默期填报日期
+           cq.inout_reason as cq_inout_reason, --出静默期事由
+           cq.inout_remark as cq_inout_remark, --出静默期备注
+           cq.filepath as cq_filepath, --出静默期附件
+           nvl(pb.projlist_status, '0') as projlist_status, --清单状态
+           io.check_result as ro_check_result,
+           io.check_record as ro_check_record,
+           io.remark as ro_remark,
+           io.filepath as ro_check_filepath,
+           io.create_time as ro_create_time,
+           u_io.display_name as ro_display_name,
+           oo.check_result as co_check_result,
+           oo.check_record as co_check_record,
+           oo.remark as co_remark,
+           oo.filepath as co_check_filepath,
+           oo.create_time as co_create_time,
+           u_oo.display_name as co_display_name,
+           il.check_result as rl_check_result,
+           il.check_record as rl_check_record,
+           il.remark as rl_remark,
+           il.filepath as rl_check_filepath,
+           il.create_time as rl_create_time,
+           u_il.display_name as rl_display_name,
+           ol.check_result as cl_check_result,
+           ol.check_record as cl_check_record,
+           ol.remark as cl_remark,
+           ol.create_time as cl_create_time,
+           ol.filepath as cl_check_filepath,
+           u_ol.display_name as cl_display_name,
+           iq.check_result as rq_check_result,
+           iq.check_record as rq_check_record,
+           iq.remark as rq_remark,
+           iq.create_time as rq_create_time,
+           iq.filepath as rq_check_filepath,
+           u_iq.display_name as rq_display_name,
+           oq.check_result as cq_check_result,
+           oq.check_record as cq_check_record,
+           oq.remark as cq_remark,
+           oq.create_time as cq_create_time,
+           oq.filepath as cq_check_filepath,
+           u_oq.display_name as cq_display_name
+      from thjs.tb_ib_cust_info c
+      left join thjs.vw_projlist_main p
+        on p.projid = c.projid
+      left join (select *
+                   from thjs.tb_projlist_main
+                 union all
+                 select *
+                   from thjs.tb_projlist_main_batch) pb
+        on pb.projid = p.projid
+       and pb.batch_id = v_batch_id
+      left join thjs.tb_projlist_inout ro
+        on ro.projid = p.projid
+       and ro.batch_id = v_batch_id
+       and ro.inout_id = pb.robserve_id
+       --and decode(ro.inout_direct,'i','r','o','c')||ro.inout_type='ro'
+      left join thjs.tb_projlist_inout co
+        on co.projid = p.projid
+       and co.batch_id = v_batch_id
+       and co.inout_id = pb.cobserve_id
+      --and decode(co.inout_direct,'i','r','o','c')||co.inout_type='co'
+      left join thjs.tb_projlist_inout rl
+        on rl.projid = p.projid
+       and rl.batch_id = v_batch_id
+       and rl.inout_id = pb.rlimit_id
+        --and decode(rl.inout_direct,'i','r','o','c')||rl.inout_type='rl' 
+      left join thjs.tb_projlist_inout cl
+        on cl.projid = p.projid
+       and cl.batch_id = v_batch_id
+       and cl.inout_id = pb.climit_id
+      --and decode(cl.inout_direct,'i','r','o','c')||cl.inout_type='cl' 
+      left join thjs.tb_projlist_inout rq
+        on rq.projid = p.projid
+       and rq.batch_id = v_batch_id
+       and rq.inout_id = pb.rquiet_id
+        --and decode(rq.inout_direct,'i','r','o','c')||rq.inout_type='rq' 
+      left join thjs.tb_projlist_inout cq
+        on cq.projid = p.projid
+       and cq.batch_id = v_batch_id
+       and cq.inout_id = pb.cquiet_id
+      --and decode(cq.inout_direct,'i','r','o','c')||cq.inout_type='cq' 
+      left join (select t.*,
+                        row_number() over(partition by t.proj_id,t.batch_Id order by t.update_time desc) as rn
+                   from thjs.tb_projlist_inout_comment t
+                  where t.inout_direct = 'i'
+                    and t.inout_type = 'o') io
+        on  --ro.projid = io.proj_id
+        --and ro.inout_direct = io.inout_direct
+        --and ro.inout_type = io.inout_type
+        io.proj_id=i_projid 
+	   and io.batch_Id = v_batch_id
+       and io.rn = 1
+      left join basic_thjs.wb_user u_io
+        on io.create_user = u_io.user_name
+      left join (select t.*,
+                        row_number() over(partition by t.proj_id,t.batch_Id order by t.update_time desc) as rn
+                   from thjs.tb_projlist_inout_comment t
+                  where t.inout_direct = 'o'
+                    and t.inout_type = 'o') oo
+        on --co.projid = oo.proj_id
+       --and co.inout_direct = oo.inout_direct
+       --and co.inout_type = oo.inout_type
+       oo.proj_id=i_projid
+	   and oo.batch_Id = v_batch_id
+       and oo.rn = 1
+      left join basic_thjs.wb_user u_oo
+        on oo.create_user = u_oo.user_name
+      left join (select t.*,
+                        row_number() over(partition by t.proj_id,t.batch_Id order by t.update_time desc) as rn
+                   from thjs.tb_projlist_inout_comment t
+                  where t.inout_direct = 'i'
+                    and t.inout_type = 'l') il
+        on --rl.projid = il.proj_id
+       --and rl.inout_direct = il.inout_direct
+       --and rl.inout_type = il.inout_type
+       il.proj_id=i_projid
+	   and il.batch_Id = v_batch_id
+       and il.rn = 1
+      left join basic_thjs.wb_user u_il
+        on il.create_user = u_il.user_name
+      left join (select t.*,
+                        row_number() over(partition by t.proj_id,t.batch_Id order by t.update_time desc) as rn
+                   from thjs.tb_projlist_inout_comment t
+                  where t.inout_direct = 'o'
+                    and t.inout_type = 'l') ol
+        on --cl.projid = ol.proj_id
+       --and cl.inout_direct = ol.inout_direct
+       --and cl.inout_type = ol.inout_type
+       ol.proj_id=i_projid
+	   and ol.batch_Id = v_batch_id
+       and ol.rn = 1
+      left join basic_thjs.wb_user u_ol
+        on ol.create_user = u_ol.user_name
+      left join (select t.*,
+                        row_number() over(partition by t.proj_id,t.batch_Id order by t.update_time desc) as rn
+                   from thjs.tb_projlist_inout_comment t
+                  where t.inout_direct = 'i'
+                    and t.inout_type = 'q') iq
+        on --rq.projid = iq.proj_id
+       --and rq.inout_direct = iq.inout_direct
+       --and rq.inout_type = iq.inout_type
+       iq.proj_id=i_projid
+	   and iq.batch_Id = v_batch_id
+       and iq.rn = 1
+      left join basic_thjs.wb_user u_iq
+        on iq.create_user = u_iq.user_name
+      left join (select t.*,
+                        row_number() over(partition by t.proj_id,t.batch_Id order by t.update_time desc) as rn
+                   from thjs.tb_projlist_inout_comment t
+                  where t.inout_direct = 'o'
+                    and t.inout_type = 'q') oq
+        on --cq.projid = oq.proj_id
+       --and cq.inout_direct = oq.inout_direct
+       --and cq.inout_type = oq.inout_type
+       oq.proj_id=i_projid
+	   and oq.batch_Id = v_batch_id
+       and oq.rn = 1
+      left join basic_thjs.wb_user u_oq
+        on oq.create_user = u_oq.user_name
+     where c.projid = i_projid;
+
+  commit;
+
+  o_return_msg  := '执行成功';
+  o_return_code := 0;
+
+exception
+  -- 非预定义异常处理
+  when v_userexp then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                           i_exec_func_id => v_exec_func_id,
+                           i_func_own     => v_func_own,
+                           i_func_name    => v_func_name,
+                           i_occur_time   => sysdate,
+                           i_sqlerrm      => v_sqlerrm,
+                           i_sqlcode      => v_sqlcode,
+                           i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+    -- 预定义异常处理
+  when others then
+    rollback;
+  
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+  
+    thjs.p_write_error_log(i_tradedate    => v_tradedate,
+                           i_exec_func_id => v_exec_func_id,
+                           i_func_own     => v_func_own,
+                           i_func_name    => v_func_name,
+                           i_occur_time   => sysdate,
+                           i_sqlerrm      => v_sqlerrm,
+                           i_sqlcode      => v_sqlcode,
+                           i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+end;

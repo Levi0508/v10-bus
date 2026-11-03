@@ -1,5 +1,5 @@
 {
-  "title": "React页面访问权限查询",
+  "title": "React应用模块权限查询",
   "icon": "",
   "img": "",
   "hideInMenu": "true",
@@ -8,7 +8,7 @@
   "properties": {
     "cid": "module",
     "loginRequired": "false",
-    "remark": "通用页面权限查询；前端声明权限资源，服务端按当前会话鉴权。不执行业务操作。",
-    "serverScript": "const mode = Wb.get('mode');\nconst modulePath = Wb.get('module');\nlet allowed = false;\nif (mode === 'login') {\n  allowed = !!Wb.userid;\n} else if (mode === 'module' && typeof modulePath === 'string' &&\n  /^[\\w-]+(?:\\/[\\w-]+)*\\.xwl$/.test(modulePath)) {\n  allowed = Wb.permit(modulePath);\n}\nWb.send({\n  allowed,\n  loginUrl: Wb.getConfig('sys.session.loginPage')\n});"
+    "remark": "返回当前登录会话的模块权限快照，供React页面和按钮共享；不接收外部用户或角色参数，不执行业务操作。",
+    "serverScript": "const loggedIn = !!Wb.userid;\nconst roles = loggedIn ? (Wb.roles || []) : [];\nconst isAdmin = roles.includes('admin');\nlet permissions = [];\nif (roles.length > 0 && !isAdmin) {\n  const sqlMap = Wb.Query.getArraySql(roles, 'varchar');\n  permissions = Wb.getAllRows({\n    sql: 'select distinct module_path from wb_perm where role_id in (' + sqlMap.sql + ')',\n    params: sqlMap.params\n  }).pluck('module_path');\n}\nWb.send({\n  loggedIn,\n  isAdmin,\n  permissions,\n  loginUrl: Wb.getConfig('sys.session.loginPage')\n});"
   }
 }

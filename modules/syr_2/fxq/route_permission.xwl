@@ -8,7 +8,7 @@
   "properties": {
     "cid": "module",
     "loginRequired": "false",
-    "remark": "通用页面权限查询；前端声明权限资源，服务端按当前会话鉴权。不执行业务操作。",
-    "serverScript": "const mode = Wb.get('mode');\nconst modulePath = Wb.get('module');\nlet allowed = false;\nif (mode === 'login') {\n  allowed = !!Wb.userid;\n} else if (mode === 'module' && typeof modulePath === 'string' &&\n  /^[\\w-]+(?:\\/[\\w-]+)*\\.xwl$/.test(modulePath)) {\n  allowed = Wb.permit(modulePath);\n}\nWb.send({\n  allowed,\n  loginUrl: Wb.getConfig('sys.session.loginPage')\n});"
+    "remark": "固定映射React路由到原页面权限资源；公开查询以便未登录时返回系统登录地址，不执行业务操作。",
+    "serverScript": "const modules = new Map([\n  ['/aml/client_report', 'aml_monitor/KYC01010.xwl'],\n  ['/aml/client_add', 'aml_monitor/KYC01010/client_add.xwl'],\n  ['/aml/client_edit', 'aml_monitor/KYC01010/client_edit.xwl'],\n  ['/aml/client_preview', 'aml_monitor/KYC01010/client_preview.xwl'],\n  ['/aml/client_appr', 'aml_monitor/KYC01010/client_appr.xwl'],\n  ['/aml/client_manage', 'aml_monitor/KYC01020.xwl'],\n  ['/aml/maintainer', 'aml_monitor/KYC01030.xwl'],\n  ['/aml/maintainer_query', 'aml_monitor/KYC01040.xwl'],\n  ['/aml/my_clients', 'aml_monitor/KYC01050.xwl'],\n  ['/aml/country', 'aml_monitor/KYC01060.xwl'],\n  ['/aml/beneficial_type', 'aml_monitor/KYC01070.xwl'],\n  ['/aml/audit_type', 'aml_monitor/KYC01080.xwl']\n]);\nconst route = Wb.get('route');\nconst modulePath = modules.get(route);\nconst allowed = route === '/' || route === '/hello-world'\n  ? !!Wb.userid\n  : !!modulePath && Wb.permit(modulePath);\nWb.send({\n  allowed,\n  loginUrl: Wb.getConfig('sys.session.loginPage')\n});"
   }
 }

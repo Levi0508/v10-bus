@@ -3,5 +3,7 @@
   "icon": "",
   "img": "",
   "hideInMenu": "true",
-  "items": []
+  "items": [
+    "current_user.xwl"
+  ]
 }

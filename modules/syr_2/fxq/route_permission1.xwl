@@ -1,0 +1,14 @@
+{
+  "title": "React页面访问权限查询",
+  "icon": "",
+  "img": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "loginRequired": "false",
+    "remark": "通用页面权限查询；前端声明权限资源，服务端按当前会话鉴权。不执行业务操作。",
+    "serverScript": "const mode = Wb.get('mode');\nconst modulePath = Wb.get('module');\nlet allowed = false;\nif (mode === 'login') {\n  allowed = !!Wb.userid;\n} else if (mode === 'module' && typeof modulePath === 'string' &&\n  /^[\\w-]+(?:\\/[\\w-]+)*\\.xwl$/.test(modulePath)) {\n  allowed = Wb.permit(modulePath);\n}\nWb.send({\n  allowed,\n  loginUrl: Wb.getConfig('sys.session.loginPage')\n});"
+  }
+}

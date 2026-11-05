@@ -16,8 +16,6 @@
     "th_projlist",
     "th_projlist_old",
     "aml_monitor",
-    "common",
-    "Test_clf",
-    "Test_clf2"
+    "common"
   ]
 }

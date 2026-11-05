@@ -117,107 +117,143 @@
               "hasDupCid": 0,
               "items": [
                 {
-                  "_icon": "button",
-                  "text": "newBtn",
-                  "cls": "Wb.Button",
+                  "_icon": "container",
+                  "text": "reportRow",
+                  "cls": "Wb.Container",
                   "properties": {
-                    "cid": "newBtn",
-                    "text": "新增清单",
-                    "roundBorder": "true",
-                    "visible": "false"
+                    "cid": "reportRow",
+                    "layout": "form-compact",
+                    "width": "100%",
+                    "style": "padding:0;"
                   },
-                  "events": {
-                    "click": "app.reportTask(0, true);"
-                  }
+                  "items": [
+                    {
+                      "_icon": "button",
+                      "text": "newBtn",
+                      "cls": "Wb.Button",
+                      "properties": {
+                        "cid": "newBtn",
+                        "text": "新增清单",
+                        "roundBorder": "true",
+                        "visible": "false"
+                      },
+                      "events": {
+                        "click": "app.reportTask(0, true);"
+                      }
+                    },
+                    {
+                      "_icon": "button",
+                      "text": "reportBtn",
+                      "cls": "Wb.Button",
+                      "properties": {
+                        "cid": "reportBtn",
+                        "text": "清单填报/信息变更",
+                        "type": "primary",
+                        "roundBorder": "true"
+                      },
+                      "events": {
+                        "click": "app.reportTask(0, false);"
+                      },
+                      "_expanded": true
+                    },
+                    {
+                      "_icon": "button",
+                      "text": "modifyBtn",
+                      "cls": "Wb.Button",
+                      "properties": {
+                        "cid": "modifyBtn",
+                        "text": "关联信息修改",
+                        "roundBorder": "true",
+                        "visible": "false"
+                      },
+                      "events": {
+                        "click": "app.modify(0,false);"
+                      }
+                    },
+                    {
+                      "_icon": "label",
+                      "text": "label1",
+                      "cls": "Wb.Label",
+                      "properties": {
+                        "cid": "label1",
+                        "text": "清单及关联方填报请选择项目后点击“清单填报/信息变更”按钮，双击记录为查看该项目清单。",
+                        "style": "color:#ff0000;font-weight:bold;"
+                      }
+                    },
+                    {
+                      "_icon": "right1",
+                      "text": "fill1",
+                      "cls": "Wb.Fill",
+                      "properties": {
+                        "cid": "fill1"
+                      },
+                      "_expanded": true
+                    },
+                    {
+                      "_icon": "button",
+                      "text": "seekBtn",
+                      "cls": "Wb.Button",
+                      "properties": {
+                        "cid": "seekBtn",
+                        "text": "查询",
+                        "type": "primary",
+                        "roundBorder": "true"
+                      },
+                      "events": {
+                        "click": "let data = Wb.getValue(app.panel1)\nif(Wb.verify(app.panel1)){\n  app.grid1.load({\n    comps:app.panel1,\n    params:{},\n  })\n}\n"
+                      }
+                    },
+                    {
+                      "_icon": "button",
+                      "text": "resetBtn",
+                      "cls": "Wb.Button",
+                      "properties": {
+                        "cid": "resetBtn",
+                        "text": "重置",
+                        "roundBorder": "true"
+                      },
+                      "events": {
+                        "click": "Wb.reset(app.panel1)\napp.grid1.load()"
+                      }
+                    }
+                  ]
                 },
                 {
-                  "_icon": "button",
-                  "text": "reportBtn",
-                  "cls": "Wb.Button",
+                  "_icon": "container",
+                  "text": "attachmentRow",
+                  "cls": "Wb.Container",
                   "properties": {
-                    "cid": "reportBtn",
-                    "text": "清单填报/信息变更",
-                    "type": "primary",
-                    "roundBorder": "true"
+                    "cid": "attachmentRow",
+                    "layout": "form-compact",
+                    "width": "100%",
+                    "style": "padding:0;"
                   },
-                  "events": {
-                    "click": "app.reportTask(0, false);"
-                  },
-                  "_expanded": true
-                },
-                {
-                  "_icon": "button",
-                  "text": "modifyBtn",
-                  "cls": "Wb.Button",
-                  "properties": {
-                    "cid": "modifyBtn",
-                    "text": "关联信息修改",
-                    "roundBorder": "true",
-                    "visible": "false"
-                  },
-                  "events": {
-                    "click": "app.modify(0,false);"
-                  }
-                },
-                {
-                  "_icon": "button",
-                  "text": "uploadFileBtn",
-                  "cls": "Wb.Button",
-                  "properties": {
-                    "cid": "uploadFileBtn",
-                    "text": "附件补充",
-                    "roundBorder": "true",
-                    "visible": "true"
-                  },
-                  "events": {
-                    "click": "var record = app.grid1.selection;\n\nif (!record) {\n  Wb.info('请选中行!');\n  return;\n}\nvar data = record.data;\nWb.ajax({\n  url: 'm?xwl=info_query/projlist_data/inout_q',\n  params: {\n    i_projid: data.projid,\n    i_usercode: '_$sys.username$_'\n  },\n  success(resp) {\n    resp = Wb.decode(resp).items[0];\n    console.log('resp', resp);\n    Wb.open({\n      url: 'm?xwl=info_query/projlist/P_PROJLIST_FILE_Q',\n      params: {\n        projId: data.projid,\n        projcode: resp.projcode,\n        projname: resp.projname,\n        projtype: resp.projtype,\n        custname: data.custname,\n        projlist_status: resp.projlist_status,\n      },\n      title: data.custname\n    });\n  }\n});"
-                  }
-                },
-                {
-                  "_icon": "label",
-                  "text": "label1",
-                  "cls": "Wb.Label",
-                  "properties": {
-                    "cid": "label1",
-                    "text": "清单填报、关联方信息请选择项目后点击“清单填报/信息变更”按钮，双击记录为查看该项目清单。",
-                    "style": "color:#ff0000;font-weight:bold;"
-                  }
-                },
-                {
-                  "_icon": "right1",
-                  "text": "fill1",
-                  "cls": "Wb.Fill",
-                  "properties": {
-                    "cid": "fill1"
-                  },
-                  "_expanded": true
-                },
-                {
-                  "_icon": "button",
-                  "text": "seekBtn",
-                  "cls": "Wb.Button",
-                  "properties": {
-                    "cid": "seekBtn",
-                    "text": "查询",
-                    "type": "primary",
-                    "roundBorder": "true"
-                  },
-                  "events": {
-                    "click": "let data = Wb.getValue(app.panel1)\nif(Wb.verify(app.panel1)){\n  app.grid1.load({\n    comps:app.panel1,\n    params:{},\n  })\n}\n"
-                  }
-                },
-                {
-                  "_icon": "button",
-                  "text": "resetBtn",
-                  "cls": "Wb.Button",
-                  "properties": {
-                    "cid": "resetBtn",
-                    "text": "重置",
-                    "roundBorder": "true"
-                  },
-                  "events": {
-                    "click": "Wb.reset(app.panel1)\napp.grid1.load()"
-                  }
+                  "items": [
+                    {
+                      "_icon": "button",
+                      "text": "uploadFileBtn",
+                      "cls": "Wb.Button",
+                      "properties": {
+                        "cid": "uploadFileBtn",
+                        "text": "附件补充",
+                        "roundBorder": "true",
+                        "visible": "true"
+                      },
+                      "events": {
+                        "click": "var record = app.grid1.selection;\n\nif (!record) {\n  Wb.info('请选中行!');\n  return;\n}\nvar data = record.data;\nWb.ajax({\n  url: 'm?xwl=info_query/projlist_data/inout_q',\n  params: {\n    i_projid: data.projid,\n    i_usercode: '_$sys.username$_'\n  },\n  success(resp) {\n    resp = Wb.decode(resp).items[0];\n    console.log('resp', resp);\n    Wb.open({\n      url: 'm?xwl=info_query/projlist/P_PROJLIST_FILE_Q',\n      params: {\n        projId: data.projid,\n        projcode: resp.projcode,\n        projname: resp.projname,\n        projtype: resp.projtype,\n        custname: data.custname,\n        projlist_status: resp.projlist_status,\n      },\n      title: data.custname\n    });\n  }\n});"
+                      }
+                    },
+                    {
+                      "_icon": "label",
+                      "text": "attachmentHint",
+                      "cls": "Wb.Label",
+                      "properties": {
+                        "cid": "attachmentHint",
+                        "text": "附件补充或修改请选择项目后点击“附件补充”按钮。",
+                        "style": "color:#ff0000;font-weight:bold;"
+                      }
+                    }
+                  ]
                 }
               ]
             },

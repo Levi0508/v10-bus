@@ -124,7 +124,7 @@
                     "cid": "reportRow",
                     "layout": "form-compact",
                     "width": "100%",
-                    "style": "padding:0;"
+                    "style": "padding:0;margin:0;min-width:0;box-sizing:border-box;"
                   },
                   "items": [
                     {
@@ -226,7 +226,7 @@
                     "cid": "attachmentRow",
                     "layout": "form-compact",
                     "width": "100%",
-                    "style": "padding:0;"
+                    "style": "padding:0;margin:0;min-width:0;box-sizing:border-box;"
                   },
                   "items": [
                     {

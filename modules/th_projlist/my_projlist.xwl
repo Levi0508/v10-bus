@@ -236,6 +236,7 @@
                       "properties": {
                         "cid": "uploadFileBtn",
                         "text": "附件补充",
+                        "type": "primary",
                         "roundBorder": "true",
                         "visible": "true"
                       },

@@ -235,7 +235,7 @@
                       "cls": "Wb.Button",
                       "properties": {
                         "cid": "uploadFileBtn",
-                        "text": "附件补充",
+                        "text": "附件补充/附件修改",
                         "type": "primary",
                         "roundBorder": "true",
                         "visible": "true"
@@ -250,7 +250,7 @@
                       "cls": "Wb.Label",
                       "properties": {
                         "cid": "attachmentHint",
-                        "text": "附件补充或修改请选择项目后点击“附件补充”按钮。",
+                        "text": "附件补充或修改请选择项目后点击“附件补充/附件修改”按钮。",
                         "style": "color:#ff0000;font-weight:bold;"
                       }
                     }

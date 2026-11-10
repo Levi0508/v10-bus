@@ -323,6 +323,17 @@ BEGIN
 							ib.projtype,
 							r.industry_name,
 							-- 新字段供分页排序使用，不写入临时表。
+							nvl((select max(a.op_time)
+							       from thjs.tb_fxq_cust_active_log a
+							      where a.cust_id = r.client_id
+							        and a.status = ''0''
+							        and not exists (select 1
+							                          from basic_thjs.wb_user u
+							                          left join basic_thjs.wb_user_role ur
+							                            on ur.user_id = u.staff_id
+							                           and ur.role_id = ''thhgz''
+							                         where u.user_name = a.op_user
+							                           and (u.user_id = ''admin'' or ur.role_id = ''thhgz''))),
 							(select max(f.log_time)
 							   from thjs.tb_fxq_interface_log f
 							  where f.entname = r.id_no
@@ -331,7 +342,7 @@ BEGIN
 							                  from thjs.tb_fxq_interface_log q
 							                 where q.log_key = f.log_key
 							                   and q.log_type = ''0''
-							                   and q.log_time <= f.log_time)) as workroom_submit_time
+							                   and q.log_time <= f.log_time))) as workroom_submit_time
                        from thjs.vw_fxq_cust_info r --thjs.vw_fxq_cust_info r
                        left join (select * from (select his.*,
                     row_number() over( 
@@ -520,6 +531,17 @@ BEGIN
   
   open rt_cursor for
     select r.*,
+           nvl((select max(a.op_time)
+                  from thjs.tb_fxq_cust_active_log a
+                 where a.cust_id = r.client_id
+                   and a.status = '0'
+                   and not exists (select 1
+                                     from basic_thjs.wb_user u
+                                     left join basic_thjs.wb_user_role ur
+                                       on ur.user_id = u.staff_id
+                                      and ur.role_id = 'thhgz'
+                                    where u.user_name = a.op_user
+                                      and (u.user_id = 'admin' or ur.role_id = 'thhgz'))),
            (select max(f.log_time)
               from thjs.tb_fxq_interface_log f
              where f.entname = r.id_no
@@ -528,7 +550,7 @@ BEGIN
                              from thjs.tb_fxq_interface_log q
                             where q.log_key = f.log_key
                               and q.log_type = '0'
-                              and q.log_time <= f.log_time)) as workroom_submit_time
+                              and q.log_time <= f.log_time))) as workroom_submit_time
       from thjs.t_th_client_info_tmp r
      where r.rn > v_page_num
        and r.rn <= v_page_num + v_page_size

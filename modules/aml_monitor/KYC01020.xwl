@@ -1411,7 +1411,7 @@
                   "properties": {
                     "cid": "CREATETIME_Col",
                     "text": "工作室操作时间",
-                    "fieldName": "create_time",
+                    "fieldName": "workroom_submit_time",
                     "width": "180",
                     "sortable": "true"
                   },

@@ -321,7 +321,17 @@ BEGIN
 							ib.projname,
 							ib.createtime,
 							ib.projtype,
-							r.industry_name
+							r.industry_name,
+							-- 新字段供分页排序使用，不写入临时表。
+							(select max(f.log_time)
+							   from thjs.tb_fxq_interface_log f
+							  where f.entname = r.id_no
+							    and f.log_type = ''1''
+							    and exists (select 1
+							                  from thjs.tb_fxq_interface_log q
+							                 where q.log_key = f.log_key
+							                   and q.log_type = ''0''
+							                   and q.log_time <= f.log_time)) as workroom_submit_time
                        from thjs.vw_fxq_cust_info r --thjs.vw_fxq_cust_info r
                        left join (select * from (select his.*,
                     row_number() over( 
@@ -509,7 +519,16 @@ BEGIN
   execute immediate v_sql;
   
   open rt_cursor for
-    select *
+    select r.*,
+           (select max(f.log_time)
+              from thjs.tb_fxq_interface_log f
+             where f.entname = r.id_no
+               and f.log_type = '1'
+               and exists (select 1
+                             from thjs.tb_fxq_interface_log q
+                            where q.log_key = f.log_key
+                              and q.log_type = '0'
+                              and q.log_time <= f.log_time)) as workroom_submit_time
       from thjs.t_th_client_info_tmp r
      where r.rn > v_page_num
        and r.rn <= v_page_num + v_page_size

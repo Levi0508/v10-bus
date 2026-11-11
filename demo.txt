@@ -1,3316 +1,493 @@
-// ===== projlist_form_tab_sumbit.xwl：customerForm.ready 完整代码 =====
+-- 仅在测试库执行；使用 THJS 账号或有相应权限的 DBA 账号。
+-- 来源：data (1).csv 的 ddl 单元格。以下过程正文仅解除 CSV 转义，未改动业务逻辑。
+-- 执行前确认相关表字段已补齐，且 BASIC_THJS.WB_USER、THJS.P_WRITE_ERROR_LOG 等依赖在测试库可用。
+-- 创建过程不会调用保存逻辑；CREATE OR REPLACE 属于 DDL，会自动提交当前事务。
+
+CREATE OR REPLACE   PROCEDURE "THJS"."P_TH_CLIENT_INFO_S_LXY" (I_CLIENT_ID IN VARCHAR2,
+                                            I_CLIENT_NAME IN VARCHAR2,
+                                            I_ORGAN_FLAG IN VARCHAR2,
+                                            I_ID_TYPE IN VARCHAR2,
+                                            I_ID_NO IN VARCHAR2,
+                                            I_ID_BEGINDATE IN VARCHAR2,
+                                            I_ID_ENDDATE IN VARCHAR2,
+                                            I_CLIENT_BELONG IN VARCHAR2,
+                                            I_NATIONALITY IN VARCHAR2,
+                                            I_BIRTHDAY IN VARCHAR2,
+                                            I_OFFICE_ADDRESS IN VARCHAR2,
+                                            I_PROVINCE IN VARCHAR2,
+                                            I_CITY IN VARCHAR2,
+                                            I_DISTRICT IN VARCHAR2,
+                                            I_REGISTER_COUNTRY IN VARCHAR2,
+                                            I_REGISTER_MONEY_TYPE IN VARCHAR2,
+                                            I_REGISTER_FUND IN VARCHAR2,
+                                            I_INDUSTRY_TYPE IN VARCHAR2,
+                                            I_TEL IN VARCHAR2,
+                                            I_SETUP_DATE IN VARCHAR2,
+                                            I_BUSI_SCOPE IN VARCHAR2,
+                                            I_IS_OBJECT_REPORT IN VARCHAR2,
+                                            I_ASSOCIATED_DATE IN VARCHAR2,
+                                            I_REMARK IN VARCHAR2,
+                                            I_CREATE_USER IN VARCHAR2,
+                                            I_CREATE_TIME IN VARCHAR2,
+                                            I_UPDATE_USER IN VARCHAR2,
+                                            I_UPDATE_TIME IN VARCHAR2,
+                                            I_IS_SPECIAL IN VARCHAR2,
+                                            I_CLIENT_TYPE IN VARCHAR2,
+                                            I_CLIENT_TYPE_OTHER IN VARCHAR2,
+                                            I_SPECIAL_MATTERS IN VARCHAR2,
+                                            I_MISSING_INFORMATION IN VARCHAR2,
+                                            I_MISSING_DRAFT IN VARCHAR2,
+                                            I_SPECIAL_MATTERS_OTHER IN VARCHAR2,
+                                            I_SPECIAL_REASON IN VARCHAR2,
+                                            I_COMPLETED_CDD IN VARCHAR2,
+                                            I_LOW_RISK_EXPLANATION IN VARCHAR2,
+                                            I_TAKE_MEASURES IN VARCHAR2,
+                                            I_COMMUNICATION_RECORDS IN VARCHAR2,
+                                            I_AGREE_RECORDS IN VARCHAR2,
+                                            I_OTHER_RECORDS IN VARCHAR2,
+                                            I_INDUSTRY_TYPE1 IN VARCHAR2,
+                                            I_WORK_TYPE IN VARCHAR2,
+                                            I_CLIENT_STATUS IN VARCHAR2,
+                                            I_DATA_STATUS IN VARCHAR2,
+                                            I_RELATED_PROJ IN VARCHAR2,
+                                            I_IF_RISK_CLIENT IN VARCHAR2,
+                                            I_RISK_LIST_TYPE IN VARCHAR2,
+                                            I_PROBLEM_DESC IN VARCHAR2,
+                                            I_GRADE_VALUE IN VARCHAR2,
+                                            I_GENDER IN VARCHAR2,
+                                            I_INCOME IN VARCHAR2,
+                                            I_PROFESSION_CODE IN VARCHAR2,
+                                            I_POSITION IN VARCHAR2,
+                                            I_WORK_PLACE IN VARCHAR2,
+                                            I_ZIPCODE IN VARCHAR2,
+                                            I_FILLIN_DATE IN VARCHAR2,
+                                            I_ID_ADDRESS IN VARCHAR2,
+                                            I_PROVINCE1 IN VARCHAR2,
+                                            I_CITY1 IN VARCHAR2,
+                                            I_DISTRICT1 IN VARCHAR2,
+                                            I_ADDRESS IN VARCHAR2,
+                                            I_PROVINCE2 IN VARCHAR2,
+                                            I_CITY2 IN VARCHAR2,
+                                            I_DISTRICT2 IN VARCHAR2,
+                                            I_IF_RISK_LIST IN VARCHAR2,
+                                            I_INDUSTRY_NAME IN VARCHAR2, --20260623
+                                            o_return_msg out varchar2,
+                                            o_return_code out integer)
+AS
+    --==============================================================================
+    ----------------------------------------------------------------------------------
+    --固定变量
+    v_userexp      exception;                                   -- 用户定义错
+    v_tradedate    varchar2(8);                                 -- 任务执行时间(业务日期)
+    v_exec_func_id integer default '0';                         -- 任务id
+    v_func_own     varchar2(20) default 'THJS';            -- 任务归属用户（schema）
+    v_func_name    varchar2(2000) default 'p_th_client_info_s'; -- 任务名称(存储过程的名字)
+    v_sqlerrm      varchar2(4000);                              -- 错误提示信息
+    v_sqlcode      number;                                      -- 错误代码
+    v_sqlerrl      varchar2(4000);                              -- 错误行号
+    --业务变量
+    v_exists number; --判断是是否已填写 add by chengjing 20251205
+    v_update_name  varchar2(50);                                -- 客户信息更新人update_user在user表的user_name --add by chengjing全链接生产获取不到userInfo.username
+    v_count  number;
+    v_samename_count number default 0;
+    v_address_flag char(1); --办公住所标识
+    
+    --==============================================================================
+    ---------------------------------------------------------------------------------------
+BEGIN
+
+	--add by lxy 增加校验 
+     
+ 	--机构户不可重名，单独校验
+ 	if I_ORGAN_FLAG = '1' THEN
+ 	
+ 		--不同CLIENT_ID，同一客户名称，返回错误
+    	select count(1)
+      	into v_samename_count
+      	from thjs.t_th_client_info t
+     	where t.client_id <> I_CLIENT_ID
+       	and trim(t.client_name) = trim(I_CLIENT_NAME)
+       	and t.client_belong='1';
+  
+    	if v_samename_count > 0 then
+      		o_return_msg  := '已存在同名客户信息，无法保存！';
+      		o_return_code := -1;
+      		return;
+    	end if;
+    	
+    end if;
+  
+    	--不同CLIENT_ID，同一统一社会信用代码，返回错误
+    select count(1)
+      into v_samename_count
+      from thjs.t_th_client_info t
+     where t.client_id <> I_CLIENT_ID
+       and trim(t.id_no) = trim(I_ID_NO)
+       and t.client_belong='1';
+  
+    if v_samename_count > 0 then
+      	o_return_msg  := '证件号码重复，如需更新客户名称请修改客户！';
+      	o_return_code := -1;
+      	return;
+    end if;
+  
+    select case
+            when c.cust_name is null then
+             '1'
+            else
+             '0'
+          end
+      into v_address_flag
+      from dual
+      left join thjs.tb_fxq_cust_rz_ctrl c
+       on c.cust_id = I_CLIENT_ID;
+
+-----------end------
+    SELECT COUNT(*)
+      INTO
+           v_exists
+      FROM thjs.T_TH_CLIENT_INFO
+     WHERE client_id = I_CLIENT_ID;
+     
+    select count(1)
+    into v_count
+    from basic_thjs.wb_user u
+    where u.user_id = I_UPDATE_USER;
+    
+    if v_count > 0 THEN
+    	select u.user_name 
+    	INTO v_update_name
+        from basic_thjs.WB_USER u
+        where u.user_id = I_UPDATE_USER;
+    end if;
+     
+    -- 将关联人临时表数据存入正式表
+    INSERT INTO thjs.T_TH_RELAT_INFO(CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,BO_TYPE,COMPANY_TYPE,FULL_INFO_FLAG)
+		SELECT CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,BO_TYPE,COMPANY_TYPE,FULL_INFO_FLAG
+		 FROM thjs.t_th_relat_info_tmp b
+    	WHERE b.client_id = I_CLIENT_ID;
+    	
+    -- 更新关联人正式表数据状态
+    UPDATE thjs.T_TH_RELAT_INFO
+    SET DATA_STATUS = '1'
+    WHERE CLIENT_ID = I_CLIENT_ID;
+    
+    --插入历史表
+    insert into thjs.T_TH_RELAT_INFO_his(CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,BO_TYPE,COMPANY_TYPE,FULL_INFO_FLAG)
+    SELECT CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,BO_TYPE,COMPANY_TYPE,FULL_INFO_FLAG
+		 FROM thjs.t_th_relat_info_tmp b
+    	WHERE b.client_id = I_CLIENT_ID;
+    
+    -- 删除关联人临时表中该客户的关联人信息
+    DELETE FROM THJS.T_TH_RELAT_INFO_TMP WHERE client_id = I_CLIENT_ID;
+    
+    
+    -- 初次新增客户信息
+    IF v_exists = 0 THEN
+        INSERT INTO thjs.T_TH_CLIENT_INFO (CLIENT_ID,
+               CLIENT_NAME,
+               ORGAN_FLAG,
+               ID_TYPE,
+               ID_NO,
+               ID_BEGINDATE,
+               ID_ENDDATE,
+               CLIENT_BELONG,
+               NATIONALITY,
+               OFFICE_ADDRESS,
+               PROVINCE,
+               CITY,
+               DISTRICT,
+               REGISTER_COUNTRY,
+               REGISTER_MONEY_TYPE,
+               REGISTER_FUND,
+               INDUSTRY_TYPE,
+               TEL,
+               SETUP_DATE,
+               BUSI_SCOPE,
+               IS_OBJECT_REPORT,
+               ASSOCIATED_DATE,
+               REMARK,
+               CREATE_USER,
+               CREATE_TIME,
+               UPDATE_USER,
+               UPDATE_TIME,
+               IS_SPECIAL,
+               CLIENT_TYPE,
+               CLIENT_TYPE_OTHER,
+               SPECIAL_MATTERS,
+               MISSING_INFORMATION,
+               MISSING_DRAFT,
+               SPECIAL_MATTERS_OTHER,
+               SPECIAL_REASON,
+               COMPLETED_CDD,
+               LOW_RISK_EXPLANATION,
+               TAKE_MEASURES,
+               COMMUNICATION_RECORDS,
+               AGREE_RECORDS,
+               OTHER_RECORDS,
+               INDUSTRY_TYPE1,
+               WORK_TYPE,
+               CLIENT_STATUS,
+               DATA_STATUS,
+               RELATED_PROJ,
+               IF_RISK_CLIENT,
+               RISK_LIST_TYPE,
+               PROBLEM_DESC,
+               GRADE_VALUE,
+               GENDER,
+               INCOME,
+               PROFESSION_CODE,
+               POSITION,
+               WORK_PLACE,
+               ZIPCODE,
+               FILLIN_DATE,
+               ID_ADDRESS,
+               PROVINCE1,
+               CITY1,
+               DISTRICT1,
+               ADDRESS,
+               PROVINCE2,
+               CITY2,
+               DISTRICT2,
+               IF_RISK_LIST,
+               CUST_BIZ,
+               INDUSTRY_NAME
+               )
+               VALUES (I_CLIENT_ID,
+               I_CLIENT_NAME,
+               I_ORGAN_FLAG,
+               I_ID_TYPE,
+               I_ID_NO,
+               I_ID_BEGINDATE,
+               I_ID_ENDDATE,
+               I_CLIENT_BELONG,
+               I_NATIONALITY,
+               I_OFFICE_ADDRESS,
+               I_PROVINCE,
+               I_CITY,
+               I_DISTRICT,
+               I_REGISTER_COUNTRY,
+               I_REGISTER_MONEY_TYPE,
+               I_REGISTER_FUND,
+               I_INDUSTRY_TYPE,
+               I_TEL,
+               I_SETUP_DATE,
+               I_BUSI_SCOPE,
+               I_IS_OBJECT_REPORT,
+               I_ASSOCIATED_DATE,
+               I_REMARK,
+               I_CREATE_USER,
+               --nvl(V_CREATE_USER,I_CREATE_USER),
+               sysdate,
+               I_UPDATE_USER,
+               --nvl(V_UPDATE_USER,I_UPDATE_USER),
+               sysdate,
+               I_IS_SPECIAL,
+               I_CLIENT_TYPE,
+               I_CLIENT_TYPE_OTHER,
+               I_SPECIAL_MATTERS,
+               I_MISSING_INFORMATION,
+               I_MISSING_DRAFT,
+               I_SPECIAL_MATTERS_OTHER,
+               I_SPECIAL_REASON,
+               I_COMPLETED_CDD,
+               I_LOW_RISK_EXPLANATION,
+               I_TAKE_MEASURES,
+               I_COMMUNICATION_RECORDS,
+               I_AGREE_RECORDS,
+               I_OTHER_RECORDS,
+               I_INDUSTRY_TYPE1,
+               I_WORK_TYPE,
+               NVL(NULLIF(TRIM(I_CLIENT_STATUS), ''), '0'), -- 入参空时默认正常，避免绕过表 DEFAULT
+               I_DATA_STATUS,
+               I_RELATED_PROJ,
+               I_IF_RISK_CLIENT,
+               I_RISK_LIST_TYPE,
+               I_PROBLEM_DESC,
+               I_GRADE_VALUE,
+               I_GENDER,
+               I_INCOME,
+               I_PROFESSION_CODE,
+               I_POSITION,
+               I_WORK_PLACE,
+               I_ZIPCODE,
+               to_char(sysdate,'yyyymmdd'), --20260530 I_FILLIN_DATE,
+               I_ID_ADDRESS,
+               I_PROVINCE1,
+               I_CITY1,
+               I_DISTRICT1,
+               I_ADDRESS,
+               I_PROVINCE2,
+               I_CITY2,
+               I_DISTRICT2,
+               I_IF_RISK_LIST,
+               case
+               	when I_CREATE_USER = 'admin' then '测试'
+               	else '投行'
+               end,
+               I_INDUSTRY_NAME
+               );
+        
+        COMMIT;
+        
+        -- 初次填报时将初始信息插入his日志表 add by chengjing 20260703
+        INSERT INTO THJS.T_TH_CLIENT_INFO_HIS(CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME)
+         SELECT CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME 
+         FROM THJS.T_TH_CLIENT_INFO 
+         WHERE CLIENT_ID = I_CLIENT_ID;
+        
+        COMMIT;
+        
+        -- 初次填报时插入填报人维护表 add by chengjing 20251127
+        INSERT INTO THJS.T_MAINTAINER_INFO (CLIENT_ID,
+               MAINTAINER,
+               NEW_MAINTAINER,
+               UPDATE_USER,
+               UPDATE_TIME)
+               VALUES( I_CLIENT_ID,
+               I_CREATE_USER,
+               I_CREATE_USER,
+               'admin',
+               sysdate);
+        
+        COMMIT;
+        
+        
+    ELSE
+    	-- 更新正式表数据前 将原先数据插入到his日志表 add by chengjing 20260703
+    	INSERT INTO THJS.T_TH_CLIENT_INFO_HIS(CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME)
+         SELECT CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME 
+    	FROM THJS.T_TH_CLIENT_INFO WHERE CLIENT_ID = I_CLIENT_ID;
+        COMMIT;
+        
+        -- 更新正式表数据
+        UPDATE 
+               thjs.T_TH_CLIENT_INFO A
+           SET A.CLIENT_NAME = I_CLIENT_NAME,
+               A.ORGAN_FLAG = I_ORGAN_FLAG,
+               A.ID_TYPE = I_ID_TYPE,
+               A.ID_NO = I_ID_NO,
+               A.ID_BEGINDATE = I_ID_BEGINDATE,
+               A.ID_ENDDATE = I_ID_ENDDATE,
+              -- A.CLIENT_BELONG = I_CLIENT_BELONG,
+               A.NATIONALITY = I_NATIONALITY,
+               A.BIRTHDAY = I_BIRTHDAY,
+               A.OFFICE_ADDRESS = I_OFFICE_ADDRESS,
+               A.PROVINCE = I_PROVINCE,
+               A.CITY = I_CITY,
+               A.DISTRICT = I_DISTRICT,
+               A.REGISTER_COUNTRY = I_REGISTER_COUNTRY,
+               A.REGISTER_MONEY_TYPE = I_REGISTER_MONEY_TYPE,
+               A.REGISTER_FUND = I_REGISTER_FUND,
+               A.INDUSTRY_TYPE = I_INDUSTRY_TYPE,
+               A.TEL = I_TEL,
+               A.SETUP_DATE = I_SETUP_DATE,
+               A.BUSI_SCOPE = I_BUSI_SCOPE,
+               A.IS_OBJECT_REPORT = I_IS_OBJECT_REPORT,
+               A.ASSOCIATED_DATE = I_ASSOCIATED_DATE,
+               A.REMARK = I_REMARK,
+               A.UPDATE_USER = NVL(V_UPDATE_NAME,I_UPDATE_USER),
+               A.UPDATE_TIME = sysdate,
+               A.IS_SPECIAL = I_IS_SPECIAL,
+               A.CLIENT_TYPE = I_CLIENT_TYPE,
+               A.CLIENT_TYPE_OTHER = I_CLIENT_TYPE_OTHER,
+               A.SPECIAL_MATTERS = I_SPECIAL_MATTERS,
+               A.MISSING_INFORMATION = I_MISSING_INFORMATION,
+               A.MISSING_DRAFT = I_MISSING_DRAFT,
+               A.SPECIAL_MATTERS_OTHER = I_SPECIAL_MATTERS_OTHER,
+               A.SPECIAL_REASON = I_SPECIAL_REASON,
+               A.COMPLETED_CDD = I_COMPLETED_CDD,
+               A.LOW_RISK_EXPLANATION = I_LOW_RISK_EXPLANATION,
+               A.TAKE_MEASURES = I_TAKE_MEASURES,
+               A.COMMUNICATION_RECORDS = I_COMMUNICATION_RECORDS,
+               A.AGREE_RECORDS = I_AGREE_RECORDS,
+               A.OTHER_RECORDS = I_OTHER_RECORDS,
+               A.INDUSTRY_TYPE1 = I_INDUSTRY_TYPE1,
+               A.WORK_TYPE = I_WORK_TYPE,
+               --A.CLIENT_STATUS = I_CLIENT_STATUS,
+               A.DATA_STATUS = I_DATA_STATUS,
+               A.RELATED_PROJ = I_RELATED_PROJ,
+               A.IF_RISK_CLIENT = I_IF_RISK_CLIENT,
+               A.RISK_LIST_TYPE = I_RISK_LIST_TYPE,
+               A.PROBLEM_DESC = I_PROBLEM_DESC,
+               A.GRADE_VALUE = I_GRADE_VALUE,
+               A.GENDER = I_GENDER,
+               A.INCOME = I_INCOME,
+               A.PROFESSION_CODE = I_PROFESSION_CODE,
+               A.POSITION = I_POSITION,
+               A.WORK_PLACE = WORK_PLACE,
+               A.ZIPCODE = I_ZIPCODE,
+               A.FILLIN_DATE = to_char(sysdate,'yyyymmdd'), --20260530 I_FILLIN_DATE,
+               A.ID_ADDRESS = I_ID_ADDRESS,
+               A.PROVINCE1 = I_PROVINCE1,
+               A.CITY1 = I_CITY1,
+               A.DISTRICT1 = I_DISTRICT1,
+               A.ADDRESS = I_ADDRESS,
+               A.PROVINCE2 = I_PROVINCE2,
+               A.CITY2 = I_CITY2,
+               A.DISTRICT2 = I_DISTRICT2,
+               A.IF_RISK_LIST = I_IF_RISK_LIST,
+               A.INDUSTRY_NAME = I_INDUSTRY_NAME
+         where A.CLIENT_ID = I_CLIENT_ID;
+        COMMIT;
+               
+        /*-- 编辑客户信息时更新填报人维护表数据 add by chengjing 20260330
+        UPDATE THJS.T_MAINTAINER_INFO 
+        SET NEW_MAINTAINER = (case when v_count > 0 then v_update_name else I_UPDATE_USER end),--I_UPDATE_USER,--nvl(v_update_name,I_UPDATE_USER),
+			UPDATE_TIME = sysdate
+        where client_id = I_CLIENT_ID;
+        COMMIT;*/
+    END IF;
+    o_return_msg  := '执行成功';
+    o_return_code := 0;
+exception
+    -- 非预定义异常处理
+when v_userexp then
+    rollback;
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+    THJS.p_write_error_log(i_tradedate    => v_tradedate,
+                                i_exec_func_id => v_exec_func_id,
+                                i_func_own     => v_func_own,
+                                i_func_name    => v_func_name,
+                                i_occur_time   => sysdate,
+                                i_sqlerrm      => v_sqlerrm,
+                                i_sqlcode      => v_sqlcode,
+                                i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+    -- 预定义异常处理
+when others then
+    rollback;
+    v_sqlerrm := sqlerrm;
+    v_sqlcode := sqlcode;
+    v_sqlerrl := dbms_utility.format_error_backtrace();
+    THJS.p_write_error_log(i_tradedate    => v_tradedate,
+                                i_exec_func_id => v_exec_func_id,
+                                i_func_own     => v_func_own,
+                                i_func_name    => v_func_name,
+                                i_occur_time   => sysdate,
+                                i_sqlerrm      => v_sqlerrm,
+                                i_sqlcode      => v_sqlcode,
+                                i_sqlerrl      => v_sqlerrl);
+    commit;
+    raise;
+END;
+/
+
+-- 预期 STATUS = VALID。
+SELECT owner, object_name, object_type, status
+FROM all_objects
+WHERE owner = 'THJS'
+  AND object_name = 'P_TH_CLIENT_INFO_S_LXY'
+  AND object_type = 'PROCEDURE';
+
+-- 预期无记录。若有错误，先处理错误再测试保存。
+SELECT line, position, text
+FROM all_errors
+WHERE owner = 'THJS'
+  AND name = 'P_TH_CLIENT_INFO_S_LXY'
+  AND type = 'PROCEDURE'
+ORDER BY sequence;
 
-let comp = this;
-comp.vue = new Vue({
-  el: comp.el.addEl(),
-  template: `
-<div id="projlist-app">
-  <div class="projlist-form-input">
-    <div style="font-size:24px;text-align:center;padding:20px 0 20px 0">{{ op_flag == '1' ? '清单填报（关联信息修改）' : '清单填报' }}
-    </div>
-
-    <!-- 基本信息 -->
-    <el-card shadow="never" class="projlist-card">
-      <div class="info-div-basic">
-        <div class="table-row">
-          <div class="cell-label-basic col-4">客户名称</div>
-          <div class="cell-value-basic col-8">{{basicForm.custname || '-'}}</div>
-          <div class="cell-label-basic col-4">项目编号</div>
-          <div class="cell-value-basic col-8">{{basicForm.projcode || '-'}}</div>
-        </div>
-        <div class="table-row">
-          <div class="cell-label-basic col-4">业务类型</div>
-          <div class="cell-value-basic col-8">{{ basicForm.projtype || '-'}}</div>
-          <div class="cell-label-basic col-4">我司角色</div>
-          <div class="cell-value-basic col-8">{{basicForm.role||'-'}} </div>
-        </div>
-        <div class="table-row">
-          <div class="cell-label-basic col-4">证券代码</div>
-          <div class="cell-value-basic col-8">{{basicForm.stkcode|| '-'}}</div>
-          <div class="cell-label-basic col-4">股票简称</div>
-          <div class="cell-value-basic col-8">{{basicForm.stkname || '-'}}</div>
-        </div>
-      </div>
-    </el-card>
-
-    <!-- 添加多公司按钮 -->
-    <div v-if="projlist_status!=='0'&&state!='info'&&nodeCode!=='hgrysh'" style="margin-bottom: 10px">
-      <div class="control-buttons" v-if="!isEditing">
-        <el-button type="primary" size="small" @click="startEdit">编辑</el-button>
-      </div>
-      <div class="control-buttons" v-else>
-        <el-button type="primary" size="small" @click="saveData()">保存</el-button>
-        <el-button size="small" @click="cancelEdit">取消</el-button>
-      </div>
-    </div>
-    <div @click="addCompany" style="display: flex; align-items: center; cursor: pointer;" v-if="isEditing && state!='info'&&nodeCode!=='hgrysh'">
-      <div class="company-add-btn">
-        <i class="el-icon-circle-plus-outline"></i>
-      </div>
-      <div style="font-size:14px;">如一个项目关联多个上市公司或证券代码，请点击此处添加<span style="color: #e74c3c">（无需添加自身）</span></div>
-    </div>
-
-    <!-- 关联公司列表 -->
-    <div v-for="(item, index) in companyList" :key="index" class="company-table-wrapper">
-      <div class="company-delete-btn" @click="removeCompany(index)" v-show="isEditing && state!='info' && nodeCode!=='hgrysh'">
-        <i class="el-icon-remove-outline"></i>
-      </div>
-      <div class="company-table">
-        <!-- 第一行 -->
-        <div class="company-row">
-          <div class="company-label">上市公司名称</div>
-          <div class="company-cell">
-            <el-input v-model="item.compName" size="small" placeholder="请输入" :disabled="!isEditing || state=='info'||nodeCode=='hgrysh'"></el-input>
-          </div>
-          <div class="company-label">股票简称</div>
-          <div class="company-cell">
-            <el-input v-model="item.stkName" size="small" placeholder="请输入" :disabled="!isEditing || state=='info'||nodeCode=='hgrysh'"></el-input>
-          </div>
-          <div class="company-label">证券代码</div>
-          <div class="company-cell">
-            <el-input v-model="item.stkCode" size="small" placeholder="请输入"
-              @input="item.stkCode = item.stkCode.replace(/[\W_]/g, '')" @blur="() => matchCompany(item)" :disabled="!isEditing || state=='info'||nodeCode=='hgrysh'"></el-input>
-          </div>
-          <div class="company-match-btn">
-            <el-button type="primary" size="small" plain :disabled="!isEditing || state=='info'||nodeCode=='hgrysh'">匹配
-            </el-button>
-          </div>
-        </div>
-        <!-- 第二行 -->
-        <div class="company-row">
-          <div class="company-label">关联性质</div>
-          <div class="company-cell">
-            <el-select v-model="item.relatedProperty" size="small" placeholder="请选择" style="100%"
-              :disabled="!isEditing || state=='info' || item.disabled||nodeCode=='hgrysh'">
-              <el-option label="客户其他代码" value="1"></el-option>
-              <el-option label="交易对手方" value="2"></el-option>
-              <el-option label="交易标的" value="3"></el-option>
-              <el-option label="其他（请填备注）" value="4"></el-option>
-            </el-select>
-          </div>
-          <div class="company-label">备注</div>
-          <div class="company-cell" style="flex: 3;border-right:none;">
-            <el-input v-model="item.remark" size="small" placeholder="请输入" :disabled="!isEditing || state=='info'||nodeCode=='hgrysh'"></el-input>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 附件上传注意事项 -->
-    <el-card shadow="never" class="projlist-card" v-if="basicForm.batch_count>0">
-      <div class="projlist-file-tips">
-        <p>附件上传注意事项（在我的清单列表页面补充附件）:</p>
-        <p>1、系统可以多次上传附件，但后一次上传附件会覆盖前一次上传附件</p>
-        <p>2、一次上传附件有两个或多个文件，必须做成压缩包上传，否则有覆盖现象</p>
-        <p>3、上传附件有先后，先上传一个文件，后期补充上传另一个文件。必须将前一个文件下载后与后一个文件压缩后再上传</p>
-      </div>
-    </el-card>
-
-    <!-- 添加批次按钮 -->
-    <!-- 1.关联信息修改/2.未入单/3.信息查看/4.ibcm003合规人员审核节点 均不展示添加批次按钮 -->
-    <div v-if="op_flag!='1' && projlist_status!='0' && state!='info'&& nodeCode!='hgrysh' ">
-      <div slot="append" class="projlist-tab-add" @click="addNewBatchTab"
-        :title="isAddBatchDisabled ? '首次入单或未出单项目不允许添加新的批次！' : ''"
-        :style="{ cursor: isAddBatchDisabled ? 'not-allowed' : 'pointer' }">
-        <i class="el-icon-circle-plus-outline"></i>添加
-      </div>
-      <div class="projlist-tab-add" @click="removeNewBatch" style="cursor: pointer;" v-if="showNewTable">
-        <i class="el-icon-remove-outline"></i>删除
-      </div>
-    </div>
-
-    <el-tabs v-model="activeTab" @tab-click="handleTabChange">
-      <!-- 新增批次tab -->
-      <el-tab-pane label="new" name="new" v-if="showNewTable">
-        <div class="bill-table new">
-          <div class="bill-header">
-            <div class="bill-cell bill-type-header">清单类型</div>
-            <div class="bill-cell bill-reason-header">入/出单事由</div>
-            <div class="bill-cell bill-date-header">入/出单事由发生日期</div>
-            <div class="bill-cell bill-date-header">入/出单事由填报日期</div>
-            <div class="bill-cell bill-remark-header">备注说明</div>
-            <div class="bill-cell bill-file-header">附件上传</div>
-          </div>
-          <div v-for="(item, index) in billList" :key="index"
-            :class="['bill-row', item.rowClass, item.selected ? 'selected' : '']">
-            <div class="bill-cell bill-type-cell" @click="toggleRowSelection(item)">
-              <label class="type-label">
-                <span>{{ item.typeLabel }}</span>
-                <span v-if="item.selected && !item.disabled" class="type-hint">发生日期为{{ item.typeLabel.replace('入 ','').replace('出 ','') }}<br>入/出单事由的实际发生日期</span>
-              </label>
-            </div>
-            <div :class="['bill-cell', 'bill-reason-cell', { 'field-required': item.selected && !item.disabled }]">
-              <el-select v-model="item.inoutReason" size="small" placeholder="请选择" :disabled="item.disabled"
-                @change="handleReasonChange(item)" clearable>
-                <el-option v-for="opt in getReasonOptions(item.listType)" :key="opt.value" :label="opt.label"
-                  :value="opt.value"></el-option>
-              </el-select>
-            </div>
-            <div :class="['bill-cell', 'bill-date-cell', { 'field-required': item.selected && !item.disabled }]">
-              <el-date-picker v-model="item.inoutDate" type="date" size="small" placeholder="选择日期"
-                value-format="yyyy-MM-dd" :disabled="item.disabled" @change="handleDateChange(item)" clearable>
-              </el-date-picker>
-            </div>
-            <div class="bill-cell bill-date-cell">
-              <el-date-picker v-model="item.reportDate" type="date" size="small" placeholder="选择日期"
-                value-format="yyyy-MM-dd" :disabled="item.reportDisabled" clearable></el-date-picker>
-            </div>
-            <div
-              :class="['bill-cell', 'bill-remark-cell', { 'remark-required': item.remarkRequired && item.selected }]">
-              <el-input v-model="item.remark" size="small" placeholder="请输入" :disabled="item.disabled" type="textarea" autosize clearable>
-              </el-input>
-            </div>
-            <div :class="['bill-cell', 'bill-file-cell', { 'field-required': item.selected && !item.disabled }]">
-              <div class="file-upload-wrapper">
-                <el-input v-model="item.fileName" size="small" readonly placeholder=""
-                  class="file-name-input full-text-select" :disabled="item.disabled"></el-input>
-                <div style="display:flex;">
-                  <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
-                    :on-success="(res) => handleUploadSuccess(res, item)" :show-file-list="false"
-                    class="file-upload-btn" :disabled="!canUploadFile(item)">
-                    <el-button size="small" :disabled="!canUploadFile(item)">浏览</el-button>
-                  </el-upload>
-                  <el-button size="small" @click="downloadFile(item,'proj')" style="cursor:pointer"
-                    class="download-btn">
-                    下载
-                  </el-button>
-                </div>
-                <!--<template v-if="!item.filepath || !item.disabled">
-                  <el-input v-model="item.fileName" size="small" readonly placeholder="" class="file-name-input"
-                    :disabled="item.disabled"></el-input>
-                  <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
-                    :on-success="(res) => handleUploadSuccess(res, item)" :show-file-list="false"
-                    class="file-upload-btn" :disabled="item.disabled">
-                    <el-button size="small" type="primary" plain :disabled="item.disabled">浏览</el-button>
-                  </el-upload>
-                </template>
-                <template v-else>
-                  <el-input v-model="item.fileName" size="small" readonly class="file-name-input"
-                    :disabled="item.disabled"></el-input>
-                  <el-button @click="downloadFile(item,'proj')" style="cursor:pointer">下载</el-button>
-                </template>-->
-              </div>
-            </div>
-          </div>
-        </div>
-      </el-tab-pane>
-
-      <!-- 历史批次tabs -->
-      <el-tab-pane v-for="(batch, index) in batchList" :key="index" :label="'批次' + batch.batchNum"
-        :name="batch.batchNum.toString()">
-        <div class="bill-table his">
-          <!-- 表头 -->
-          <div class="bill-header">
-            <div class="bill-cell bill-type-header" style="text-align:center;">清单类型</div>
-            <div class="bill-cell bill-reason-header" style="text-align:center;">入/出单事由</div>
-            <div class="bill-cell bill-date-header" style="text-align:center;">入/出单事由发生日期</div>
-            <div class="bill-cell bill-date-header" style="text-align:center;">入/出单事由填报日期</div>
-            <div class="bill-cell bill-remark-header" style="text-align:center;">备注说明</div>
-            <div class="bill-cell bill-file-header" style="text-align:center;">附件上传</div>
-          </div>
-          <!-- 数据行 与 审核记录区域（每种清单类型一组） -->
-          <template v-for="(item, idx) in billListHis">
-            <!-- 清单数据 -->
-            <div :key="'data-'+idx" :class="['bill-row', item.rowClass, item.selected ? 'selected' : '']">
-              <!--清单类型-->
-              <div class="bill-cell bill-type-cell" @click="toggleRowSelectionHis(item)">
-                <label class="type-label">
-                  <span>{{ item.typeLabel }}</span>
-                  <span v-if="item.selected && !item.disabled" class="type-hint">发生日期为{{ item.typeLabel.replace('入 ','').replace('出 ','') }}<br>入/出单事由的实际发生日期</span>
-                </label>
-              </div>
-              <!--入/出单事由-->
-              <div :class="['bill-cell', 'bill-reason-cell', { 'field-required': item.selected && !item.disabled }]">
-                <el-tooltip :content="getSelectedReasonLabel(item.listType, item.inoutReason)"
-                  :disabled="!item.inoutReason" placement="top" effect="light" popper-class="bill-reason-tooltip"
-                  :open-delay="300">
-                  <div style="width: 100%;">
-                    <el-select v-model="item.inoutReason" size="small" placeholder="请选择" :disabled="item.disabled"
-                      @change="handleReasonChangeHis(item)" clearable>
-                      <el-option v-for="opt in getReasonOptions(item.listType)" :key="opt.value" :label="opt.label"
-                        :value="opt.value"></el-option>
-                    </el-select>
-                  </div>
-                </el-tooltip>
-              </div>
-              <!--入/出单事由发生日期-->
-              <div :class="['bill-cell', 'bill-date-cell', { 'field-required': item.selected && !item.disabled }]">
-                <el-date-picker v-model="item.inoutDate" type="date" size="small" placeholder="选择日期"
-                  value-format="yyyy-MM-dd" :disabled="item.disabled" @change="handleDateChange(item)">
-                </el-date-picker>
-              </div>
-              <!--入/出单事由填报日期-->
-              <div class="bill-cell bill-date-cell">
-                <el-date-picker v-model="item.reportDate" type="date" size="small" placeholder="选择日期"
-                  value-format="yyyy-MM-dd" :disabled="item.reportDisabled">
-                </el-date-picker>
-              </div>
-              <!--备注说明-->
-              <div
-                :class="['bill-cell', 'bill-remark-cell', { 'remark-required': item.remarkRequired && item.selected }]">
-                <el-input v-model="item.remark" size="small" placeholder="请输入" :disabled="!canUploadFile(item)" type="textarea" @change="handleRemarkChange(item)"
-                  autosize></el-input>
-              </div>
-              <!--附件上传-->
-              <div :class="['bill-cell', 'bill-file-cell', { 'field-required': item.selected && !item.disabled }]">
-                <div class="file-upload-wrapper">
-                  <el-input v-model="item.fileName" size="small" readonly placeholder=""
-                    class="file-name-input full-text-select" :disabled="item.disabled"></el-input>
-                  <div style="display:flex;">
-                    <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
-                      :on-success="(res) => handleUploadSuccess(res, item)" :show-file-list="false"
-                      class="file-upload-btn" :disabled="!canUploadFile(item)">
-                      <el-button size="small" :disabled="!canUploadFile(item)">浏览</el-button>
-                    </el-upload>
-                    <el-button size="small" @click="downloadFile(item,'proj')" style="cursor:pointer"
-                      class="download-btn">
-                      下载
-                    </el-button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- 审核意见表格 -->
-            <div :key="'audit-'+idx" class="audit-wrapper">
-              <!-- 添加审核按钮 -->
-              <div @click="addAuditRecord(item)" class="audit-add-btn" title="添加审核记录" v-if="piid2&&nodeCode=='hgrysh'">
-                <i class="el-icon-circle-plus-outline"></i>
-              </div>
-              <!-- 审核记录表格容器 -->
-              <div class="audit-table" v-if="item.checkTableData.length>0">
-                <template>
-                  <!-- 表头 -->
-                  <div class="bill-header audit-header">
-                    <div class="bill-cell bill-type-header" style="text-align:center;">审核结果</div>
-                    <div class="bill-cell bill-reason-header" style="text-align:center;">审核记录</div>
-                    <div class="bill-cell bill-date-header" style="text-align:center;">审核日期</div>
-                    <div class="bill-cell bill-audit-remark-header" style="text-align:center;width:320px;">备注说明</div>
-                    <div class="bill-cell bill-file-header" style="text-align:center;">附件上传</div>
-                  </div>
-                  <div class="audit-collapse-btn" @click="toggleAuditExpanded(item)" title="展开/折叠审核意见"
-                    v-if="item.checkTableData.some(record => record.isDisabled)">
-                    <i :class="[item.auditExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right']"></i>
-                  </div>
-
-                  <!--历史审核记录默认全部折叠-->
-                  <!--折叠历史审核记录 完整审核记录-->
-                  <div v-if="item.checkTableData.length===0&&item.auditExpanded"
-                    style="height:56px;width:100%;text-align:center;line-height:56px;color:#C0C4CC;font-size:14px;">
-                    暂未添加审核记录</div>
-                  <div v-else v-for="(record, rIdx) in item.checkTableData" :key="'rec-'+idx+'-'+rIdx"
-                    class="audit-row-wrapper" v-show="item.auditExpanded || !record.isDisabled">
-                    <div class="audit-delete-btn" @click="removeAuditRecord(item, rIdx)" title="删除该条审核记录"
-                      v-if="record.isDeleteShow">
-                      <i class="el-icon-remove-outline"></i>
-                    </div>
-
-                    <div class="bill-row audit-row">
-                      <!--审核结果-->
-                      <div class="bill-cell bill-type-cell audit-type-cell">
-                        <el-select v-model="record.check_result" size="small" placeholder="请选择"
-                          :disabled="record.isDisabled">
-                          <el-option label="准确" value="0"></el-option>
-                          <el-option label="不准确" value="1"></el-option>
-                        </el-select>
-                      </div>
-                      <!--审核记录-->
-                      <div class="bill-cell bill-reason-cell">
-                        <el-select v-model="record.check_record" size="small" placeholder="请选择"
-                          :disabled="record.isDisabled">
-                          <el-option label="事由审核" value="事由审核"></el-option>
-                          <el-option label="日期审核" value="日期审核"></el-option>
-                          <el-option label="附件审核" value="附件审核"></el-option>
-                          <el-option label="其他" value="其他"></el-option>
-                        </el-select>
-                      </div>
-                      <!--审核日期-->
-                      <div class="bill-cell bill-date-cell">
-                        <el-date-picker v-model="record.create_time" type="date" size="small" placeholder="选择日期"
-                          value-format="yyyy-MM-dd" disabled></el-date-picker>
-                      </div>
-                      <!--备注说明-->
-                      <div class="bill-cell bill-audit-remark-cell" style="width:320px;">
-                        <el-input v-model="record.remark" size="small" placeholder="备注说明" type="textarea" autosize
-                          :disabled="record.isDisabled" maxlength="500" show-word-limit>
-                        </el-input>
-                      </div>
-                      <!--附件上传-->
-                      <div class="bill-cell bill-file-cell">
-                        <div class="file-upload-wrapper">
-                          <el-input v-model="record.fileName" size="small" readonly placeholder=""
-                            class="file-name-input" :disabled="record.isDisabled"></el-input>
-                          <div style="display:flex;">
-                            <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams"
-                              name="file1" :on-success="(res) => handleUploadSuccess(res, record)"
-                              :show-file-list="false" class="file-upload-btn">
-                              <el-button size="small" :disabled="record.isDisabled">浏览</el-button>
-                            </el-upload>
-                            <el-button size="small" @click="downloadFile(record,'comment2')" style="cursor:pointer"
-                              class="download-btn">
-                              下载
-                            </el-button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </template>
-        </div>
-      </el-tab-pane>
-    </el-tabs>
-
-    <!--清单填报 首次新增-->
-    <div class="bill-table his" v-if="batchList.length === 0&&projlist_status==='0'">
-      <!-- 表头 -->
-      <div class="bill-header">
-        <div class="bill-cell bill-type-header" style="text-align:center;">清单类型</div>
-        <div class="bill-cell bill-reason-header" style="text-align:center;">入/出单事由</div>
-        <div class="bill-cell bill-date-header" style="text-align:center;">入/出单事由发生日期</div>
-        <div class="bill-cell bill-date-header" style="text-align:center;">入/出单事由填报日期</div>
-        <div class="bill-cell bill-remark-header" style="text-align:center;">备注说明</div>
-        <div class="bill-cell bill-file-header" style="text-align:center;">附件上传</div>
-      </div>
-      <!-- 数据行 -->
-      <template v-for="(item, idx) in billList">
-        <!-- 清单数据行 -->
-        <div :key="'first-data-'+idx" :class="['bill-row', item.rowClass, item.selected ? 'selected' : '']">
-          <div class="bill-cell bill-type-cell" @click="toggleRowSelection(item)">
-            <label class="type-label">
-              <span>{{ item.typeLabel }}</span>
-              <span v-if="item.selected && !item.disabled" class="type-hint">发生日期为{{ item.typeLabel.replace('入 ','').replace('出 ','') }}<br>入/出单事由的实际发生日期</span>
-            </label>
-          </div>
-          <div :class="['bill-cell', 'bill-reason-cell', { 'field-required': item.selected && !item.disabled }]">
-            <el-select v-model="item.inoutReason" size="small" placeholder="请选择" :disabled="item.disabled"
-              @change="handleReasonChange(item)" clearable>
-              <el-option v-for="opt in getReasonOptions(item.listType)" :key="opt.value" :label="opt.label"
-                :value="opt.value">
-              </el-option>
-            </el-select>
-          </div>
-          <div :class="['bill-cell', 'bill-date-cell', { 'field-required': item.selected && !item.disabled }]">
-            <el-date-picker v-model="item.inoutDate" type="date" size="small" placeholder="选择日期"
-              value-format="yyyy-MM-dd" @change="handleDateChange(item)" :disabled="item.disabled" clearable></el-date-picker>
-          </div>
-          <div class="bill-cell bill-date-cell">
-            <el-date-picker v-model="item.reportDate" type="date" size="small" placeholder="选择日期"
-              value-format="yyyy-MM-dd" :disabled="item.reportDisabled" clearable></el-date-picker>
-          </div>
-          <div :class="['bill-cell', 'bill-remark-cell', { 'remark-required': item.remarkRequired && item.selected }]">
-            <el-input v-model="item.remark" size="small" placeholder="请输入" :disabled="item.disabled" type="textarea" :rows="1" autosize clearable></el-input>
-          </div>
-          <div :class="['bill-cell', 'bill-file-cell', { 'field-required': item.selected && !item.disabled }]">
-            <div class="file-upload-wrapper">
-              <!-- 无文件时：显示上传按钮 -->
-              <template v-if="!item.filepath || !item.disabled">
-                <el-input v-model="item.fileName" size="small" readonly placeholder="" class="file-name-input"
-                  :disabled="item.disabled"></el-input>
-                <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
-                  :on-success="(res) => handleUploadSuccess(res, item)" :show-file-list="false" class="file-upload-btn"
-                  :disabled="!canUploadFile(item)">
-                  <el-button size="small" :disabled="!canUploadFile(item)" plain>浏览</el-button>
-                </el-upload>
-              </template>
-              <el-button size="small" @click="downloadFile(item,'proj')" style="cursor:pointer">下载</el-button>
-            </div>
-          </div>
-        </div>
-      </template>
-    </div>
-
-    <!-- 清单自查表格 仅当从流程进来时展示-->
-    <div style="display:flex;justify-content:space-between;width:100%;padding:30px 0 10px 0;" v-if="piid1">
-      <span>清单自查情况</span>
-      <!--<el-button type="primary" size="mini" @click="addCheckRow" :disabled="state === 'info'">+添加行</el-button>-->
-    </div>
-    <el-table :data="tableData" stripe style="width: 100%" border v-if="piid1">
-      <el-table-column label="自查日期" width="245">
-        <template slot-scope="scope">
-          <el-date-picker v-model="scope.row.check_date" type="date" format="yyyy-MM-dd" placeholder="选择日期" size="small"
-            disabled></el-date-picker>
-        </template>
-      </el-table-column>
-      <el-table-column label="自查结果" width="180">
-        <template slot-scope="scope">
-          <el-select v-model="scope.row.check_result" placeholder="请选择自查结果" size="small">
-            <el-option label="准确" value="0"></el-option>
-            <el-option label="已更正" value="1"></el-option>
-          </el-select>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注说明">
-        <template slot-scope="scope">
-          <el-input type="textarea" v-model="scope.row.remark" :autosize="{ minRows: 1, maxRows: 4}"
-            placeholder="请输入备注说明" size="small" :required="scope.row.check_result === '1'"
-            :class="{ 'required-field': scope.row.check_result === '1' }"></el-input>
-          <span v-if="scope.row.check_result === '1' && !scope.row.remark" style="color: #f56c6c; font-size: 12px;">*</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="附件上传" width="310">
-        <template slot-scope="scope">
-          <div class="file-upload-wrapper">
-            <template>
-              <el-input v-model="scope.row.fileName" size="small" readonly placeholder="" class="file-name-input">
-              </el-input>
-              <el-upload action="m?xwl=info_query/projlist_data/upload&type=1" :data="uploadParams" name="file1"
-                :on-success="(res) => handleUploadSuccess(res, scope.row)" :show-file-list="false"
-                class="file-upload-btn">
-                <el-button size="small" type="primary" plain :disabled="state === 'info'">浏览</el-button>
-              </el-upload>
-            </template>
-          </div>
-        </template>
-      </el-table-column>
-      <!--<el-table-column label="操作" width="80" header-align="center" align="center">
-        <template slot-scope="scope">
-          <el-button size="mini" type="text" @click="removeCheckRow(scope.$index)"
-            :disabled="state === 'info' || tableData.length <= 1" style="color:#f56c6c;">移除</el-button>
-        </template>
-      </el-table-column>-->
-    </el-table>
-
-    <!-- 历史清单自查表格 -->
-    <div style="color:#4b4b4b;padding:20px 0 10px 0;display:flex;" @click="showCheckLogs=!showCheckLogs">
-      <div style="width:140px;">历史清单自查情况</div>
-      <div style="border-bottom:1px solid #e1e0e0;height:12px;flex:1"></div>
-      <div style="width:20px;padding-left:10px;">
-        <span v-if="showCheckLogs"><i class="el-icon-arrow-down" style="color:#e1e0e0"></i></span>
-        <span v-else><i class="el-icon-arrow-up" style="color:#e1e0e0"></i></span>
-      </div>
-    </div>
-    <el-table :data="tableDataHis" stripe style="width: 100%" v-show="showCheckLogs" border>
-      <el-table-column prop="create_time" label="自查日期" width="180"></el-table-column>
-      <el-table-column prop="check_result$" label="自查结果" width="180"></el-table-column>
-      <el-table-column prop="display_name" label="自查人员"></el-table-column>
-      <el-table-column prop="remark" label="备注说明"></el-table-column>
-      <el-table-column prop="filename" label="附件">
-        <template slot-scope="scope">
-          <el-button type="text" @click="downloadFile(scope.row,'selfcheck')" class="attachment-btn">
-            {{ scope.row.filename }}
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <!-- 操作按钮 -->
-    <div class="projlist-btns">
-      <el-button type="success" @click="handleSubmit(1)" :disabled="submitButtonDisabled" v-if="state!='info'">提交
-      </el-button>
-      <el-button type="success" @click="handleSubmit(2)" v-if="showReviseBtn" :disabled="submitButtonDisabled">修正
-      </el-button>
-    </div>
-  </div>
-</div>
-  `,
-  data() {
-    return {
-      // 基本信息
-      basicForm: {
-        custname: '',
-        projcode: '',
-        projtype: '',
-        role: '',
-        stkcode: '',
-        stkname: '',
-        batch_count: 0,
-      },
-      op_flag: '_$i_op_flag$_',// 从【关联信息修改】按钮进页面时为1
-      projid: '_$projid$_',
-      projlist_status: '_$projlist_status$_',
-      state: '_$state$_',
-      piid1: '_$piid1$_',// 清单自查流程流程id
-      check_batch_id: '_$check_batch_id$_',
-      piid2: '_$piid2$_',// 隔离墙操作变动流程流程id
-      nodeCode: '_$nodeCode$_',
-      projname: '_$projname$_',
-      candidates: '',// 隔离墙操作变动流程 流程候选人user_id
-      deptname: '', // 部门名称
-      uploadParams: {
-        user: '_$sys.username$_',
-        projId: '_$projid$_',
-        date: Wb.format(new Date(), 'yMMdd'),
-        type: '1'
-      },
-      isEditing: false,
-      // 多公司列表
-      companyList: [
-        {
-          compName: '',
-          stkName: '',
-          stkCode: '',
-          writeDate: '',
-          relatedProperty: '1',
-          remark: '',
-          dataFlag: false
-        }
-      ],
-      // 清单表格数据 - 新增批次
-      billList: [
-        { listType: 'ro', typeLabel: '入 观察清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
-        { listType: 'co', typeLabel: '出 观察清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true },
-        { listType: 'rl', typeLabel: '入 限制清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
-        { listType: 'cl', typeLabel: '出 限制清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true },
-        { listType: 'rq', typeLabel: '入 静默期', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
-        { listType: 'cq', typeLabel: '出 静默期', inoutReason: '', inoutDate: '', reportDate: '', remark: '', remarkRequired: false, fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true }
-      ],
-      // 清单表格数据 - 已有批次
-      billListHis: [
-        {
-          listType: 'ro',
-          typeLabel: '入 观察清单',
-          inoutReason: '',
-          inoutDate: '',
-          reportDate: '',
-          remark: '',
-          remarkRequired: false,
-          fileName: '',
-          filepath: '',
-          selected: false,
-          disabled: false,       // 控制整行是否可编辑
-          rowClass: '',
-          reportDisabled: true,  // 控制入/出单事由填报日期是否可编辑
-          auditExpanded: false,  // 控制历史审核记录是否展开
-          batchId: '',
-          linkSelected: false,   // 是否是事由联动产生的选中
-          dataFlag: false,       // 是否非本次填报前已有的数据,true-是已有数据 false-不是已有数据
-          isFileChange: false,   // 是否修订了附件
-          isRemarkChange: false,  // 是否修订了备注说明
-          // 最新一条审核记录
-          checkResult: '',
-          checkRecord: '',
-          checkDate: '',
-          checkRemark: '',
-          checkFilepath: '',
-          checkFileName: '',
-          checkTableData: []     // 历史审核记录表格
-        },
-        {
-          listType: 'co',
-          typeLabel: '出 观察清单',
-          inoutReason: '',
-          inoutDate: '',
-          reportDate: '',
-          remark: '',
-          remarkRequired: false,
-          fileName: '',
-          filepath: '',
-          selected: false,
-          disabled: false,
-          rowClass: '',
-          reportDisabled: true,
-          auditExpanded: false,
-          batchId: '',
-          linkSelected: false,   // 是否是事由联动产生的选中
-          dataFlag: false,       // 是否非本次填报前已有的数据,true-是已有数据 false-不是已有数据
-          isFileChange: false,   // 是否修订了附件
-          isRemarkChange: false,  // 是否修订了备注说明
-          // 最新一条审核记录
-          checkResult: '',
-          checkRecord: '',
-          checkDate: '',
-          checkRemark: '',
-          checkFilepath: '',
-          checkFileName: '',
-          checkTableData: []
-        },
-        {
-          listType: 'rl',
-          typeLabel: '入 限制清单',
-          inoutReason: '',
-          inoutDate: '',
-          reportDate: '',
-          remark: '',
-          remarkRequired: false,
-          fileName: '',
-          filepath: '',
-          selected: false,
-          disabled: false,
-          rowClass: '',
-          reportDisabled: true,
-          auditExpanded: false,
-          batchId: '',
-          linkSelected: false,   // 是否是事由联动产生的选中
-          dataFlag: false,       // 是否非本次填报前已有的数据,true-是已有数据 false-不是已有数据
-          isFileChange: false,   // 是否修订了附件
-          isRemarkChange: false,  // 是否修订了备注说明
-          // 最新一条审核记录
-          checkResult: '',
-          checkRecord: '',
-          checkDate: '',
-          checkRemark: '',
-          checkFilepath: '',
-          checkFileName: '',
-          checkTableData: []
-        },
-        {
-          listType: 'cl',
-          typeLabel: '出 限制清单',
-          inoutReason: '',
-          inoutDate: '',
-          reportDate: '',
-          remark: '',
-          remarkRequired: false,
-          fileName: '',
-          filepath: '',
-          selected: false,
-          disabled: false,
-          rowClass: '',
-          reportDisabled: true,
-          auditExpanded: false,
-          batchId: '',
-          linkSelected: false,   // 是否是事由联动产生的选中
-          dataFlag: false,       // 是否非本次填报前已有的数据,true-是已有数据 false-不是已有数据
-          isFileChange: false,   // 是否修订了附件
-          isRemarkChange: false,  // 是否修订了备注说明
-          // 最新一条审核记录
-          checkResult: '',
-          checkRecord: '',
-          checkDate: '',
-          checkRemark: '',
-          checkFilepath: '',
-          checkFileName: '',
-          checkTableData: []
-        },
-        {
-          listType: 'rq',
-          typeLabel: '入 静默期',
-          inoutReason: '',
-          inoutDate: '',
-          reportDate: '',
-          remark: '',
-          remarkRequired: false,
-          fileName: '',
-          filepath: '',
-          selected: false,
-          disabled: false,
-          rowClass: '',
-          reportDisabled: true,
-          auditExpanded: false,
-          batchId: '',
-          linkSelected: false,   // 是否是事由联动产生的选中
-          dataFlag: false,       // 是否非本次填报前已有的数据,true-是已有数据 false-不是已有数据
-          isFileChange: false,   // 是否修订了附件
-          isRemarkChange: false,  // 是否修订了备注说明
-          // 最新一条审核记录
-          checkResult: '',
-          checkRecord: '',
-          checkDate: '',
-          checkRemark: '',
-          checkFilepath: '',
-          checkFileName: '',
-          checkTableData: []
-        },
-        {
-          listType: 'cq',
-          typeLabel: '出 静默期',
-          inoutReason: '',
-          inoutDate: '',
-          reportDate: '',
-          remark: '',
-          remarkRequired: false,
-          fileName: '',
-          filepath: '',
-          selected: false,
-          disabled: false,
-          rowClass: '',
-          reportDisabled: true,
-          auditExpanded: false,
-          batchId: '',
-          linkSelected: false,   // 是否是事由联动产生的选中
-          dataFlag: false,       // 是否非本次填报前已有的数据,true-是已有数据 false-不是已有数据
-          isFileChange: false,   // 是否修订了附件
-          isRemarkChange: false,  // 是否修订了备注说明
-          // 最新一条审核记录
-          checkResult: '',
-          checkRecord: '',
-          checkDate: '',
-          checkRemark: '',
-          checkFilepath: '',
-          checkFileName: '',
-          checkTableData: []
-        }
-      ],
-      // 是否显示新增表格
-      showNewTable: false,
-      // 展开清单自查情况
-      showCheckLogs: true,
-      // 缓存每个批次的审核意见
-      cacheAuditData: {},
-      // 批次列表
-      batchList: [],
-      // 当前选中的批次索引
-      currentBatchIndex: 0,
-      // 当前激活的标签页
-      activeTab: '',
-      // 选中的清单行
-      selectedBillRows: [],
-      // 历史记录
-      historyList: [],
-      // 本次清单自查结果表格
-      tableData: [{
-        check_date: Wb.format(new Date(), 'yyyy-MM-dd'),
-        check_result: '',
-        user_name: '_$sys.username$_',
-        remark: '',
-        fileName: '',
-        filepath: ''
-      }],
-      // 历史清单自查结果表格
-      tableDataHis: [],
-      // 是否显示修正按钮
-      showReviseBtn: false,
-      // 是否禁用新增批次按钮
-      isAddBatchDisabled: false,
-      // 是否禁用提交按钮
-      submitButtonDisabled: false,
-      // 事由选项
-      reasonOptions: {
-        ro: [
-          { label: '1、签订保密协议', value: '1' },
-          { label: '2、项目立项', value: '2' },
-          { label: '3、进场开展工作', value: '3' },
-          { label: '4、实际获知敏感信息', value: '4' }
-        ],
-        co: [
-          { label: '1、价格确定', value: '1' },
-          { label: '2、项目终止', value: '2' },
-          { label: '3、转限制清单', value: '3' },
-          { label: '4、转静默期', value: '4' },
-          { label: '5、见备注说明', value: '5' }
-        ],
-        rl: [
-          { label: '1、项目信息已公告', value: '1' },
-          { label: '2、项目公告后进场', value: '2' }
-        ],
-        cl: [
-          { label: '1、价格/利率确定', value: '1' },
-          { label: '2、股东大会审议通过', value: '2' },
-          { label: '3、项目终止', value: '3' },
-          { label: '4、收购交易完成并公告', value: '4' },
-          { label: '5、挂牌并公开转让之日', value: '5' },
-          { label: '6、交易所同意转板的意见之日', value: '6' },
-          { label: '7、见备注说明', value: '7' }
-        ],
-        rq: [
-          { label: '1、敏感信息已公告', value: '1' }
-        ],
-        cq: [
-          { label: '1、静默期结束', value: '1' }
-        ]
-      }
-    };
-  },
-  methods: {
-    showMessage(msg, time, type) {
-      this.$message({
-        showClose: true,
-        dangerouslyUseHTMLString: true,
-        message: msg,
-        duration: time ? time : 0,
-        type: type ? type : 'success'
-      })
-    },
-    // 清单填报页查询
-    inoutReq(projid) {
-      let that = this;
-      Wb.ajax({
-        url: 'm?xwl=info_query/projlist_data/inout_q',
-        params: {
-          i_projid: projid
-        },
-        success(resp) {
-          resp = Wb.decode(resp).items[0];
-          let batch_id = resp.batch_id;
-          console.log("inoutReq---resp", resp);
-          that.basicForm = { ...resp };
-          that.projlist_status = resp.projlist_status;
-          that.isEditing = that.projlist_status === '0' ? true : false;
-
-          // 处理批次信息
-          if (resp.batch_count) {
-            // 生成批次列表
-            that.batchList = [];
-            for (let i = 0; i < resp.batch_count; i++) {
-              that.batchList.push({
-                batchId: resp.batch_id, // 批次编码
-                batchNum: resp.batch_count - i,// 批次顺序
-                batchName: `批次${resp.batch_count - i}`
-              });
-            }
-            // 设置默认激活的标签页为第一个批次
-            if (that.batchList.length > 0) {
-              that.activeTab = that.batchList[0].batchNum.toString();
-              that.switchBatch(0);
-            }
-          } else {
-            // 没有批次时，显示历史批次表格
-            that.activeTab = '1';
-          }
-
-          // // 填充历史批次表格数据
-          // const listTypes = ['ro', 'co', 'rl', 'cl', 'rq', 'cq'];
-          // listTypes.forEach(listType => {
-          //   const row = that.billListHis.find(item => item.listType === listType);
-          //   if (row) {
-          //     row.inoutReason = resp[`${listType}_inout_reason`] || '';
-          //     row.inoutDate = resp[`${listType}_inout_date`] || '';
-          //     row.reportDate = resp[`${listType}_report_date`] || '';
-          //     row.remark = resp[`${listType}_inout_remark`] || '';
-          //     row.filepath = resp[`${listType}_filepath`] || '';
-          //     row.batchId = batch_id || '';
-          //     row.remarkRequired = (listType === 'co' && row.inoutReason === '5') || (listType === 'cl' && row.inoutReason === '7');
-          //     if (row.inoutReason && row.inoutDate && row.reportDate) {
-          //       row.dataFlag = true;
-          //     }
-          //     // if (row.reportDate) { row.disabled = true; }
-          //     // 最新一条审核记录
-          //     row.checkResult = resp[`${listType}_check_result`] || '';
-          //     row.checkRecord = resp[`${listType}_check_record`] || '';
-          //     row.checkDate = resp[`${listType}_create_time`] || '';
-          //     row.checkRemark = resp[`${listType}_remark`] || '';
-          //     row.checkFilepath = resp[`${listType}_check_filepath`] || '';
-
-          //     // 提取文件名
-          //     if (row.filepath) {
-          //       const parts = row.filepath.split('/');
-          //       row.fileName = parts[parts.length - 1] || '';
-          //     } else {
-          //       row.fileName = '';
-          //     }
-          //     // 提取审核文件名
-          //     if (row.checkFilepath) {
-          //       const parts = row.checkFilepath.split('/');
-          //       row.checkFileName = parts[parts.length - 1] || '';
-          //     } else {
-          //       row.checkFileName = '';
-          //     }
-          //     let listTypeMap = {
-          //       'ro': 'io',
-          //       'co': 'oo',
-          //       'rl': 'il',
-          //       'cl': 'ol',
-          //       'rq': 'iq',
-          //       'cq': 'oq'
-          //     };
-          //     let records = [],
-          //       inout_type = listTypeMap[listType][1],
-          //       inout_direct = listTypeMap[listType][0];
-
-          //     Wb.ajax({
-          //       url: 'm?xwl=info_query/projlist_data/comment_q',
-          //       params: {
-          //         i_projid: '_$projid$_',
-          //         i_batchid: batch_id,
-          //         i_inout_type: inout_type,
-          //         i_inout_direct: inout_direct
-          //       },
-          //       success(resp) {
-          //         let res = Wb.decode(resp).items || [];
-          //         // 为查询出来的审核记录添加控制字段
-          //         records = res.map(item => ({
-          //           ...item,
-          //           fileName: item.filepath ? item.filepath.split('/')[item.filepath.split('/').length - 1] : '',
-          //           isDisabled: true,    // 已有记录不可编辑
-          //           isDeleteShow: false  // 已有记录不显示删除按钮
-          //         }));
-          //         row.checkTableData = records;
-          //         console.log("------row", row);
-          //       }
-          //     });
-          //   }
-          // });
-        }
-      });
-    },
-    // 关联信息查询
-    multistkReq(projid) {
-      let that = this;
-      Wb.ajax({
-        url: 'm?xwl=info_query/projlist_data/multistk_q',
-        params: {
-          i_projid: projid
-        },
-        success(resp) {
-          let res = Wb.decode(resp).items;
-          console.log("multistkReq---resp", res);
-          // 填充关联公司数据
-          if (res.length > 0) {
-            that.companyList = res.map(item => ({
-              ...item,
-              relatedProperty: item.related_property || '',
-              compName: item.comp_name || '',
-              stkCode: item.stk_code || '',
-              stkName: item.stk_name || '',
-              remark: item.ralated_ramark || '',
-              writeDate: item.write_date || '',
-              dataFlag: true //已存在的关联公司信息dataFlag为true 不可编辑不可删除
-            }));
-            // 关联信息修改 已有数据行设为只读，新增行可编辑
-            // if (that.op_flag == '1') {
-            //   that.companyList.forEach(item => {
-            //     if (item.dataFlag === 1) {
-            //       item.disabled = true;
-            //     }
-            //   });
-            // }
-            // console.log("companyList", that.companyList)
-          } else {
-            that.companyList = [{
-              compName: '',
-              stkName: '',
-              stkCode: '',
-              writeDate: '',
-              relatedProperty: '1',
-              remark: '',
-              dataFlag: false
-            }]
-          }
-        }
-      });
-    },
-    // 清单自查表格查询
-    selfcheckReq(projid) {
-      let that = this;
-      Wb.ajax({
-        url: 'm?xwl=info_query/projlist_data/selfcheck_q',
-        params: {
-          i_projid: projid
-        },
-        success(resp) {
-          resp = Wb.decode(resp).items;
-          if (resp.length > 0) {
-            that.tableDataHis = resp.map(item => ({
-              ...item,
-              filename: item.file_path ? item.file_path.split('/').pop() : ''
-            }));
-          }
-          console.log("tableDataHis", resp);
-          // that.tableDataHis = [...resp];
-        }
-      })
-    },
-    getCandidates(staff_id, projid) {
-      let that = this;
-      let url = that.nodeCode == 'hgrysh' ?
-        'm?xwl=th_projlist/ADMIN_PROJLIST/operation/select_candidates_xmfzr' :
-        'm?xwl=th_projlist/my_projlist/operation/select_candidates_hg'
-      Wb.ajax({
-        url: url,
-        params: {
-          i_staff_id: staff_id,
-          i_projid: projid
-        },
-        success(resp) {
-          let res = Wb.decode(resp);
-          console.log("getCandidates--res", res);
-          if (res.items[0]) {
-            that.candidates = that.nodeCode == 'hgrysh' ? res.items[0].user_id : res.items[0].manager_user_id
-            that.deptname = res.items[0].deptname // 项目负责人部门名称
-          }
-        }
-      });
-    },
-    // 添加关联公司
-    addCompany() {
-      this.companyList.push({
-        compName: '',
-        stkName: '',
-        stkCode: '',
-        writeDate: '',
-        relatedProperty: '1',
-        remark: '',
-        dataFlag: false,// true表示已有的关联信息 false表示新增的关联信息
-        disabled: false
-      });
-    },
-    // 删除关联公司
-    removeCompany(index) {
-      // 关联信息修改 已有数据行不可删除
-      // if (this.companyList[index].dataFlag === '1' && this.op_flag == '1') {
-      //   return;
-      // }
-      // if (this.companyList.length <= 1) {
-      //   Wb.info('至少需保留一行关联公司数据');
-      //   return;
-      // }
-      Wb.confirm('确认删除该行？', () => {
-        this.companyList.splice(index, 1);
-      });
-    },
-    // 匹配关联公司
-    matchCompany(item) {
-      // 1. 如果证券代码没有填写，则不进行匹配
-      if (!item.stkCode || item.stkCode.trim() === '') {
-        this.$message.warning('请先填写证券代码');
-        return;
-      }
-
-      // 2. 如果公司名称输入框禁用，则不进行匹配
-      // 注意：需要在companyList数据结构中添加disabled字段
-      // 或通过其他条件判断是否禁用
-      if (item.disabled) {
-        return;
-      }
-
-      // 3. 调用匹配方法
-      this.matchingStk(item);
-    },
-    // 匹配证券
-    matchingStk(item) {
-      let that = this;
-      Wb.ajax({
-        url: 'm?xwl=info_query/projlist_data/stk_q', // 需要确认实际接口地址
-        params: {
-          i_comp_name: item.compName,
-          i_stk_name: item.stkName,
-          i_stk_code: item.stkCode
-        },
-        success: (resp) => {
-          resp = Wb.decode(resp);
-          // 假设返回的数据包含公司名称和股票简称
-          if (resp.items && resp.items.length > 0) {
-            const data = resp.items[0];
-            // const data = {
-            //   s_info_windcode: "874567.NQ",
-            //   s_info_compname: "上海辛帕智能科技股份有限公司",
-            //   s_info_code: "874567",
-            //   s_info_name: "辛帕智能"
-            // }
-
-            // 检查是否与项目本身的证券代码相同
-            if (that.basicForm.stkcode && data.s_info_windcode && that.basicForm.stkcode.split('.')[0] === data.s_info_windcode.split('.')[0]) {
-              Wb.info('关联公司与客户相同，无需填写');
-              item.compName = '';
-              item.stkName = '';
-              item.stkCode = '';
-              return;
-            }
-
-            item.compName = data.s_info_compname || item.compName;
-            item.stkName = data.s_info_name || item.stkName;
-            item.stkCode = data.s_info_code || item.stkCode;
-
-            // 如果匹配返回的客户名称与项目本身客户名称一致，自动将关联性质设置为'1-客户其他代码'，不允许修改
-            if (that.basicForm.custname && data.s_info_compname && that.basicForm.custname === data.s_info_compname) {
-              item.relatedProperty = '1';
-              item.disabled = true; // 禁用关联性质选择
-            } else {
-              item.disabled = false; // 启用关联性质选择
-            }
-            console.log("匹配成功------", data)
-            that.$message.success('匹配成功');
-          } else {
-            that.$message.warning('未找到匹配的公司信息');
-          }
-        },
-        failure: () => {
-          that.$message.error('匹配失败，请稍后重试');
-        }
-      });
-    },
-    /**
-     * 开始编辑关联公司：启用编辑状态
-     */
-    startEdit() {
-      this.isEditing = true;
-    },
-
-    /**
-     * 保存关联公司数据：验证并提交
-     */
-    saveData(onlySave = false) {
-      // 保存数据，退出编辑状态
-      let that = this;
-      if (!that.validateCompanyData()) {
-        console.log("关联公司校验")
-        return;
-      }
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      let successCount = 0;
-      let totalCount = 0;
-      const fillId = Wb.getId(); // 生成唯一填充ID，同批次所有行共享
-
-      totalCount = that.companyList.length;
-      if (that.companyList && that.companyList.length == 0) {
-        let rowData = {
-          i_projid: '_$projid$_',
-          i_projlist_status: '_$projlist_status$_' || that.projlist_status,
-          i_usercode: '_$sys.username$_',
-          i_submit_status: 1,
-          i_fill_id: '',
-          i_comp_name: '',
-          i_stk_name: '',
-          i_stk_code: '',
-          i_related_property: '',
-          i_ralated_ramark: '',
-          i_write_date: todayStr,
-          i_clear_flag: '1' // 0-不清空 1-清空
-          // i_data_flag: item.dataFlag ? '1' : '' （未用到）
-        };
-        Wb.ajax({
-          url: 'm?xwl=info_query/projlist_data/multistk_s',
-          params: rowData,
-          success(resp) {
-            let res = Wb.decode(resp);
-            if (res.O_RETURN_CODE === '0') {
-              that.showMessage('提交成功！', 2000, 'success');
-              that.isEditing = false;
-            } else {
-              that.showMessage('提交失败：' + res.O_RETURN_MSG, 2000, 'error');
-            }
-          },
-          failure() {
-            that.showMessage('提交失败，请稍后重试', 2000, 'error');
-          }
-        });
-      } else {
-        // 逐行提交
-        that.companyList?.forEach((item, index) => {
-          // 构建单行提交数据
-          let rowData = {
-            i_projid: '_$projid$_',
-            i_projlist_status: '_$projlist_status$_' || that.projlist_status,
-            i_usercode: '_$sys.username$_',
-            i_submit_status: 1,
-            i_fill_id: fillId,
-            i_comp_name: item.compName || '',
-            i_stk_name: item.stkName || '',
-            i_stk_code: item.stkCode || '',
-            i_related_property: item.relatedProperty || '',
-            i_ralated_ramark: item.remark || '',
-            i_write_date: item.writeDate || todayStr,
-            i_clear_flag: '0' // 0-不清空 1-清空
-            // i_data_flag: item.dataFlag ? '1' : '' （未用到）
-          };
-
-          Wb.ajax({
-            url: 'm?xwl=info_query/projlist_data/multistk_s',
-            params: rowData,
-            success(resp) {
-              let res = Wb.decode(resp);
-              if (res.O_RETURN_CODE === '0') {
-                successCount++;
-                // 所有行提交成功
-                if (successCount === totalCount && !onlySave) {
-                  that.multistkReq('_$projid$_');
-                  that.showMessage('提交成功！', 2000, 'success');
-                  that.isEditing = false;
-                }
-              } else {
-                that.showMessage('第' + (index + 1) + '行提交失败：' + res.O_RETURN_MSG, 2000, 'error');
-              }
-            },
-            failure() {
-              that.showMessage('第' + (index + 1) + '行提交失败，请稍后重试', 2000, 'error');
-            }
-          });
-        });
-      }
-
-
-
-    },
-
-    /**
-     * 取消编辑关联公司：退出编辑状态
-     */
-    cancelEdit: async function () {
-      await this.multistkReq('_$projid$_');
-      this.isEditing = false;
-    },
-
-    // 添加新批次tab页
-    addNewBatchTab() {
-      // console.log("batchList",this.batchList);
-      const projlist_status = '_$projlist_status$_' || this.projlist_status;
-      const op_flag = '_$i_op_flag$_';
-      const state = '_$state$_';
-      const adminProjlist = '_$open_projlist$_' * 1;
-      const revise = '_$revise$_' * 1;
-
-      // 首次入单或未出单项目不允许添加新的批次
-      if (projlist_status == '0' || projlist_status == 'ro' || projlist_status == 'rl' || projlist_status == 'rq') {
-        Wb.info('首次入单或未出单项目不允许添加新的批次！');
-        return;
-      }
-
-      // 查看模式或关联信息修改模式：不允许添加新批次
-      if (state == 'info' || op_flag == '1') {
-        Wb.info('当前模式不允许添加新批次！');
-        return;
-      }
-
-      // 清单类型分组
-      const outList = ['co', 'cl', 'cq']; // 出单类型
-      const inList = ['ro', 'rl', 'rq'];  // 入单类型
-
-      // 清空新增表格数据
-      const today = new Date().toISOString().split('T')[0];
-
-      // 根据权限状态初始化批次表格
-      let newBillList = [
-        { listType: 'ro', typeLabel: '入 观察清单', inoutReason: '', inoutDate: '', reportDate: today, remark: '', fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
-        { listType: 'co', typeLabel: '出 观察清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true },
-        { listType: 'rl', typeLabel: '入 限制清单', inoutReason: '', inoutDate: '', reportDate: today, remark: '', fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
-        { listType: 'cl', typeLabel: '出 限制清单', inoutReason: '', inoutDate: '', reportDate: '', remark: '', fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true },
-        { listType: 'rq', typeLabel: '入 静默期', inoutReason: '', inoutDate: '', reportDate: today, remark: '', fileName: '', filepath: '', selected: false, disabled: false, rowClass: '', reportDisabled: true },
-        { listType: 'cq', typeLabel: '出 静默期', inoutReason: '', inoutDate: '', reportDate: '', remark: '', fileName: '', filepath: '', selected: false, disabled: true, rowClass: 'disabled-row', reportDisabled: true }
-      ];
-
-
-      // 管理员模式：所有行可编辑
-      if (adminProjlist > 0) {
-        newBillList.forEach(item => {
-          item.disabled = false;
-          item.rowClass = '';
-        });
-      }
-
-      // 修正模式：只启用有数据的行（新增批次没有历史数据，所以保持默认）
-      if (revise === 1) {
-        newBillList.forEach(item => {
-          item.disabled = true;
-          item.rowClass = 'disabled-row';
-        });
-      }
-
-      this.billList = newBillList;
-
-      this.showNewTable = true;
-      this.currentBatchIndex = -1; // -1表示新增批次tab页
-      // 设置激活的标签页为new
-      this.activeTab = 'new';
-      // 禁用添加批次按钮，防止重复添加
-      this.isAddBatchDisabled = true;
-    },
-    // 处理 tab 切换事件
-    handleTabChange(tab) {
-      console.log("handleTabChange", tab);
-      const tabName = tab.name;
-
-      if (this.nodeCode === 'hgrysh') {
-        this.cacheCurrentBatchAuid()
-      }
-
-      // 如果是新增批次 tab，不需要重新加载数据
-      if (tabName === 'new') {
-        this.currentBatchIndex = -1;
-        return;
-      }
-
-      // 查找对应的批次索引
-      const index = this.batchList.findIndex(batch => batch.batchNum.toString() === tabName);
-      if (index !== -1 && index !== this.currentBatchIndex) {
-        this.switchBatch(index);
-      }
-    },
-    // 缓存当前正在编辑的审核意见
-    cacheCurrentBatchAuid() {
-      const currentBatchKey = this.currentBatchIndex >= 0 && this.batchList[this.currentBatchIndex] ? this.batchList[this.currentBatchIndex].batchNum.toString() : null
-      const hasData = this.billListHis && this.billListHis?.some(item => item.listType)
-      if (currentBatchKey && hasData) {
-        const curBatch = this.batchList[this.currentBatchIndex];
-        const listTypes = {}
-        this.billListHis?.forEach(item => {
-          listTypes[item.listType] = {
-            checkResult: item.checkResult || '',
-            checkRecord: item.checkRecord || '',
-            checkDate: item.checkDate || '',
-            checkRemark: item.checkRemark || '',
-            checkFilepath: item.checkFilepath || '',
-            checkFileName: item.checkFileName || '',
-            checkTableData: JSON.parse(JSON.stringify(item.checkTableData || []))
-          }
-        })
-        this.cacheAuditData[currentBatchKey] = {
-          batchId: curBatch.batchId || '',
-          batchName: curBatch.batchName,
-          batchNum: curBatch.batchNum,
-          listTypes: listTypes
-        }
-        console.log(`当前批次${currentBatchKey}审核意见已缓存`)
-        console.log(this.cacheAuditData)
-      }
-    },
-    // 删除新批次
-    removeNewBatch() {
-      this.showNewTable = false;
-      // 重置新增批次的数据
-      this.billList = [];
-      // 重新启用添加批次按钮
-      const projlist_status = '_$projlist_status$_' || this.projlist_status;
-      this.isAddBatchDisabled = (projlist_status == '0' || projlist_status == 'ro' || projlist_status == 'rl' || projlist_status == 'rq');
-      // 如果当前激活的标签页是new，切换到第一个历史批次
-      console.log("this.activeTab", this.activeTab);
-      if (this.activeTab === 'new') {
-        console.log("this.batchList", this.batchList);
-        if (this.batchList.length > 0) {
-          this.activeTab = this.batchList[0].batchNum.toString();
-          this.currentBatchIndex = 0;
-          this.switchBatch(0);
-        } else {
-          this.activeTab = '';
-          this.currentBatchIndex = 0;
-        }
-      }
-    },
-    // 切换到历史批次表格
-    switchToHisTable() {
-      this.showNewTable = false;
-    },
-    // 切换批次
-    switchBatch(index, tab, event) {
-      console.log("switchBatch");
-      console.log(tab);
-      console.log(event);
-      let that = this;
-      this.currentBatchIndex = index;
-      // this.showNewTable = false; // 隐藏新增批次表格
-
-      // 获取选中的批次
-      let selectedBatch = this.batchList[index];
-      if (!selectedBatch) {
-        return;
-      }
-
-      // 更新激活的标签页
-      this.activeTab = selectedBatch.batchNum.toString();
-      // 目标批次的key
-      const targetBatchKey = selectedBatch.batchNum.toString();
-
-      // 调用接口获取批次数据
-      Wb.ajax({
-        url: 'm?xwl=info_query/projlist_data/inout_batch_q', // 需要确认实际接口地址
-        params: {
-          i_projid: '_$projid$_',
-          i_batch_num: selectedBatch.batchNum
-        },
-        success(resp) {
-          resp = Wb.decode(resp);
-          console.log("resp", resp)
-          if (resp.items && resp.items.length > 0) {
-            let batchData = resp.items[0];
-            let batch_id = resp.items[0].batch_id;
-            if (that.batchList[index]) {
-              that.batchList[index].batchId = batch_id
-            }
-            console.log("batchData", batchData);
-            // 更新历史批次表格数据
-            that.billListHis.forEach(item => {
-              // 从扁平化的数据结构中获取对应的数据
-              item.inoutReason = batchData[`${item.listType}_inout_reason`] || '';
-              item.inoutDate = batchData[`${item.listType}_inout_date`] || '';
-              item.reportDate = batchData[`${item.listType}_report_date`] || '';
-              item.remark = batchData[`${item.listType}_inout_remark`] || '';
-              item.filepath = batchData[`${item.listType}_filepath`] || '';
-              item.batchId = batch_id || '';
-              item.remarkRequired = (item.listType === 'co' && item.inoutReason === '5') || (item.listType === 'cl' && item.inoutReason === '7');
-              if (item.inoutReason && item.inoutDate && item.reportDate) {
-                item.dataFlag = true;
-              } else {
-                item.dataFlag = false;
-              }
-              item.oldBatch = false
-              item.linkSelected = false
-              // // 最新一条审核记录
-              // item.checkResult = batchData[`${item.listType}_check_result`] || '';
-              // item.checkRecord = batchData[`${item.listType}_check_record`] || '';
-              // item.checkDate = batchData[`${item.listType}_create_time`] || '';
-              // item.checkRemark = batchData[`${item.listType}_remark`] || '';
-              // item.checkFilepath = batchData[`${item.listType}_check_filepath`] || '';
-
-              // // item.checkTableData = that.getAuditRecord('_$projId$_', batch_id, 'oo');
-
-              // // 提取文件名
-              // if (item.filepath) {
-              //   const parts = item.filepath.split('/');
-              //   item.fileName = parts[parts.length - 1] || '';
-              // } else {
-              //   item.fileName = '';
-              // }
-              // // 提取审核文件名
-              // if (item.checkFilepath) {
-              //   const parts = item.checkFilepath.split('/');
-              //   item.checkFileName = parts[parts.length - 1] || '';
-              // } else {
-              //   item.checkFileName = '';
-              // }
-              // 设置选中状态
-              item.selected = !!item.inoutReason;
-            });
-            // 填充历史批次表格数据
-            const listTypes = ['ro', 'co', 'rl', 'cl', 'rq', 'cq'];
-            listTypes.forEach(listType => {
-              const row = that.billListHis.find(item => item.listType === listType);
-              if (row) {
-                // 提取文件名
-                if (row.filepath) {
-                  const parts = row.filepath.split('/');
-                  row.fileName = parts[parts.length - 1] || '';
-                } else {
-                  row.fileName = '';
-                }
-
-                if (that.nodeCode === 'hgrysh' && that.cacheAuditData?.[targetBatchKey]?.listTypes?.[listType]) {
-                  const cached = that.cacheAuditData[targetBatchKey].listTypes[listType];
-                  row.checkResult = cached.checkResult || '';
-                  row.checkRecord = cached.checkRecord || '';
-                  row.checkDate = cached.checkDate || '';
-                  row.checkRemark = cached.checkRemark || '';
-                  row.checkFilepath = cached.checkFilepath || '';
-                  row.checkFileName = cached.checkFileName || '';
-                  row.checkTableData = cached.checkTableData || []
-                  // console.log(`批次${targetBatchKey} ${listType}审核意见从缓存获取`)
-                } else {
-                  // 最新一条审核记录
-                  row.checkResult = batchData[`${listType}_check_result`] || '';
-                  row.checkRecord = batchData[`${listType}_check_record`] || '';
-                  row.checkDate = batchData[`${listType}_create_time`] || '';
-                  row.checkRemark = batchData[`${listType}_remark`] || '';
-                  row.checkFilepath = batchData[`${listType}_check_filepath`] || '';
-                  // 提取审核文件名
-                  if (row.checkFilepath) {
-                    const parts = row.checkFilepath.split('/');
-                    row.checkFileName = parts[parts.length - 1] || '';
-                  } else {
-                    row.checkFileName = '';
-                  }
-                  let listTypeMap = {
-                    'ro': 'io',
-                    'co': 'oo',
-                    'rl': 'il',
-                    'cl': 'ol',
-                    'rq': 'iq',
-                    'cq': 'oq'
-                  };
-                  let records = [],
-                    inout_type = listTypeMap[listType][1],
-                    inout_direct = listTypeMap[listType][0];
-
-                  Wb.ajax({
-                    url: 'm?xwl=info_query/projlist_data/comment_q',
-                    params: {
-                      i_projid: '_$projid$_',
-                      i_batchid: batch_id,
-                      i_inout_type: inout_type,
-                      i_inout_direct: inout_direct
-                    },
-                    success(resp) {
-                      let res = Wb.decode(resp).items || [];
-                      // 为查询出来的审核记录添加控制字段
-                      records = res.map(item => ({
-                        ...item,
-                        fileName: item.filepath ? item.filepath.split('/')[item.filepath.split('/').length - 1] : '',
-                        isDisabled: true,    // 已有记录不可编辑
-                        isDeleteShow: false  // 已有记录不显示删除按钮
-                      }));
-                      row.checkTableData = records;
-                      // console.log("------row", row);
-                    }
-                  });
-                }
-              }
-            });
-            // 判断是否是最新批次（索引0为最新批次）
-            if (index === 0) {
-              // 
-              that.initHisTableStatus();
-              console.log("最新批次：根据当前状态决定哪些行可编辑")
-            } else {
-              // 非最新批次：所有行都不可编辑（与老代码一致）
-              that.billListHis.forEach(item => {
-                item.disabled = true;
-                item.selected = false;
-                item.rowClass = 'disabled-row disabled-except-first';
-                item.reportDisabled = true;
-                item.oldBatch = true
-              });
-            }
-          }
-        },
-        failure() {
-          Wb.info('加载批次数据失败，请稍后重试');
-        }
-      });
-    },
-    // 初始化历史批次表格的状态
-    initHisTableStatus() {
-      const projlist_status = '_$projlist_status$_' || this.projlist_status;
-      const outList = ['0', 'co', 'cl', 'cq'];
-      const inList = ['ro', 'rl', 'rq'];
-      const op_flag = '_$i_op_flag$_';
-      const state = '_$state$_';
-      const adminProjlist = '_$open_projlist$_' * 1;
-      const revise = '_$revise$_' * 1;
-      const piid2 = this.piid2;
-      console.log("state---", state)
-
-      if (op_flag == 1 || state == 'info' || this.nodeCode == 'hgrysh') {
-        console.log("关联信息进入或查看模式：所有行禁用")
-        this.billListHis.forEach(item => {
-          item.disabled = true;
-          item.selected = false;
-          item.rowClass = 'disabled-row';
-          item.reportDisabled = true;
-        });
-        console.log("billListHis---------", this.billListHis);
-        return;
-      }
-
-      if (adminProjlist > 0) {
-        // 移除所有禁用和选中状态
-        this.billListHis.forEach(item => {
-          item.disabled = false;
-          item.selected = false;
-          item.rowClass = '';
-          item.reportDisabled = true;
-        });
-        return;
-      }
-
-      // 出静默期状态(cq)：所有行禁用（流程已结束，不允许编辑）
-      if (projlist_status === 'cq') {
-        console.log("出静默期状态(cq)：所有行禁用");
-        this.billListHis.forEach(item => {
-          item.disabled = true;
-          item.selected = false;
-          item.rowClass = !item.dataFlag ? 'disabled-row' : 'disabled-except-first';
-          item.reportDisabled = true;
-        });
-        return;
-      }
-
-      if (revise === 1) {
-        this.billListHis.forEach(item => {
-          if (item.inoutReason) {
-            item.disabled = false;
-            item.selected = true;
-            item.rowClass = '';
-            item.reportDisabled = true;
-          } else {
-            item.disabled = true;
-            item.selected = false;
-            item.rowClass = 'disabled-row';
-            item.reportDisabled = true;
-          }
-        });
-        return;
-      }
-
-      // 根据projlist_status设置默认选中状态
-      const statusIndexMap = {
-        'ro': 0, 'co': 1, 'rl': 2, 'cl': 3, 'rq': 4, 'cq': 5
-      };
-      const currentIndex = statusIndexMap[projlist_status];
-
-      if (outList.includes(projlist_status)) {
-        // 出单状态：当前行及之前的所有行禁用
-        this.billListHis.forEach((item, index) => {
-          if ((index <= currentIndex || outList.includes(item.listType)) && !item.inoutDate) {
-            item.disabled = true;
-            item.selected = false;
-            item.rowClass = 'disabled-row';
-            item.reportDisabled = true;
-          } else if ((index <= currentIndex || outList.includes(item.listType)) && item.inoutDate) {
-            item.disabled = true;
-            item.selected = false;
-            item.rowClass = 'disabled-except-first';
-            item.reportDisabled = true;
-          } else {
-            item.disabled = false;
-            item.selected = false;
-            item.rowClass = '';
-            item.reportDisabled = true;
-          }
-        });
-      } else if (inList.includes(projlist_status)) {
-        // 入单状态：对应的出单行选中，其他行禁用
-        const outIndexMap = { 'ro': 1, 'rl': 3, 'rq': 5 }; // 入对应出的索引
-
-        this.billListHis.forEach((item, index) => {
-          if (index === outIndexMap[projlist_status]) {
-            // 对应的出单行选中（自查流程默认不选中）
-            item.disabled = false;
-            item.selected = !this.piid1;
-            item.rowClass = '';
-            item.reportDisabled = true;
-            item.reportDate = new Date().toISOString().split('T')[0];
-          } else if ((index !== outIndexMap[projlist_status]) && item.inoutDate) {
-            // 其他行禁用
-            item.disabled = true;
-            item.selected = false;
-            item.rowClass = 'disabled-except-first';
-            item.reportDisabled = true;
-          } else {
-            // 其他行禁用
-            item.disabled = true;
-            item.selected = false;
-            item.rowClass = 'disabled-row';
-            item.reportDisabled = true;
-          }
-        });
-
-        // 特殊处理：rq状态时cq行额外处理
-        if (projlist_status === 'rq') {
-          // this.billListHis[5].rowClass = 'disabled-except-first disabled-row';
-          this.billListHis[5].rowClass = 'disabled-except-first';
-          this.billListHis[5].disabled = true;
-        }
-      }
-    },
-    // 切换行选中状态
-    toggleRowSelection(item) {
-      if (item.disabled) return;
-      // 如果当前行未被选中，才进行切换（与老代码一致，不可取消选中）
-      if (!item.selected && !item.disabled) {
-        this.billList.forEach(row => {
-          if (row !== item) {
-            row.selected = false;
-            if (row.disabled) {
-              row.rowClass = 'disabled-row'
-            }
-          }
-        });
-        if (!this.piid1) {
-          item.selected = true;
-        } else {
-          item.selected = !item.selected
-        }
-        if (item.inoutReason) {
-          this.handleReasonChange(item, false);
-        }
-      } else if (item.selected && !item.disabled && this.piid1) {
-        item.selected = !item.selected
-        item.inoutReason = '';
-        item.inoutDate = '';
-        item.remark = '';
-        item.filepath = '';
-        item.fileName = '';
-        this.clearLinkedEffects(this.billList, item);
-      }
-    },
-    // 切换历史批次行选中状态
-    toggleRowSelectionHis(item) {
-      // if (this.billListHis?.every(item => item.disabled === true)) {
-      //   return;
-      // }
-      // 非最新批次：所有行都不可编辑（与老代码一致）
-      if (item.oldBatch || this.showNewTable) return
-      if (!this.piid1 && item.listType === 'cq' && this.projlist_status === 'rq') return
-      if ((item.disabled && !item.dataFlag) || this.nodeCode === 'hgrysh' || this.state === 'info') return;
-      // 选中 如果当前行未被选中，可进行切换
-      if (!item.selected && !item.disabled) {
-        this.billListHis.forEach(row => {
-          if (row !== item && !row.dataFlag) {
-            row.selected = false;
-            if (row.disabled && !row.dataFlag) {
-              row.rowClass = 'disabled-row'
-            }
-          }
-        });
-
-        if (!this.piid1) {
-          item.selected = true;
-        } else {
-          item.selected = !item.selected
-        }
-        if (item.inoutReason) {
-          this.handleReasonChangeHis(item, false);
-        }
-        // 取消 仅自查可取消
-      } else if (item.selected && !item.disabled && this.piid1) {
-        item.selected = !item.selected
-        item.inoutReason = '';
-        item.inoutDate = '';
-        item.remark = '';
-        item.filepath = '';
-        item.fileName = '';
-        this.clearLinkedEffects(this.billListHis, item);
-      }
-      // 2.点击已填报的、未被选中的禁用行，变为选中且设置disabled-except-first
-      // 3.点击已填报的、被选中的禁用行，取消选中状态且设置disabled-except-first
-      if (!item.selected && item.disabled && item.dataFlag) {
-        console.log("2");
-        item.selected = true;
-        item.rowClass = 'disabled-except-first'
-      } else if (item.selected && item.disabled && !item.linkSelected && item.dataFlag) {
-        console.log("3");
-        item.selected = false;
-        item.rowClass = 'disabled-except-first'
-      }
-    },
-    // 下载文件
-    downloadFile(item, type) {
-      console.log("downloadFile", item);
-      let filepath;
-      if (type == 'proj') {// 清单附件
-        filepath = item.filepath
-      } else if (type == 'comment1') { // 隔离墙操作变动 - 最新审核附件
-        filepath = item.checkFilepath
-      } else if (type == 'comment2') { // 隔离墙操作变动 - 完整表格审核附件
-        filepath = item.filepath
-      } else if (type == 'selfcheck') { // 清单自查附件
-        filepath = item.file_path
-      }
-      if (filepath) {
-        Wb.download({
-          url: 'm?xwl=info_query/PTY_CLEAR_INFO/operation/download_file',
-          params: {
-            disk_url: filepath
-          }
-        })
-      }
-    },
-    // 处理事由变化
-    handleReasonChange(item, isReset = true) {
-      if (!item.selected && !item.disabled) {
-        this.billList.forEach(row => {
-          if (row !== item) {
-            row.selected = false;
-          }
-        });
-        if (!this.piid1) {
-          item.selected = true;
-        } else {
-          item.selected = !item.selected
-        }
-      }
-      // 1. 重置相关字段
-      if (isReset) {
-        item.remark = '';
-      }
-
-      // 2. 根据事由类型处理特殊逻辑
-      item.remarkRequired = (item.listType === 'co' && item.inoutReason === '5') ||
-        (item.listType === 'cl' && item.inoutReason === '7');
-
-      // 3. rq原因变化时的特殊处理
-      if (item.listType === 'rq') {
-        const projType = this.basicForm.projtype;
-        const thisDate = item.inoutDate;
-
-        if (item.inoutReason) {
-          // rq有值：cq行启用，设为 disabled-except-first 状态，事由同步为rq的事由
-          const cqRow = this.billList.find(row => row.listType === 'cq');
-          if (cqRow) {
-            cqRow.linkSelected = true;
-            cqRow.disabled = true;
-            cqRow.selected = true;
-            cqRow.rowClass = 'disabled-except-first';
-            cqRow.inoutReason = item.inoutReason;
-          }
-          // rq行设为 disabled-except-first 状态
-          item.selected = true;
-          // item.rowClass = 'disabled-except-first disabled-row';
-
-          if (thisDate) {
-            // 计算静默期结束日期
-            this.calculateCQDate(this.billList, thisDate, projType);
-          }
-        } else {
-          // rq无值：cq行恢复禁用状态
-          const cqRow = this.billList.find(row => row.listType === 'cq');
-          if (cqRow) {
-            cqRow.linkSelected = false
-            cqRow.disabled = true;
-            cqRow.selected = false;
-            cqRow.rowClass = 'disabled-row';
-            cqRow.inoutReason = '';
-            cqRow.inoutDate = '';
-          }
-          // rq行恢复正常状态
-          // item.selected = false;
-          item.rowClass = '';
-        }
-        // rq变化不触发状态转换逻辑，直接返回
-        return;
-      }
-
-      // 4. 清除其他事由联动
-      this.clearLinkedEffects(this.billList, item);
-
-      // 5. 状态转换逻辑
-      this.handleStatusTransition(item, this.billList);
-    },
-    // 处理历史批次事由变化
-    handleReasonChangeHis(item, isReset = true) {
-      // 如果当前行未被选中，可进行切换
-      if (!item.selected && !item.disabled) {
-        this.billListHis.forEach(row => {
-          if (row !== item && !row.dataFlag) {
-            row.selected = false;
-          }
-        });
-        if (!this.piid1) {
-          item.selected = true;
-        } else {
-          item.selected = !item.selected
-        }
-      }
-
-      // 1. 重置相关字段
-      if (isReset) {
-        item.remark = '';
-      }
-
-      // 2. 根据事由类型处理特殊逻辑
-      item.remarkRequired = (item.listType === 'co' && item.inoutReason === '5') ||
-        (item.listType === 'cl' && item.inoutReason === '7');
-
-      // 3. rq原因变化时的特殊处理
-      if (item.listType === 'rq') {
-        const projType = this.basicForm.projtype;
-        const thisDate = item.inoutDate;
-
-        if (item.inoutReason) {
-          // rq有值：cq行启用，设为 disabled-except-first 状态，事由同步为rq的事由
-          const cqRow = this.billListHis.find(row => row.listType === 'cq');
-          if (cqRow) {
-            cqRow.linkSelected = true
-            cqRow.disabled = true;
-            cqRow.selected = true;
-            cqRow.rowClass = 'disabled-except-first';
-            cqRow.inoutReason = item.inoutReason;
-          }
-          item.selected = true;
-
-          if (thisDate) {
-            // 计算静默期结束日期
-            this.calculateCQDate(this.billListHis, thisDate, projType);
-          }
-        } else {
-          // rq无值：cq行恢复禁用状态
-          const cqRow = this.billListHis.find(row => row.listType === 'cq');
-          if (cqRow) {
-            cqRow.linkSelected = false
-            cqRow.disabled = true;
-            cqRow.selected = false;
-            cqRow.rowClass = 'disabled-row';
-            cqRow.inoutReason = '';
-            cqRow.inoutDate = '';
-          }
-          // rq行恢复正常状态
-          // item.selected = false;
-          item.rowClass = '';
-        }
-        // rq变化不触发状态转换逻辑，直接返回
-        return;
-      }
-
-      // 4. 清除其他的事由联动
-      this.clearLinkedEffects(this.billListHis, item);
-
-      // 5. 处理相关事由联动
-      if (item.inoutReason) {
-        this.handleStatusTransition(item, this.billListHis);
-      }
-    },
-    // 处理日期变化
-    handleDateChange(item) {
-      let projlist_status = '_$projlist_status$_' || this.projlist_status;
-      const billList = (this.showNewTable || (projlist_status == '0' && this.batchList?.length === 0)) ? this.billList : this.billListHis;
-      const joinStr = item.listType + item.inoutReason;
-      const projType = this.basicForm.projtype;
-      const thisDate = item.inoutDate;
-
-      // 处理 co、cl 日期变化时的状态转换
-      if ((item.listType === 'co' || item.listType === 'cl') && item.inoutReason) {
-        // 基本状态转换
-        if (joinStr === 'co3') {
-          this.updateBillRow(billList, 'rl', 1, thisDate);
-        } else if (joinStr === 'co4') {
-          this.updateBillRow(billList, 'rq', 1, thisDate);
-          this.updateBillRow(billList, 'cq', 1, thisDate);
-          this.calculateCQDate(billList, thisDate, projType);
-        } else if (joinStr === 'cl1') {
-          this.updateBillRow(billList, 'rq', 1, thisDate);
-          this.updateBillRow(billList, 'cq', 1, thisDate);
-          this.calculateCQDate(billList, thisDate, projType);
-        }
-
-        // 新三板项目特殊逻辑
-        if (projType && (projType.includes('新三板_OTC-推荐挂牌') || projType.includes('新三板_OTC-定向发行') || projType.includes('新三板_OTC-公开发行') || projType.includes('新三板_OTC-优先股'))) {
-          if (joinStr === 'cl5') {
-            this.updateBillRow(billList, 'rq', 1, thisDate);
-            this.updateBillRow(billList, 'cq', 1, thisDate);
-            this.calculateCQDate(billList, thisDate, projType);
-          }
-        }
-
-        // 股权融资_非公开项目特殊逻辑
-        if (projType && (projType.includes('股权融资_非公开') || projType.includes('新三板_OTC-定向发行'))) {
-          if (joinStr === 'co1') {
-            this.updateBillRow(billList, 'rq', 1, thisDate);
-            this.updateBillRow(billList, 'cq', 1, thisDate);
-            this.calculateCQDate(billList, thisDate, projType);
-          }
-        }
-      }
-
-      // 处理 rq 日期变化时的静默期结束日期计算
-      if (item.listType === 'rq' && item.inoutReason) {
-        this.calculateCQDate(billList, thisDate, projType);
-      }
-    },
-    // 清除因之前选择的事由而自动联动填充的其他行
-    clearLinkedEffects(billList, item) {
-      if (item.listType === 'co') {
-        // co3 联动了 rl 行
-        const rlRow = billList.find(r => r.listType === 'rl');
-        if (rlRow && rlRow.rowClass === 'disabled-except-first') {
-          rlRow.linkSelected = false;
-          rlRow.selected = false;
-          rlRow.disabled = true;
-          rlRow.rowClass = 'disabled-row';
-          rlRow.inoutReason = '';
-          rlRow.inoutDate = '';
-        }
-        // co4/co1 联动了 rq + cq 行
-        const rqRow = billList.find(r => r.listType === 'rq');
-        if (rqRow && rqRow.rowClass === 'disabled-except-first') {
-          rqRow.linkSelected = false;
-          rqRow.selected = false;
-          rqRow.disabled = true;
-          rqRow.rowClass = 'disabled-row';
-          rqRow.inoutReason = '';
-          rqRow.inoutDate = '';
-        }
-        const cqRow = billList.find(r => r.listType === 'cq');
-        if (cqRow && cqRow.rowClass === 'disabled-except-first') {
-          cqRow.linkSelected = false;
-          cqRow.selected = false;
-          cqRow.rowClass = 'disabled-row';
-          cqRow.disabled = true;
-          cqRow.inoutReason = '';
-          cqRow.inoutDate = '';
-        }
-      } else if (item.listType === 'cl') {
-        // cl1/cl5 联动了 rq + cq 行
-        const rqRow = billList.find(r => r.listType === 'rq');
-        if (rqRow && rqRow.rowClass === 'disabled-except-first') {
-          rqRow.linkSelected = false;
-          rqRow.selected = false;
-          rqRow.disabled = true;
-          rqRow.rowClass = 'disabled-row';
-          rqRow.inoutReason = '';
-          rqRow.inoutDate = '';
-        }
-        const cqRow = billList.find(r => r.listType === 'cq');
-        if (cqRow && cqRow.rowClass === 'disabled-except-first') {
-          cqRow.linkSelected = false;
-          cqRow.selected = false;
-          cqRow.disabled = true;
-          cqRow.rowClass = 'disabled-row';
-          cqRow.inoutReason = '';
-          cqRow.inoutDate = '';
-        }
-      } else if (item.listType === 'rq') {
-        const cqRow = billList.find(r => r.listType === 'cq');
-        if (cqRow && cqRow.rowClass === 'disabled-except-first') {
-          cqRow.linkSelected = false;
-          cqRow.selected = false;
-          cqRow.disabled = true;
-          cqRow.rowClass = 'disabled-row';
-          cqRow.inoutReason = '';
-          cqRow.inoutDate = '';
-        }
-      }
-    },
-    // 处理状态转换
-    handleStatusTransition(item, billList) {
-      const projType = this.basicForm.projtype;
-      const joinStr = item.listType + item.inoutReason;
-      const thisDate = item.inoutDate;
-      let isTransition = false; // 
-
-      // 特殊业务规则优先
-      if (projType && (projType.includes('新三板_OTC-推荐挂牌') || projType.includes('新三板_OTC-定向发行') || projType.includes('新三板_OTC-公开发行') || projType.includes('新三板_OTC-优先股')) && joinStr === 'cl5') {
-        this.updateBillRow(billList, 'rq', 1, thisDate);
-        this.updateBillRow(billList, 'cq', 1, thisDate);
-        this.calculateCQDate(billList, thisDate, projType);
-        isTransition = true;
-      } else if (projType && (projType.includes('股权融资_非公开') || projType.includes('新三板_OTC-定向发行')) && joinStr === 'co1') {
-        this.updateBillRow(billList, 'rq', 1, thisDate);
-        this.updateBillRow(billList, 'cq', 1, thisDate);
-        this.calculateCQDate(billList, thisDate, projType);
-        isTransition = true;
-      } else if (joinStr === 'co3') {
-        // co3 (出观察清单-转限制清单) -> rl (入限制清单)
-        this.updateBillRow(billList, 'rl', 1, thisDate);
-        isTransition = true;
-      } else if (joinStr === 'co4') {
-        // co4 (出观察清单-转静默期) -> rq (入静默期) + cq (出静默期)
-        this.updateBillRow(billList, 'rq', 1, thisDate);
-        this.updateBillRow(billList, 'cq', 1, thisDate);
-        this.calculateCQDate(billList, thisDate, projType);
-        isTransition = true;
-      } else if (joinStr === 'cl1') {
-        // cl1 (出限制清单-价格/利率确定) -> rq (入静默期) + cq (出静默期)
-        this.updateBillRow(billList, 'rq', 1, thisDate);
-        this.updateBillRow(billList, 'cq', 1, thisDate);
-        this.calculateCQDate(billList, thisDate, projType);
-        isTransition = true;
-      }
-      // 非转换触发器：取消所有其他行的选中和disabled-except-first状态
-      if (!isTransition) {
-        billList.forEach(row => {
-          if (row.listType !== item.listType && !row.dataFlag) {
-            row.selected = false;
-            if (row.disabled && !row.dataFlag) { row.rowClass = 'disabled-row' };
-          }
-        });
-      }
-    },
-    // 更新清单行
-    updateBillRow(billList, listType, reason, date) {
-      const row = billList.find(item => item.listType === listType);
-      if (row) {
-        row.linkSelected = true;
-        row.selected = true;
-        row.disabled = true;
-        row.rowClass = 'disabled-except-first';
-        row.inoutReason = reason.toString();
-        row.inoutDate = date;
-      }
-    },
-    // 计算静默期结束日期
-    calculateCQDate(billList, startDate, projType) {
-      const cqRow = billList.find(item => item.listType === 'cq');
-      if (cqRow && startDate) {
-        const days = this.getSilentPeriodDays(projType);
-        cqRow.inoutDate = this.addDate(startDate, days);
-      }
-    },
-    // 获取静默期天数
-    getSilentPeriodDays(projType) {
-      if (projType && (projType.includes('IPO') || projType.includes('新三板_OTC-推荐挂牌'))) {
-        return 40; // IPO 和新三板_OTC-推荐挂牌项目静默期为 40 天
-      }
-      return 10; // 其他项目静默期为 10 天
-    },
-    // 日期计算
-    addDate(date, days) {
-      const d = new Date(date);
-      d.setDate(d.getDate() + days);
-      return d.toISOString().split('T')[0];
-    },
-
-
-    // 添加清单行
-    addBillRow() {
-      this.billList.push({
-        listType: '',
-        inoutReason: '',
-        inoutDate: '',
-        reportDate: '',
-        remark: '',
-        remarkRequired: false,
-        filepath: '',
-        fileName: ''
-      });
-    },
-    // 删除清单行
-    removeBillRow() {
-      this.billList = this.billList.filter(item => !this.selectedBillRows.includes(item));
-      this.selectedBillRows = [];
-    },
-    // 添加审核记录
-    addAuditRecord(item) {
-      // 新增审核记录保持可见，不改变历史记录的折叠状态
-      console.log("addAuditRecord,item:", item)
-      const today = new Date().toISOString().split('T')[0];
-      if (!item.checkTableData) {
-        this.$set(item, 'checkTableData', []);
-      }
-      item.checkTableData.push({
-        check_result: '',     // 审核结果：1通过/2未通过
-        check_record: '',     // 审核记录内容
-        create_time: today,    // 审核日期
-        remark: '',     // 备注（跨填报日期+备注说明两列）
-        fileName: '',        // 附件文件名
-        filepath: '',        // 附件路径
-        isDisabled: false,    // 是否禁用
-        isDeleteShow: true,   // 是否展示删除按钮
-      });
-      console.log("end item:", item)
-    },
-    // 删除审核记录
-    removeAuditRecord(item, rIdx) {
-      item.checkTableData.splice(rIdx, 1);
-    },
-    // 添加自查行
-    addCheckRow() {
-      this.tableData.push({
-        check_date: Wb.format(new Date(), 'yyyy-MM-dd'),
-        check_result: '',
-        user_name: '_$sys.username$_',
-        remark: '',
-        fileName: '',
-        filepath: ''
-      });
-    },
-    // 移除自查行
-    removeCheckRow(index) {
-      if (this.tableData.length > 1) {
-        this.tableData.splice(index, 1);
-      }
-    },
-    // 根据清单类型和事由值获取显示文本
-    getSelectedReasonLabel(listType, value) {
-      if (!value) return '';
-      const options = this.reasonOptions[listType] || [];
-      const opt = options.find(o => o.value === value);
-      return opt ? opt.label : '';
-    },
-    // 切换审核记录区域折叠/展开
-    toggleAuditExpanded(item) {
-      item.auditExpanded = !item.auditExpanded;
-    },
-    // 清单选择变化
-    handleBillSelectionChange(selection) {
-      this.selectedBillRows = selection;
-    },
-    // 根据清单类型获取事由选项
-    getReasonOptions(listType) {
-      return this.reasonOptions[listType] || [];
-    },
-    // 清单类型改变
-    onListTypeChange(row) {
-      row.inoutReason = '';
-    },
-    // 判断当前清单行是否允许上传附件
-    // 1.已填报过的行 inoutReason/reporDate/filepath不为空且被选中(selected)
-    // 2.未填写的行 需要允许修改（！disabled）且被选中(selected)
-    canUploadFile(item) {
-      if (item.selected && (item.dataFlag || item.linkSelected)) {
-        return true;
-      }
-      if (!item.disabled && item.selected) {
-        return true;
-      }
-      return false;
-    },
-    // 判断当前清单行附件是否必填
-    // 入静默期 出静默期 附件非必填
-    isFileRequired(item) {
-      const listType = item.listType;
-      return ['ro', 'co', 'rl', 'cl'].includes(listType);
-    },
-    // 上传成功
-    handleUploadSuccess(res, row) {
-      // 检查文件名中的非法字符
-      const fileName = this.checkSymbol(res.name || '');
-      row.filepath = res.path;
-      row.fileName = fileName;
-      // 修订的已有数据的附件
-      if (row.dataFlag) {
-        row.isFileChange = true;
-      }
-      this.$message.success("附件上传成功", 2000);
-    },
-    // 检查文件名中的非法字符
-    checkSymbol(filename) {
-      if (!filename) {
-        return '';
-      }
-      if (filename.indexOf('[') > 0 || filename.indexOf(']') > 0) {
-        Wb.info('文件名含[]非法字符，保存时将自动替换为【】 !');
-        filename = filename.replace(/\[/g, '【').replace(/\]/g, '】');
-        return filename;
-      } else {
-        return filename;
-      }
-    },
-    // 备注说明修改
-    handleRemarkChange(row) {
-      if (row.dataFlag) {
-        row.isRemarkChange = true;
-      }
-    },
-    getBatchId() {
-      let that = this
-      if (that.showNewTable || !that.basicForm.batch_id) {
-        return new Promise(function (resolve, reject) {
-          Wb.ajax({
-            url: 'm?xwl=info_query/projlist_data/inout_q',
-            params: {
-              i_projid: '_$projid$_'
-            },
-            success: function (resp) {
-              resp = Wb.decode(resp).items[0];
-              that.basicForm.batch_id = resp.batch_id
-              resolve(resp.batch_id)
-            },
-            error: function (err) {
-              reject(err)
-            }
-          })
-        })
-      } else {
-        return that.basicForm.batch_id
-      }
-    },
-    // 提交 type 1-提交 2-修正
-    handleSubmit: async function (type) {
-      let that = this;
-      let projlist_status = '_$projlist_status$_' || this.projlist_status;
-      let billList = (this.showNewTable || (projlist_status == '0' && this.batchList?.length === 0)) ? this.billList : this.billListHis;
-      let selectEditRow = billList.find(item => item.selected && item.rowClass !== 'disabled-except-first');
-      // selectedRows表示所有需要提交数据的行
-      let selectedRows = [];
-      billList?.forEach(item => {
-        if (item.selected) {
-          selectedRows.push(item);
-        }
-      })
-      // console.log("selectedRows", selectedRows)
-      if (!that.validateCompanyData()) {
-        console.log("关联公司校验")
-        return;
-      }
-
-      // 1. 表单校验
-      if (!that.validateForm()) {
-        console.log("表单校验不通过")
-        return;
-      }
-
-      // 2. 禁用提交按钮，防止重复提交
-      that.submitButtonDisabled = true;
-
-      // 3. 准备提交数据
-      let submitData = that.prepareSubmitData(type);
-
-      // 4. 调用接口提交 关联信息修改(op_flag==1)用multistk_s
-      if (that.op_flag == '1') {
-        // 4.1 关联信息修改入口 提交（该入口现已关闭，逻辑保留）
-        const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        let successCount = 0;
-        let totalCount = 0;
-        const fillId = Wb.getId(); // 生成唯一填充ID，同批次所有行共享
-
-        // 过滤出需要提交的行
-        const submitRows = that.companyList.filter(item => !item.dataFlag);
-
-        if (submitRows.length === 0) {
-          Wb.info('页面数据无修改，不做提交操作！');
-          that.submitButtonDisabled = false;
-          return;
-        }
-
-        totalCount = submitRows.length;
-
-        // 逐行提交
-        submitRows.forEach((item, index) => {
-          // 构建单行提交数据
-          let rowData = {
-            i_projid: '_$projid$_',
-            i_projlist_status: '_$projlist_status$_' || that.projlist_status,
-            i_usercode: '_$sys.username$_',
-            i_submit_status: type,
-            i_fill_id: fillId,
-            i_comp_name: item.compName || '',
-            i_stk_name: item.stkName || '',
-            i_stk_code: item.stkCode || '',
-            i_related_property: item.relatedProperty || '',
-            i_ralated_ramark: item.remark || '',
-            i_write_date: item.writeDate || todayStr,
-            // i_data_flag: item.dataFlag ? '1' : '' （未用到）
-          };
-
-          Wb.ajax({
-            url: 'm?xwl=info_query/projlist_data/multistk_s',
-            params: rowData,
-            success(resp) {
-              let res = Wb.decode(resp);
-              if (res.O_RETURN_CODE === '0') {
-                successCount++;
-                // 所有行提交成功
-                if (successCount === totalCount) {
-                  that.showMessage('提交成功！', 2000, 'success');
-                  window.close();
-                }
-              } else {
-                that.showMessage('第' + (index + 1) + '行提交失败：' + res.O_RETURN_MSG, 2000, 'error');
-                that.submitButtonDisabled = false;
-              }
-            },
-            failure() {
-              that.showMessage('第' + (index + 1) + '行提交失败，请稍后重试', 2000, 'error');
-              that.submitButtonDisabled = false;
-            }
-          });
-        });
-        return;
-      } else if (that.piid1 && selectedRows?.length === 0) {
-        // 4.2 自查流程 - 更改清单表格信息跳过inout_s的后台校验
-        if (that.isEditing) {
-          that.saveData(true);
-        }
-        Wb.ajax({
-          url: 'm?xwl=info_query/projlist_data/selfcheck_s',
-          params: {
-            batchList: that.tableData,
-            piid: that.piid1,
-            projid: that.projid,
-            check_id: Wb.getId(),
-            check_batch_id: that.check_batch_id
-          },
-          success(resp) {
-            let result = Wb.decode(resp);
-            if (result.O_RETURN_CODE == '0') {
-              that.showMessage("保存成功，请至全链接系统OA待办点击递交。", 2000, 'success');
-              window.close();// 只能从流程中打开浏览器窗口
-            } else {
-              that.showMessage(result.O_RETURN_MSG, 5000, 'error')
-            }
-          }
-        })
-        return;
-      } else if (that.piid2 && that.piid2 == 'beforedraft' && that.nodeCode == 'hgrysh') {
-        // 4.3 隔离墙操作变动流程 - 合规人员审核节点只保存审核意见, 下发节点
-        const billListHis = that.billListHis;
-        if (!billListHis || !Array.isArray(billListHis)) return [];
-
-        // 定义 listType 到 inout_type/inout_direct 的映射关系
-        const typeMap = {
-          ro: { inout_type: 'o', inout_direct: 'i' }, // 入观察
-          co: { inout_type: 'o', inout_direct: 'o' }, // 出观察
-          rl: { inout_type: 'l', inout_direct: 'i' }, // 入限制
-          cl: { inout_type: 'l', inout_direct: 'o' }, // 出限制
-          rq: { inout_type: 'q', inout_direct: 'i' }, // 入静默
-          cq: { inout_type: 'q', inout_direct: 'o' }  // 出静默
-        };
-
-        const paramsTable = [];
-        let resCount = 0;
-        let checkResultText = ''; // 隔离墙操作变动流程所需参数 - 审核反馈 
-        let checkResultTime = ''; // 隔离墙操作变动流程所需参数 - 审核时间
-        let curBatch = '';
-        let pk_id = Wb.getId(); // 流程下发的唯一ID
-        const checkRecordSet = new Set();
-
-        Object.keys(that.cacheAuditData).forEach(batchKey => {
-          const batchCache = that.cacheAuditData[batchKey];
-          const batchId = batchCache.batchId || that.basicForm.batch_id || '';
-
-          Object.keys(batchCache.listTypes || {}).forEach(listType => {
-            const config = typeMap[listType];
-            if (!config) return;
-
-            const cacheItem = batchCache.listTypes[listType];
-            const tableRows = cacheItem.checkTableData || [];
-
-            tableRows.forEach(row => {
-              if (!row.isDisabled && row.check_result == '1') {
-                resCount += 1;
-                checkRecordSet.add(row.check_record);
-                checkResultTime = row.check_date; // 取最后一条审核记录的时间
-              }
-              if (!row.isDisabled) {
-                paramsTable.push({
-                  piid: that.piid2,
-                  projid: that.projid,
-                  batch_id: batchId || row.batch_id || '',
-                  inout_id: row.inout_id || '',
-                  check_id: Wb.getId(),
-                  check_result: row.check_result,
-                  check_record: row.check_record,
-                  remark: row.remark || '',
-                  upload_id: row.upload_id || '',
-                  filepath: row.filepath || '',
-                  create_time: row.create_time,
-                  create_user: row.create_user,
-                  update_time: row.update_time,
-                  update_user: row.update_user,
-                  inout_type: config.inout_type,
-                  inout_direct: config.inout_direct,
-                  pk_id: pk_id
-                });
-              }
-            });
-          });
-        });
-        checkResultText = [...checkRecordSet].map(r => r + '不准确').join('；');
-        if (paramsTable.length === 0) {
-          that.showMessage("未新增审核意见", 2000, 'warning');
-          that.submitButtonDisabled = false;
-          return
-        }
-        // 保存合规人员审核意见
-        Wb.ajax({
-          url: 'm?xwl=info_query/projlist_data/comment_s',
-          params: {
-            paramsTable: paramsTable
-          },
-          success(resp) {
-            let result = Wb.decode(resp);
-            if (result.O_RETURN_CODE == '0') {
-              console.log("----resCount", resCount);
-              that.showMessage("保存成功", 2000, 'success');
-
-              if (resCount > 0 && that.piid2 == 'beforedraft') {
-                // 下发隔离墙操作变动流程 最终审核结果存在不准确的记录，且是合规人员点击提交，下发流程、
-
-                let formData = {
-                  PROJ_ID: '_$projid$_',
-                  BATCH_ID: that.basicForm.batch_id,
-                  DEPTMANANAME: '_$deptmananame$_',
-                  KHNAME: that.basicForm.custname,
-                  PROJCODE: that.basicForm.projcode,
-                  STOCKCODE: '', // 证券代码（实际未用到）
-                  STOCKNAME: '', // 股票简称（实际未用到）
-                  STAFF_ID: '_$staff_id$_',// 项目负责人阅知节点候选人参数，测试时先设置成固定人员 chenhaiyang  114398 hechuan 120578
-                  DEPTNAME: that.deptname,
-                  PROJLIST_STATUS: that.basicForm.projlist_status,
-                  OP_CONTENT: '', // 合规人员下发时无项目负责人操作内容
-                  OP_TIME: '',    // 合规人员下发时无项目负责人操作时间
-                  CHECK_RESULT: checkResultText,
-                  CHECK_TIME: checkResultTime,
-                  PROJNAME: that.basicForm.projname,
-                  IS_MANAUL: '1',// 1-合规人员主动触发 0-项目组变更清单内容触发
-                  PROJTYPE: that.basicForm.projtype,
-                  DEPT_USER_ID: that.candidates,// hechuan 038622
-                  PK_ID: pk_id
-                };
-
-                Wb.ajax({
-                  url: 'm?xwl=th_projlist/ADMIN_PROJLIST/operation/flow_request_deal',
-                  params: {
-                    'x-flow-systemId': 'IBCM',//当前发送全连接流程类型
-                    'x-userId': '_$sys.userid$_',//20261031 当前登录人id
-                    'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),//当前登录人name
-                    'url': 'http://10.116.131.13:8094/auto/submit',
-                    'formDatas': formData,
-                    "todoTitle": that.basicForm.projname + '项目清单审核意见反馈',// 工作台待办名称
-                    "sysGuid": "IBCM",
-                    "flowCode": "IBCM003",
-                    "templateName": that.basicForm.projname + '项目清单审核意见反馈',// 待办表单打开后标题
-                    "flowVer": "1",
-                    "nodeCode": "draft",
-                    "applyTable": "T_PROJ_CHANGE_FLOW",
-                    "candidates": that.candidates // 合规人员主动发起，candidates为项目负责人的user_id
-                  },
-                  success(resp) {
-                    let res = Wb.decode(resp)
-                    if (res.code == '0') {
-                      that.showMessage("存在不准确记录，已下发【合规人员清单审核管理流程】", 2000, 'success');
-                      if (app.parentApp.parentContainer) {
-                        app.parentApp.parentContainer.close();
-                      }
-                    } else {
-                      that.showMessage("【合规人员清单审核管理流程】下发失败：" + res.msg, 2000, 'error');
-                    }
-                  }
-                });
-              } else {
-                // 不存在不准确记录，直接关闭页面
-                if (app.parentApp.parentContainer) {
-                  app.parentApp.parentContainer.close();
-                }
-              }
-            } else {
-              that.submitButtonDisabled = false;
-              that.showMessage(result.O_RETURN_MSG, 5000, 'error')
-            }
-          }
-        })
-        return;
-      } else if (that.piid2 && that.piid2 != 'beforedraft' && that.nodeCode == 'hgrysh') {
-        // 4.3 隔离墙操作变动流程 - 合规人员审核节点只保存审核意见
-        const billListHis = that.billListHis;
-        if (!billListHis || !Array.isArray(billListHis)) return [];
-
-        // 定义 listType 到 inout_type/inout_direct 的映射关系
-        const typeMap = {
-          ro: { inout_type: 'o', inout_direct: 'i' }, // 入观察
-          co: { inout_type: 'o', inout_direct: 'o' }, // 出观察
-          rl: { inout_type: 'l', inout_direct: 'i' }, // 入限制
-          cl: { inout_type: 'l', inout_direct: 'o' }, // 出限制
-          rq: { inout_type: 'q', inout_direct: 'i' }, // 入静默
-          cq: { inout_type: 'q', inout_direct: 'o' }  // 出静默
-        };
-
-        const paramsTable = [];
-        let resCount = 0;
-        let checkResultText = ''; // 隔离墙操作变动流程所需参数 - 审核反馈 
-        let checkResultTime = ''; // 隔离墙操作变动流程所需参数 - 审核时间
-        let curBatch = '';
-        let curCheckId = Wb.getId(); // 当前最新一批审核记录的唯一id
-        const checkRecordSet = new Set();
-
-        Object.keys(that.cacheAuditData).forEach(batchKey => {
-          const batchCache = that.cacheAuditData[batchKey];
-          const batchId = batchCache.batchId || that.basicForm.batch_id || '';
-
-          Object.keys(batchCache.listTypes || {}).forEach(listType => {
-            const config = typeMap[listType];
-            if (!config) return;
-
-            const cacheItem = batchCache.listTypes[listType];
-            const tableRows = cacheItem.checkTableData || [];
-
-            tableRows.forEach(row => {
-              if (!row.isDisabled && row.check_result == '1') {
-                resCount += 1;
-                // checkResultText += row.check_record + '不准确；';
-                checkRecordSet.add(row.check_record);
-                checkResultTime = row.check_date; // 取最后一条审核记录的时间
-              }
-              if (!row.isDisabled) {
-                paramsTable.push({
-                  piid: that.piid2,
-                  projid: that.projid,
-                  batch_id: batchId || row.batch_id || '',
-                  inout_id: row.inout_id || '',
-                  check_id: Wb.getId(),
-                  check_result: row.check_result,
-                  check_record: row.check_record,
-                  remark: row.remark || '',
-                  upload_id: row.upload_id || '',
-                  filepath: row.filepath || '',
-                  create_time: row.create_time,
-                  create_user: row.create_user,
-                  update_time: row.update_time,
-                  update_user: row.update_user,
-                  inout_type: config.inout_type,
-                  inout_direct: config.inout_direct
-                });
-              }
-            });
-          });
-        });
-        checkResultText = [...checkRecordSet].map(r => r + '不准确').join('；');
-        if (paramsTable.length === 0) {
-          that.showMessage('未新增审核意见', 2000, 'warning');
-          that.submitButtonDisabled = false;
-          return;
-        }
-        // 保存合规人员审核意见
-        Wb.ajax({
-          url: 'm?xwl=info_query/projlist_data/comment_s',
-          params: {
-            paramsTable: paramsTable
-          },
-          success(resp) {
-            let result = Wb.decode(resp);
-            if (result.O_RETURN_CODE == '0') {
-              Wb.ajax({
-                url: 'm?xwl=th_projlist/ADMIN_PROJLIST/operation/update_mainform_value',
-                params: {
-                  piid2: that.piid2,
-                  check_result_flag: (resCount > 0) ? 1 : 0,
-                  check_result: checkResultText
-                },
-                success(resp) {
-                  let result = Wb.decode(resp);
-                  if (result.O_RETURN_CODE == '0') {
-                    that.showMessage("保存成功", 2000, 'success');
-                    if (app?.parentApp?.parentContainer) {
-                      app.parentApp.parentContainer.close();
-                    } else {
-                      window.close()
-                    }
-                  } else {
-                    that.showMessage(result.O_RETURN_MSG, 2000, 'error');
-                    that.submitButtonDisabled = false;
-                  }
-                }
-              });
-            } else {
-              that.submitButtonDisabled = false;
-              that.showMessage(result.O_RETURN_MSG, 5000, 'error')
-            }
-          }
-        });
-        return;
-      } else {
-        // 4.4 修改了清单表格信息
-        // case1：前台清单变更入口进
-        // case2：自查流程 且修改了清单表单
-        // case3：隔离墙操作变动流程 且项目负责人阅知节点
-        Wb.ajax({
-          url: 'm?xwl=info_query/projlist_data/inout_s',
-          params: submitData,
-          success: async function (resp) {
-            let res = Wb.decode(resp);
-            if (res.O_RETURN_CODE == '0') {
-              that.saveData(true);
-              that.showMessage('提交成功！', 2000, 'success');
-              try {
-                // 如果是从自查流程进来则还需要保存自查结果
-                if (that.piid1) {
-                  Wb.ajax({
-                    url: 'm?xwl=info_query/projlist_data/selfcheck_s',
-                    params: {
-                      batchList: that.tableData,
-                      piid: that.piid1,
-                      projid: that.projid,
-                      check_id: Wb.getId(),
-                      check_batch_id: that.check_batch_id
-                    },
-                    success: async function (resp) {
-                      let result = Wb.decode(resp);
-                      if (result.O_RETURN_CODE == '0') {
-                        that.showMessage("保存成功，请至全链接系统OA待办点击递交。", 2000, 'success');
-                        // 清单状态变更 发起隔离墙操作变动流程
-                        if (selectedRows) {
-                          const batch_id = await that.getBatchId()
-                          const now = new Date();
-
-                          // 获取各项时间并补零
-                          const year = now.getFullYear();
-                          const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份从 0 开始，需要 +1
-                          const day = String(now.getDate()).padStart(2, '0');
-                          const hours = String(now.getHours()).padStart(2, '0');
-                          const minutes = String(now.getMinutes()).padStart(2, '0');
-                          const seconds = String(now.getSeconds()).padStart(2, '0');
-
-                          const nowTime = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-
-                          let formData = {
-                            PROJ_ID:'_$projid$_',
-                            BATCH_ID: batch_id,
-                            DEPTMANANAME: '_$deptmananame$_',
-                            KHNAME: that.basicForm.custname,
-                            PROJCODE: that.basicForm.projcode,
-                            STOCKCODE: '', // 证券代码（实际未用到）
-                            STOCKNAME: '', // 股票简称（实际未用到）
-                            STAFF_ID: '_$staff_id$_', // 清单变更触发，项目负责人阅知节点候选人，测试时写死成 chenhaiyang 114398
-                            DEPTNAME: that.deptname,
-                            PROJLIST_STATUS: that.basicForm.projlist_status,
-                            OP_CONTENT: that.getOP_CONTENT(selectEditRow, selectedRows),
-                            OP_TIME: nowTime,
-                            CHECK_RESULT: '',
-                            CHECK_TIME: '',
-                            PROJNAME: that.basicForm.projname,
-                            IS_MANAUL: '0',// 1-合规人员主动触发 0-项目组变更清单内容触发
-                            PROJTYPE: that.basicForm.projtype,
-                            DEPT_USER_ID:'_$sys.userid$_'
-                          };
-
-                          Wb.ajax({
-                            url: 'm?xwl=th_projlist/ADMIN_PROJLIST/operation/flow_request_deal',
-                            params: {
-                              'x-flow-systemId': 'IBCM',//当前发送全连接流程类型
-                              'x-userId': '_$sys.userid$_',//20261031 当前登录人id
-                              'x-userName': '_$sys.username$_',//20261031 encodeURI('_$sys.username$_'),//当前登录人name
-                              'url': 'http://10.116.131.13:8094/auto/submit',
-                              'formDatas': formData,
-                              "todoTitle": that.basicForm.projname + '项目清单审核意见反馈',// 工作台待办名称
-                              "sysGuid": "IBCM",
-                              "flowCode": "IBCM003",
-                              "templateName": that.basicForm.projname + '项目清单审核意见反馈',// 待办表单打开后标题
-                              "flowVer": "1",
-                              "nodeCode": "draft",
-                              "applyTable": "T_PROJ_CHANGE_FLOW",
-                              "candidates": that.candidates,// 合规人员user_id
-                            },
-                            success(resp) {
-                              let res = Wb.decode(resp)
-                              if (res.code == '0') {
-                                that.showMessage("清单状态变更，已下发【隔离墙操作变动流程】", 2000, 'success');
-                                if (app?.parentApp?.parentContainer) {
-                                  app.parentApp.parentContainer.close();
-                                } else {
-                                  window.close();
-                                }
-                              } else {
-                                that.showMessage("【隔离墙操作变动流程】下发失败", 2000, 'error');
-                              }
-                            }
-                          });
-                        } else {
-                          if (app?.parentApp?.parentContainer) {
-                            app.parentApp.parentContainer.close();
-                          } else {
-                            window.close();
-                          }
-                        }
-                      } else {
-                        that.showMessage(result.O_RETURN_MSG, 5000, 'error')
-                      }
-                    }
-                  })
-                } else {
-                  console.log('123',that.candidates)
-                  // return;
-                  // 清单状态变更 发起隔离墙操作变动流程
-                  if (selectedRows) {
-                    const batch_id = await that.getBatchId()
-                    const now = new Date();
-
-                    // 获取各项时间并补零
-                    const year = now.getFullYear();
-                    const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份从 0 开始，需要 +1
-                    const day = String(now.getDate()).padStart(2, '0');
-                    const hours = String(now.getHours()).padStart(2, '0');
-                    const minutes = String(now.getMinutes()).padStart(2, '0');
-                    const seconds = String(now.getSeconds()).padStart(2, '0');
-
-                    const nowTime = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-
-                    let formData = {
-                      PROJ_ID: '_$projid$_',
-                      BATCH_ID: batch_id,
-                      DEPTMANANAME: '_$deptmananame$_',
-                      KHNAME: that.basicForm.custname,
-                      PROJCODE: that.basicForm.projcode,
-                      STOCKCODE: '', // 证券代码（实际未用到）
-                      STOCKNAME: '', // 股票简称（实际未用到）
-                      STAFF_ID: '_$staff_id$_', // 清单变更触发，表单展示字段，项目负责人staffid
-                      DEPTNAME: that.deptname,
-                      PROJLIST_STATUS: that.basicForm.projlist_status,
-                      OP_CONTENT: that.getOP_CONTENT(selectEditRow, selectedRows),
-                      OP_TIME: nowTime,
-                      CHECK_RESULT: '',
-                      CHECK_TIME: '',
-                      PROJNAME: that.basicForm.projname,
-                      IS_MANAUL: '0',// 1-合规人员主动触发 0-项目组变更清单内容触发
-                      PROJTYPE: that.basicForm.projtype,
-                      DEPT_USER_ID: '_$sys.userid$_'
-                    };
-
-                    Wb.ajax({
-                      url: 'm?xwl=th_projlist/ADMIN_PROJLIST/operation/flow_request_deal',
-                      params: {
-                        'x-flow-systemId': 'IBCM',//当前发送全连接流程类型
-                        'x-userId': '_$sys.userid$_',// 20261031当前登录人id
-                        'x-userName': '_$sys.username$_',//encodeURI('_$sys.username$_'),// 20261031 当前登录人name
-                        'url': 'http://10.116.131.13:8094/auto/submit',
-                        'formDatas': formData,
-                        "todoTitle": that.basicForm.projname + '项目清单审核意见反馈',// 工作台待办名称
-                        "sysGuid": "IBCM",
-                        "flowCode": "IBCM003",
-                        "templateName": that.basicForm.projname + '项目清单审核意见反馈',// 待办表单打开后标题
-                        "flowVer": "1",
-                        "nodeCode": "draft",
-                        "applyTable": "T_PROJ_CHANGE_FLOW",
-                        "candidates": that.candidates,// 合规人员user_id
-                      },
-                      success(resp) {
-                        let res = Wb.decode(resp)
-                        if (res.code == '0') {
-                          that.showMessage("清单状态变更，已下发【隔离墙操作变动流程】", 2000, 'success');
-                          if (app?.parentApp?.parentContainer) {
-                            app.parentApp.parentContainer.close();
-                          } else {
-                            window.close();
-                          }
-                        } else {
-                          that.showMessage("【隔离墙操作变动流程】下发失败", 2000, 'error');
-                        }
-                      }
-                    });
-                  } else {
-                    if (app?.parentApp?.parentContainer) {
-                      app.parentApp.parentContainer.close();
-                    } else {
-                      window.close();
-                    }
-                  }
-                }
-              } catch { }
-            } else {
-              that.showMessage("清单信息保存失败：" + res.O_RETURN_MSG, 2000, 'error');
-            }
-            that.submitButtonDisabled = false;
-          },
-          failure() {
-            that.showMessage('提交失败，请稍后重试', 2000, 'error');
-            that.submitButtonDisabled = false;
-          }
-        });
-        return;
-      }
-    },
-    // 获取OP_CONTENT
-    getOP_CONTENT(selectEditRow, selectedRows) {
-      let parts = []
-      if (selectEditRow) {
-        parts.push(`清单状态变更-${selectEditRow.typeLabel}`)
-      }
-      if (selectedRows?.length > 0) {
-        let changeRows = []
-        let matchedRows = []
-        let remarkChangeRows = []
-        if (selectEditRow) {
-          // 默认勾选了清单行，并且同时勾选了历史清单行
-          changeRows = selectedRows?.filter(row =>
-            !row.dataFlag && row.listType != selectEditRow.listType && row.linkSelected && row.listType != 'cq'
-          )
-          matchedRows = selectedRows?.filter(row =>
-            row.dataFlag && row.filepath && row.listType != selectEditRow.listType && !row.linkSelected && row.isFileChange
-          )
-          remarkChangeRows = selectedRows?.filter(row =>
-            row.dataFlag && row.listType != selectEditRow.listType && !row.linkSelected && row.isRemarkChange
-          )
-        } else {
-          // 只变更了历史清单，（没有默认勾选清单填报行时）
-          matchedRows = selectedRows?.filter(row =>
-            row.dataFlag && row.filepath && !row.linkSelected && row.isFileChange
-          )
-          remarkChangeRows = selectedRows?.filter(row =>
-            row.dataFlag && !row.linkSelected && row.isRemarkChange
-          )
-        }
-        if (changeRows.length > 0) {
-          const labels = changeRows?.map(row => row.typeLabel).join('、')
-          parts.push(`清单状态变更-${labels}`)
-        }
-        if (matchedRows.length > 0) {
-          const labels = matchedRows?.map(row => row.typeLabel).join('、')
-          parts.push(`清单附件变更-${labels}`)
-        }
-        if (remarkChangeRows.length > 0) {
-          const labels = remarkChangeRows?.map(row => row.typeLabel).join('、')
-          parts.push(`清单备注说明变更-${labels}`)
-        }
-      }
-      return parts.join('、')
-    },
-    // 关联公司校验
-    validateCompanyData() {
-      // 只有在编辑状态下才校验关联公司数据
-      if (this.isEditing) {
-        for (let i = 0; i < this.companyList.length; i++) {
-          let item = this.companyList[i];
-          if (item.compName && item.compName.trim() !== '') {
-            if (!item.stkCode) {
-              this.$message.warning('证券代码必填！');
-              return false;
-            }
-          }
-          // 如果填写了证券代码，则校验其他必填项
-          if (item.stkCode && item.stkCode.trim() !== '') {
-            if (!item.compName || item.compName.trim() === '') {
-              this.$message.warning('请填写关联公司名称');
-              return false;
-            }
-            if (!item.relatedProperty) {
-              this.$message.warning('关联性质必填！');
-              return false;
-            }
-            // 关联性质为"其他"时，备注必填
-            if (item.relatedProperty === '4' && (!item.remark || item.remark.trim() === '')) {
-              this.$message.warning('当关联性质选择为其他时，备注栏必填！');
-              return false;
-            }
-          }
-        }
-      }
-      return true;
-    },
-    // 表单校验
-    validateForm() {
-      console.log("进入表单校验");
-      console.log("this.companyList", this.companyList);
-      let op_flag = this.op_flag;
-      let projlist_status = '_$projlist_status$_' || this.projlist_status;
-      // 1. 校验关联公司列表（证券代码必填）
-      // // 1. 校验关联公司列表（仅当从关联信息修改入口进来时必填）
-      // if (op_flag == '1') {
-      //   // 从关联信息修改入口进来：关联信息必填
-      //   for (let i = 0; i < this.companyList.length; i++) {
-      //     let item = this.companyList[i];
-
-      //     // 关联性质必填
-      //     if (!item.relatedProperty) {
-      //       this.$message.warning('关联性质必填！');
-      //       return false;
-      //     }
-
-      //     // 证券代码必填
-      //     if (!item.stkCode || item.stkCode.trim() === '') {
-      //       this.$message.warning('证券代码必填！');
-      //       return false;
-      //     }
-
-      //     // 关联性质为"其他"时，备注必填
-      //     if (item.relatedProperty === '4' && (!item.remark || item.remark.trim() === '')) {
-      //       this.$message.warning('当关联性质选择为其他时，备注栏必填！');
-      //       return false;
-      //     }
-      //   }
-      // } else {
-      //   // 从清单填报入口进来：关联信息为可选填
-      //   // 只有填写了证券代码的行才需要校验其他字段
-      //   for (let i = 0; i < this.companyList.length; i++) {
-      //     let item = this.companyList[i];
-      //     // 如果填写了证券代码，则校验其他必填项
-      //     if (item.stkCode && item.stkCode.trim() !== '') {
-      //       if (!item.compName || item.compName.trim() === '') {
-      //         this.$message.warning('请填写关联公司名称');
-      //         return false;
-      //       }
-      //       if (!item.relatedProperty) {
-      //         this.$message.warning('关联性质必填！');
-      //         return false;
-      //       }
-      //       // 关联性质为"其他"时，备注必填
-      //       if (item.relatedProperty === '4' && (!item.remark || item.remark.trim() === '')) {
-      //         this.$message.warning('当关联性质选择为其他时，备注栏必填！');
-      //         return false;
-      //       }
-      //     }
-      //   }
-      // }
-
-      // 2. 校验清单数据
-      if (this.piid1) {
-        // 2.1 自查流程 自查表格校验
-        for (let i = 0; i < this.tableData.length; i++) {
-          const row = this.tableData[i];
-          console.log("row", row)
-          // 校验 check_date
-          if (!row.check_date || String(row.check_date).trim() === '') {
-            this.showMessage(`自查情况的“自查日期”不能为空`, 2000, 'error');
-            return false;
-          }
-
-          // 校验 check_result
-          if (!row.check_result || String(row.check_result).trim() === '') {
-            this.showMessage(`自查情况的“自查结果”不能为空`, 2000, 'error');
-            return false;
-          }
-          // 校验 remark
-          if (row.check_result && row.check_result == '1' && (!row.remark || String(row.remark).trim() === '')) {
-            this.showMessage(`自查情况的“备注说明”不能为空，请说明更正情况。`, 2000, 'error');
-            return false;
-          }
-        }
-        // 如果勾选了清单行则清单行也要校验
-        let billList = (this.showNewTable || (projlist_status == '0' && this.batchList?.length === 0)) ? this.billList : this.billListHis;
-        let selectEditRow = billList.find(item => item.selected && item.rowClass !== 'disabled-except-first')
-        let selectedRows = [];
-        billList?.forEach(item => {
-          if (item.selected) {
-            selectedRows.push(item);
-          }
-        })
-        if (selectEditRow) {
-          if (selectEditRow && !selectEditRow.inoutReason) {
-            this.$message.warning('请选择入/出单事由');
-            return false;
-          }
-          if (selectEditRow && !selectEditRow.inoutDate) {
-            this.$message.warning('请选择入/出单事由发生日期');
-            return false;
-          }
-          // if (selectEditRow && !selectEditRow.reportDate) {
-          //   this.$message.warning('请选择入/出单事由填报日期');
-          //   return false;
-          // }
-          if (selectEditRow.inoutDate) {
-            const inoutDate = new Date(selectEditRow.inoutDate);
-            const today = new Date();
-            const reportDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            inoutDate.setHours(0, 0, 0, 0);
-            reportDate.setHours(0, 0, 0, 0);
-            if (inoutDate > reportDate) {
-              this.$message.warning('入/出单事由发生日期不能晚于填报日期');
-              return false;
-            }
-          }
-        }
-        // co5和cl7备注说明必填
-        if (selectEditRow && ((selectEditRow.listType === 'co' && selectEditRow.inoutReason === '5') ||
-          (selectEditRow.listType === 'cl' && selectEditRow.inoutReason === '7'))) {
-          if (!selectEditRow.remark || selectEditRow.remark.trim() === '') {
-            this.$message.warning('请填写备注说明');
-            return false;
-          }
-        }
-        // ro co rl cl 附件必填
-        if (selectEditRow && (this.isFileRequired(selectEditRow))) {
-          if (!selectEditRow.filepath || selectEditRow.filepath.trim() === '') {
-            this.$message.warning(`"${selectEditRow.typeLabel}"阶段必须上传附件`);
-            return false;
-          }
-        }
-        for (let i = 0; i < selectedRows.length; i++) {
-          if (selectedRows[i].rowClass === 'disabled-except-first' && !selectedRows[i].isFileChange && !selectedRows[i].isRemarkChange && selectedRows[i].dataFlag && selectedRows[i].disabled) {
-            this.$message.warning(`若无需补充附件或备注说明，请取消"${selectedRows[i].typeLabel}"行的勾选`);
-            return false;
-          }
-        }
-      } else if (this.piid2 && this.nodeCode == 'hgrysh') {
-        // 2.2 隔离墙操作变动流程 合规人员审核节点 只校验审核表单
-        this.cacheCurrentBatchAuid()
-
-        const batchKeys = Object.keys(this.cacheAuditData)
-        for (let i = 0; i < batchKeys.length; i++) {
-          const batchKey = batchKeys[i];
-          const batchCache = this.cacheAuditData[batchKey] || [];
-          const batchInfo = this.batchList.find(batch => batch.batchName.toString() === batchKey)
-          const batchName = batchInfo ? batchInfo.batchName : ('批次' + batchKey)
-
-          const listTypeKeys = Object.keys(batchCache.listTypes || [])
-
-          for (let j = 0; j < listTypeKeys.length; j++) {
-            const listType = listTypeKeys[j];
-            const cacheItem = batchCache.listTypes[listType]
-            const rowInfo = this.billListHis?.find(r => r.listType == listType)
-            const typeLabel = rowInfo ? rowInfo.typeLabel : listType
-
-            const tableRows = cacheItem.checkTableData || []
-            for (let k = 0; k < tableRows.length; k++) {
-              const row = tableRows[k]
-              // 1. 审核结果必填校验
-              if (!row.check_result || String(row.check_result).trim() === '') {
-                this.showMessage(`请选择“${batchName}-${typeLabel}”的审核结果`, 2000, 'error');
-                return false;
-              }
-
-              // 2. 审核结果为"不准确"时，审核记录必填
-              // check_result: '1' = 不准确, '0' = 准确
-              // check_record: '事由审核', '日期审核', '附件审核', '其他'
-              if (row.check_result === '1') {
-                if (!row.check_record || String(row.check_record).trim() === '') {
-                  this.showMessage(`${batchName}-${typeLabel}审核结果为"不准确"时请选择审核记录`, 2000, 'error');
-                  return false;
-                }
-              }
-            }
-          }
-        }
-      } else {
-        // 2.3 关联信息修改
-        // if (op_flag == '1') {
-        //   // 关联信息修改入口：只检查关联信息数据是否有修改
-        //   let hasChanges = false;
-        //   for (let i = 0; i < this.companyList.length; i++) {
-        //     let item = this.companyList[i];
-        //     if (item.dataFlag) {
-        //       hasChanges = true;
-        //       break;
-        //     }
-        //   }
-        //   if (!hasChanges) {
-        //     Wb.info('页面数据无修改，不做提交操作！');
-        //     this.submitButtonDisabled = false;
-        //     return false;
-        //   }
-        // } else {
-        // 清单填报入口：校验清单数据
-        let billList = (this.showNewTable || (projlist_status == '0' && this.batchList?.length === 0)) ? this.billList : this.billListHis;
-
-        let selectEditRow = billList.find(item => item.selected && item.rowClass !== 'disabled-except-first')
-        let selectedRows = [];
-
-        billList.forEach(item => {
-          if (item.selected) {
-            selectedRows.push(item);
-          }
-        });
-        console.log("--------------------selectedRows", selectEditRow)
-        // hasChanges判断关联信息是否有变更
-        // let hasChanges = false;
-        // for (let i = 0; i < this.companyList.length; i++) {
-        //   let item = this.companyList[i];
-        //   if (item.dataFlag) {
-        //     hasChanges = true;
-        //     break;
-        //   }
-        // }
-        // 1.未选择任何清单行
-        if (selectedRows.length == 0) {
-          this.$message.warning('请选择清单类型');
-          return false;
-        } else {
-          if (selectEditRow) {
-            console.log("validate1", selectEditRow);
-            // 只进行清单填报
-
-            if (!selectEditRow.inoutReason) {
-              this.$message.warning('请选择入/出单事由');
-              return false;
-            }
-
-            if (!selectEditRow.inoutDate) {
-              this.$message.warning('请选择入/出单事由发生日期');
-              return false;
-            }
-
-            // if (!selectEditRow.reportDate) {
-            //   this.$message.warning('请选择入/出单事由填报日期');
-            //   return false;
-            // }
-
-            if (selectEditRow.inoutDate) {
-              const inoutDate = new Date(selectEditRow.inoutDate);
-              const today = new Date();
-              const reportDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-              inoutDate.setHours(0, 0, 0, 0);
-              reportDate.setHours(0, 0, 0, 0);
-              if (inoutDate > reportDate) {
-                this.$message.warning('入/出单事由发生日期不能晚于填报日期');
-                return false;
-              }
-            }
-
-            // co5和cl7备注说明必填
-            if ((selectEditRow.listType === 'co' && selectEditRow.inoutReason === '5') ||
-              (selectEditRow.listType === 'cl' && selectEditRow.inoutReason === '7')) {
-              if (!selectEditRow.remark || selectEditRow.remark.trim() === '') {
-                this.$message.warning('请填写备注说明');
-                return false;
-              }
-            }
-            // ro co rl cl 附件必填
-            if (this.isFileRequired(selectEditRow)) {
-              if (!selectEditRow.filepath || selectEditRow.filepath.trim() === '') {
-                this.$message.warning(`"${selectEditRow.typeLabel}"阶段必须上传附件`);
-                return false;
-              }
-            }
-          }
-          for (let i = 0; i < selectedRows.length; i++) {
-            if (selectedRows[i].rowClass === 'disabled-except-first' && !selectedRows[i].isFileChange && !selectedRows[i].isRemarkChange && selectedRows[i].dataFlag && selectedRows[i].disabled) {
-              // cq行特殊处理
-              if (selectedRows[i].listType !== 'cq' || projlist_status !== 'rq') {
-                this.$message.warning(`若无需补充附件或备注说明，请取消"${selectedRows[i].typeLabel}"行的勾选`);
-                return false;
-              }
-            }
-          }
-        }
-      }
-      return true;
-    },
-    // 准备提交数据
-    prepareSubmitData(type) {
-      let projlist_status = '_$projlist_status$_' || this.projlist_status;
-      let billList = (this.showNewTable || (projlist_status == '0' && this.batchList?.length === 0)) ? this.billList : this.billListHis;
-      let selectedRow = billList.find(item => item.selected);
-      let op_flag = '_$i_op_flag$_';
-
-      // 获取当日日期，用于i_write_date默认值
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-      let data = {
-        i_projid: '_$projid$_',
-        i_op_flag: '_$i_op_flag$_',
-        i_state: '_$state$_',
-        i_type: type, // 1: 提交, 2: 修正
-        i_revise: '_$revise$_',
-        i_reviseId: '_$reviseId$_',
-        i_projlist_status: projlist_status,
-        i_usercode: '_$sys.username$_',
-        i_submit_status: type
-      };
-
-      console.log("this.showNewTable", this.showNewTable);
-      console.log("this.currentBatchIndex", this.currentBatchIndex);
-      console.log("this.batchList", this.batchList);
-      // 添加批次ID
-      if (!this.showNewTable && this.currentBatchIndex >= 0 && this.batchList && this.batchList[this.currentBatchIndex]) {
-        console.log("赋值batch_id")
-        data.i_batch_id = this.batchList[this.currentBatchIndex].batchId;
-      }
-
-      // 如果不是关联信息修改模式，添加清单数据
-      if (op_flag != 1) {
-        billList.forEach(item => {
-          if (item.selected && (!item.dataFlag || !item.disabled)) {
-            var listType = item.listType;
-            data['i_' + listType + '_inout_reason'] = item.inoutReason;
-            data['i_' + listType + '_inout_date'] = item.inoutDate;
-            data['i_' + listType + '_report_date'] = item.reportDate;
-            data['i_' + listType + '_inout_remark'] = item.remark;
-            data['i_' + listType + '_filepath'] = item.filepath;
-          } else if (item.selected && item.dataFlag && item.disabled) {
-            // 只更新附件或备注时，不传日期，便于inout_s走单独更新的逻辑
-            var listType = item.listType;
-            data['i_' + listType + '_inout_remark'] = item.remark;
-            data['i_' + listType + '_filepath'] = item.filepath;
-          }
-        });
-      }
-
-      // 关联公司列表 - 转换为接口需要的格式
-      // multistk_s接口需要：i_comp_name, i_stk_name, i_stk_code, i_related_property, i_ralated_ramark, i_write_date, i_fill_id
-      // if (this.companyList && this.companyList.length > 0) {
-      //   let formattedCompanyList = this.companyList.map(item => ({
-      //     i_fill_id: Wb.getId(),
-      //     i_comp_name: item.compName || '',
-      //     i_stk_name: item.stkName || '',
-      //     i_stk_code: item.stkCode || '',
-      //     i_related_property: item.relatedProperty || '',
-      //     i_ralated_ramark: item.remark || '',
-      //     i_write_date: todayStr, // 如果没有填写则使用当日日期
-      //     i_data_flag: item.dataFlag || ''
-      //   }));
-      //   data.companyList = JSON.stringify(formattedCompanyList);
-      // } else {
-      //   data.companyList = JSON.stringify([]);
-      // }
-
-      console.log("prepareSubmitData", data);
-
-      return data;
-    }
-  },
-  watch: {
-
-  },
-  created: async function () {
-    // 设置填报日期为当前日期
-    const today = new Date().toISOString().split('T')[0];
-
-
-    const inList = ['ro', 'rl', 'rq'];  // 入单类型
-
-    // 只为入单行设置填报日期
-    this.billList.forEach(item => {
-      if (inList.includes(item.listType)) {
-        item.reportDate = today;
-      }
-      item.reportDisabled = true; // 填报日期默认禁用
-    });
-    this.billListHis.forEach(item => {
-      if (inList.includes(item.listType)) {
-        item.reportDate = today;
-      }
-      item.reportDisabled = true; // 填报日期默认禁用
-    });
-
-    // 清单表格数据查询
-    await this.inoutReq('_$projid$_');
-    await this.multistkReq('_$projid$_');
-    await this.selfcheckReq('_$projid$_');
-    await this.getCandidates('_$staff_id$_', '_$projid$_'); // 隔离墙操作变动流程 - 查询流程下一节点待办接收人
-
-
-    // 初始化是否禁用新增批次按钮
-    const projlist_status = '_$projlist_status$_';
-    this.isAddBatchDisabled = (projlist_status === '0' || projlist_status === 'ro' || projlist_status === 'rl' || projlist_status === 'rq');
-
-    // 初始化历史批次表格状态
-    this.initHisTableStatus();
-  },
-  mounted: function () {
-    console.log("piid1", this.piid1);
-  },
-  beforeDestroy() {
-  }
-});
-
-
-// ===== comment_q.xwl：serverScript 完整代码 =====
-
-Wb.sendRowx({
-  sql: `select a.*,b.display_name 
-from thjs.tb_projlist_inout_comment a 
-left join basic_thjs.wb_user b
-on a.create_user = b.user_name
-where a.proj_id = {?i_projid?}
-and (a.batch_id = {?i_batchid?} or {?i_batchid?} is null)
-and a.inout_type = {?i_inout_type?}
-and a.inout_direct = {?i_inout_direct?}
-order by a.create_time asc`});

@@ -1,82 +1,77 @@
--- 仅在测试库执行；使用 THJS 账号或有相应权限的 DBA 账号。
--- 来源：data (1).csv 的 ddl 单元格。以下过程正文仅解除 CSV 转义，未改动业务逻辑。
--- 执行前确认相关表字段已补齐，且 BASIC_THJS.WB_USER、THJS.P_WRITE_ERROR_LOG 等依赖在测试库可用。
--- 创建过程不会调用保存逻辑；CREATE OR REPLACE 属于 DDL，会自动提交当前事务。
 
-CREATE OR REPLACE   PROCEDURE "THJS"."P_TH_CLIENT_INFO_S_LXY" (I_CLIENT_ID IN VARCHAR2,
-                                            I_CLIENT_NAME IN VARCHAR2,
-                                            I_ORGAN_FLAG IN VARCHAR2,
-                                            I_ID_TYPE IN VARCHAR2,
-                                            I_ID_NO IN VARCHAR2,
-                                            I_ID_BEGINDATE IN VARCHAR2,
-                                            I_ID_ENDDATE IN VARCHAR2,
-                                            I_CLIENT_BELONG IN VARCHAR2,
-                                            I_NATIONALITY IN VARCHAR2,
-                                            I_BIRTHDAY IN VARCHAR2,
-                                            I_OFFICE_ADDRESS IN VARCHAR2,
-                                            I_PROVINCE IN VARCHAR2,
-                                            I_CITY IN VARCHAR2,
-                                            I_DISTRICT IN VARCHAR2,
-                                            I_REGISTER_COUNTRY IN VARCHAR2,
-                                            I_REGISTER_MONEY_TYPE IN VARCHAR2,
-                                            I_REGISTER_FUND IN VARCHAR2,
-                                            I_INDUSTRY_TYPE IN VARCHAR2,
-                                            I_TEL IN VARCHAR2,
-                                            I_SETUP_DATE IN VARCHAR2,
-                                            I_BUSI_SCOPE IN VARCHAR2,
-                                            I_IS_OBJECT_REPORT IN VARCHAR2,
-                                            I_ASSOCIATED_DATE IN VARCHAR2,
-                                            I_REMARK IN VARCHAR2,
-                                            I_CREATE_USER IN VARCHAR2,
-                                            I_CREATE_TIME IN VARCHAR2,
-                                            I_UPDATE_USER IN VARCHAR2,
-                                            I_UPDATE_TIME IN VARCHAR2,
-                                            I_IS_SPECIAL IN VARCHAR2,
-                                            I_CLIENT_TYPE IN VARCHAR2,
-                                            I_CLIENT_TYPE_OTHER IN VARCHAR2,
-                                            I_SPECIAL_MATTERS IN VARCHAR2,
-                                            I_MISSING_INFORMATION IN VARCHAR2,
-                                            I_MISSING_DRAFT IN VARCHAR2,
-                                            I_SPECIAL_MATTERS_OTHER IN VARCHAR2,
-                                            I_SPECIAL_REASON IN VARCHAR2,
-                                            I_COMPLETED_CDD IN VARCHAR2,
-                                            I_LOW_RISK_EXPLANATION IN VARCHAR2,
-                                            I_TAKE_MEASURES IN VARCHAR2,
-                                            I_COMMUNICATION_RECORDS IN VARCHAR2,
-                                            I_AGREE_RECORDS IN VARCHAR2,
-                                            I_OTHER_RECORDS IN VARCHAR2,
-                                            I_INDUSTRY_TYPE1 IN VARCHAR2,
-                                            I_WORK_TYPE IN VARCHAR2,
-                                            I_CLIENT_STATUS IN VARCHAR2,
-                                            I_DATA_STATUS IN VARCHAR2,
-                                            I_RELATED_PROJ IN VARCHAR2,
-                                            I_IF_RISK_CLIENT IN VARCHAR2,
-                                            I_RISK_LIST_TYPE IN VARCHAR2,
-                                            I_PROBLEM_DESC IN VARCHAR2,
-                                            I_GRADE_VALUE IN VARCHAR2,
-                                            I_GENDER IN VARCHAR2,
-                                            I_INCOME IN VARCHAR2,
-                                            I_PROFESSION_CODE IN VARCHAR2,
-                                            I_POSITION IN VARCHAR2,
-                                            I_WORK_PLACE IN VARCHAR2,
-                                            I_ZIPCODE IN VARCHAR2,
-                                            I_FILLIN_DATE IN VARCHAR2,
-                                            I_ID_ADDRESS IN VARCHAR2,
-                                            I_PROVINCE1 IN VARCHAR2,
-                                            I_CITY1 IN VARCHAR2,
-                                            I_DISTRICT1 IN VARCHAR2,
-                                            I_ADDRESS IN VARCHAR2,
-                                            I_PROVINCE2 IN VARCHAR2,
-                                            I_CITY2 IN VARCHAR2,
-                                            I_DISTRICT2 IN VARCHAR2,
-                                            I_IF_RISK_LIST IN VARCHAR2,
-                                            I_INDUSTRY_NAME IN VARCHAR2, --20260623
-                                            o_return_msg out varchar2,
-                                            o_return_code out integer)
-AS
-    --==============================================================================
-    ----------------------------------------------------------------------------------
-    --固定变量
+  CREATE OR REPLACE PROCEDURE "THJS"."P_TH_CLIENT_INFO_S" (I_CLIENT_ID             IN VARCHAR2,
+                                                      I_CLIENT_NAME           IN VARCHAR2,
+                                                      I_ORGAN_FLAG            IN VARCHAR2,
+                                                      I_ID_TYPE               IN VARCHAR2,
+                                                      I_ID_NO                 IN VARCHAR2,
+                                                      I_ID_BEGINDATE          IN VARCHAR2,
+                                                      I_ID_ENDDATE            IN VARCHAR2,
+                                                      I_CLIENT_BELONG         IN VARCHAR2,
+                                                      I_NATIONALITY           IN VARCHAR2,
+                                                      I_BIRTHDAY              IN VARCHAR2,
+                                                      I_OFFICE_ADDRESS        IN VARCHAR2,
+                                                      I_PROVINCE              IN VARCHAR2,
+                                                      I_CITY                  IN VARCHAR2,
+                                                      I_DISTRICT              IN VARCHAR2,
+                                                      I_REGISTER_COUNTRY      IN VARCHAR2,
+                                                      I_REGISTER_MONEY_TYPE   IN VARCHAR2,
+                                                      I_REGISTER_FUND         IN VARCHAR2,
+                                                      I_INDUSTRY_TYPE         IN VARCHAR2,
+                                                      I_TEL                   IN VARCHAR2,
+                                                      I_SETUP_DATE            IN VARCHAR2,
+                                                      I_BUSI_SCOPE            IN VARCHAR2,
+                                                      I_IS_OBJECT_REPORT      IN VARCHAR2,
+                                                      I_ASSOCIATED_DATE       IN VARCHAR2,
+                                                      I_REMARK                IN VARCHAR2,
+                                                      I_CREATE_USER           IN VARCHAR2,
+                                                      I_CREATE_TIME           IN VARCHAR2,
+                                                      I_UPDATE_USER           IN VARCHAR2,
+                                                      I_UPDATE_TIME           IN VARCHAR2,
+                                                      I_IS_SPECIAL            IN VARCHAR2,
+                                                      I_CLIENT_TYPE           IN VARCHAR2,
+                                                      I_CLIENT_TYPE_OTHER     IN VARCHAR2,
+                                                      I_SPECIAL_MATTERS       IN VARCHAR2,
+                                                      I_MISSING_INFORMATION   IN VARCHAR2,
+                                                      I_MISSING_DRAFT         IN VARCHAR2,
+                                                      I_SPECIAL_MATTERS_OTHER IN VARCHAR2,
+                                                      I_SPECIAL_REASON        IN VARCHAR2,
+                                                      I_COMPLETED_CDD         IN VARCHAR2,
+                                                      I_LOW_RISK_EXPLANATION  IN VARCHAR2,
+                                                      I_TAKE_MEASURES         IN VARCHAR2,
+                                                      I_COMMUNICATION_RECORDS IN VARCHAR2,
+                                                      I_AGREE_RECORDS         IN VARCHAR2,
+                                                      I_OTHER_RECORDS         IN VARCHAR2,
+                                                      I_INDUSTRY_TYPE1        IN VARCHAR2,
+                                                      I_WORK_TYPE             IN VARCHAR2,
+                                                      I_CLIENT_STATUS         IN VARCHAR2,
+                                                      I_DATA_STATUS           IN VARCHAR2,
+                                                      I_RELATED_PROJ          IN VARCHAR2,
+                                                      I_IF_RISK_CLIENT        IN VARCHAR2,
+                                                      I_RISK_LIST_TYPE        IN VARCHAR2,
+                                                      I_PROBLEM_DESC          IN VARCHAR2,
+                                                      I_GRADE_VALUE           IN VARCHAR2,
+                                                      I_GENDER                IN VARCHAR2,
+                                                      I_INCOME                IN VARCHAR2,
+                                                      I_PROFESSION_CODE       IN VARCHAR2,
+                                                      I_POSITION              IN VARCHAR2,
+                                                      I_WORK_PLACE            IN VARCHAR2,
+                                                      I_ZIPCODE               IN VARCHAR2,
+                                                      I_FILLIN_DATE           IN VARCHAR2,
+                                                      I_ID_ADDRESS            IN VARCHAR2,
+                                                      I_PROVINCE1             IN VARCHAR2,
+                                                      I_CITY1                 IN VARCHAR2,
+                                                      I_DISTRICT1             IN VARCHAR2,
+                                                      I_ADDRESS               IN VARCHAR2,
+                                                      I_PROVINCE2             IN VARCHAR2,
+                                                      I_CITY2                 IN VARCHAR2,
+                                                      I_DISTRICT2             IN VARCHAR2,
+                                                      I_IF_RISK_LIST          IN VARCHAR2,
+                                                      I_INDUSTRY_NAME         IN VARCHAR2, --20260623
+                                                      o_return_msg            out varchar2,
+                                                      o_return_code           out integer) AS
+  --==============================================================================
+  ----------------------------------------------------------------------------------
+  --固定变量
     v_userexp      exception;                                   -- 用户定义错
     v_tradedate    varchar2(8);                                 -- 任务执行时间(业务日期)
     v_exec_func_id integer default '0';                         -- 任务id
@@ -91,47 +86,44 @@ AS
     v_count  number;
     v_samename_count number default 0;
     v_address_flag char(1); --办公住所标识
-    
-    --==============================================================================
-    ---------------------------------------------------------------------------------------
+  --==============================================================================
+  ---------------------------------------------------------------------------------------
 BEGIN
 
-	--add by lxy 增加校验 
+  --add by lxy 增加校验 
      
- 	--机构户不可重名，单独校验
- 	if I_ORGAN_FLAG = '1' THEN
- 	
- 		--不同CLIENT_ID，同一客户名称，返回错误
-    	select count(1)
-      	into v_samename_count
-      	from thjs.t_th_client_info t
-     	where t.client_id <> I_CLIENT_ID
-       	and trim(t.client_name) = trim(I_CLIENT_NAME)
-       	and t.client_belong='1';
+   --机构户不可重名，单独校验
+   if I_ORGAN_FLAG = '1' THEN
+   
+     --不同CLIENT_ID，同一客户名称，返回错误
+      select count(1)
+        into v_samename_count
+        from thjs.t_th_client_info t
+       where t.client_id <> I_CLIENT_ID
+         and trim(t.client_name) = trim(I_CLIENT_NAME);
   
-    	if v_samename_count > 0 then
-      		o_return_msg  := '已存在同名客户信息，无法保存！';
-      		o_return_code := -1;
-      		return;
-    	end if;
-    	
+      if v_samename_count > 0 then
+          o_return_msg  := '已存在同名客户信息，无法保存！';
+          o_return_code := -1;
+          return;
+      end if;
+      
     end if;
   
-    	--不同CLIENT_ID，同一统一社会信用代码，返回错误
+      --不同CLIENT_ID，同一统一社会信用代码，返回错误
     select count(1)
       into v_samename_count
       from thjs.t_th_client_info t
      where t.client_id <> I_CLIENT_ID
-       and trim(t.id_no) = trim(I_ID_NO)
-       and t.client_belong='1';
+       and trim(t.id_no) = trim(I_ID_NO);
   
     if v_samename_count > 0 then
-      	o_return_msg  := '证件号码重复，如需更新客户名称请修改客户！';
-      	o_return_code := -1;
-      	return;
+        o_return_msg  := '统一社会信用代码重复，如需更新客户名称请修改客户！';
+        o_return_code := -1;
+        return;
     end if;
   
-    select case
+   /* select case
             when c.cust_name is null then
              '1'
             else
@@ -140,7 +132,7 @@ BEGIN
       into v_address_flag
       from dual
       left join thjs.tb_fxq_cust_rz_ctrl c
-       on c.cust_id = I_CLIENT_ID;
+       on c.cust_id = I_CLIENT_ID;*/
 
 -----------end------
     SELECT COUNT(*)
@@ -151,32 +143,25 @@ BEGIN
      
     select count(1)
     into v_count
-    from basic_thjs.wb_user u
+    from wolf.wb_user u
     where u.user_id = I_UPDATE_USER;
     
     if v_count > 0 THEN
-    	select u.user_name 
-    	INTO v_update_name
-        from basic_thjs.WB_USER u
+      select u.user_name 
+      INTO v_update_name
+        from wolf.WB_USER u
         where u.user_id = I_UPDATE_USER;
     end if;
      
     -- 将关联人临时表数据存入正式表
-    INSERT INTO thjs.T_TH_RELAT_INFO(CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,BO_TYPE,COMPANY_TYPE,FULL_INFO_FLAG)
-		SELECT CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,BO_TYPE,COMPANY_TYPE,FULL_INFO_FLAG
-		 FROM thjs.t_th_relat_info_tmp b
-    	WHERE b.client_id = I_CLIENT_ID;
-    	
+    INSERT INTO thjs.T_TH_RELAT_INFO
+    SELECT * FROM thjs.t_th_relat_info_tmp b
+      WHERE b.client_id = I_CLIENT_ID;
+      
     -- 更新关联人正式表数据状态
     UPDATE thjs.T_TH_RELAT_INFO
     SET DATA_STATUS = '1'
     WHERE CLIENT_ID = I_CLIENT_ID;
-    
-    --插入历史表
-    insert into thjs.T_TH_RELAT_INFO_his(CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,BO_TYPE,COMPANY_TYPE,FULL_INFO_FLAG)
-    SELECT CLIENT_ID,RELATED_ID,RELATED_TYPE,ORGAN_FLAG,RELATED_NAME,NATIONALITY,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,BIRTHDAY,SHAREHOLDING_RATIO,BENEFICIARY,ADDRESS,IS_GOVERNMENT_DEPT,OBJECT_ID,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,RELATED_KEY,DATA_STATUS,GENDER,MOBNO1,MOBNO2,ACTCTRL,ACTHDRAT,SHARERATIOSTARTDATE,SHARERATIOENDDATE,ACTCTRLCPNY,ACTCTRLTYPE,OBTAINACTDATE,TERMINATIONACTDATE,ACTOTHERFORMS,ACTCONUPPERMARKET,ACTCONUPPERENTNAME,ACTCONUNISCID,PRIBENFIT,ACTOWNERPROFITRATIO,PROFITRATIOSTARTDATE,PROFITRATIOENDDATE,ACTOWNERPROFITRATIOVOTE,PROFITRATIOVOTESTARTDATE,PROFITRATIOVOTEENDDATE,SENIORMGR,SENIORMGRPOS,ACTDAILYMGMTPOSTOTHER,SENIORMGRCN,SENIORMGRPOSCN,OWNERRIGHTMGMTPOSTOTHER,BNF_TYPE,BO_TYPE,COMPANY_TYPE,FULL_INFO_FLAG
-		 FROM thjs.t_th_relat_info_tmp b
-    	WHERE b.client_id = I_CLIENT_ID;
     
     -- 删除关联人临时表中该客户的关联人信息
     DELETE FROM THJS.T_TH_RELAT_INFO_TMP WHERE client_id = I_CLIENT_ID;
@@ -298,7 +283,7 @@ BEGIN
                I_OTHER_RECORDS,
                I_INDUSTRY_TYPE1,
                I_WORK_TYPE,
-               NVL(NULLIF(TRIM(I_CLIENT_STATUS), ''), '0'), -- 入参空时默认正常，避免绕过表 DEFAULT
+               I_CLIENT_STATUS,
                I_DATA_STATUS,
                I_RELATED_PROJ,
                I_IF_RISK_CLIENT,
@@ -322,8 +307,8 @@ BEGIN
                I_DISTRICT2,
                I_IF_RISK_LIST,
                case
-               	when I_CREATE_USER = 'admin' then '测试'
-               	else '投行'
+                 when I_CREATE_USER = 'admin' then '测试'
+                 else '投行'
                end,
                I_INDUSTRY_NAME
                );
@@ -331,12 +316,12 @@ BEGIN
         COMMIT;
         
         -- 初次填报时将初始信息插入his日志表 add by chengjing 20260703
-        INSERT INTO THJS.T_TH_CLIENT_INFO_HIS(CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME)
+        /*INSERT INTO THJS.T_TH_CLIENT_INFO_HIS(CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME)
          SELECT CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME 
          FROM THJS.T_TH_CLIENT_INFO 
          WHERE CLIENT_ID = I_CLIENT_ID;
         
-        COMMIT;
+        COMMIT;*/
         
         -- 初次填报时插入填报人维护表 add by chengjing 20251127
         INSERT INTO THJS.T_MAINTAINER_INFO (CLIENT_ID,
@@ -355,10 +340,10 @@ BEGIN
         
     ELSE
     	-- 更新正式表数据前 将原先数据插入到his日志表 add by chengjing 20260703
-    	INSERT INTO THJS.T_TH_CLIENT_INFO_HIS(CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME)
+    	/*INSERT INTO THJS.T_TH_CLIENT_INFO_HIS(CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME)
          SELECT CLIENT_ID,CLIENT_NAME,ORGAN_FLAG,ID_TYPE,ID_NO,ID_BEGINDATE,ID_ENDDATE,CLIENT_BELONG,NATIONALITY,BIRTHDAY,OFFICE_ADDRESS,PROVINCE,CITY,DISTRICT,REGISTER_COUNTRY,REGISTER_MONEY_TYPE,REGISTER_FUND,INDUSTRY_TYPE,TEL,SETUP_DATE,BUSI_SCOPE,IS_OBJECT_REPORT,ASSOCIATED_DATE,REMARK,CREATE_USER,CREATE_TIME,UPDATE_USER,UPDATE_TIME,IS_SPECIAL,CLIENT_TYPE,CLIENT_TYPE_OTHER,SPECIAL_MATTERS,MISSING_INFORMATION,MISSING_DRAFT,SPECIAL_MATTERS_OTHER,SPECIAL_REASON,COMPLETED_CDD,LOW_RISK_EXPLANATION,TAKE_MEASURES,COMMUNICATION_RECORDS,AGREE_RECORDS,OTHER_RECORDS,INDUSTRY_TYPE1,WORK_TYPE,CLIENT_STATUS,DATA_STATUS,RELATED_PROJ,IF_RISK_CLIENT,RISK_LIST_TYPE,PROBLEM_DESC,GRADE_VALUE,GENDER,INCOME,PROFESSION_CODE,POSITION,WORK_PLACE,ZIPCODE,FILLIN_DATE,ID_ADDRESS,PROVINCE1,CITY1,DISTRICT1,ADDRESS,PROVINCE2,CITY2,DISTRICT2,IF_RISK_LIST,CUST_BIZ,INDUSTRY_NAME 
     	FROM THJS.T_TH_CLIENT_INFO WHERE CLIENT_ID = I_CLIENT_ID;
-        COMMIT;
+        COMMIT;*/
         
         -- 更新正式表数据
         UPDATE 
@@ -369,7 +354,7 @@ BEGIN
                A.ID_NO = I_ID_NO,
                A.ID_BEGINDATE = I_ID_BEGINDATE,
                A.ID_ENDDATE = I_ID_ENDDATE,
-              -- A.CLIENT_BELONG = I_CLIENT_BELONG,
+               A.CLIENT_BELONG = I_CLIENT_BELONG,
                A.NATIONALITY = I_NATIONALITY,
                A.BIRTHDAY = I_BIRTHDAY,
                A.OFFICE_ADDRESS = I_OFFICE_ADDRESS,
@@ -447,14 +432,14 @@ when v_userexp then
     v_sqlerrm := sqlerrm;
     v_sqlcode := sqlcode;
     v_sqlerrl := dbms_utility.format_error_backtrace();
-    THJS.p_write_error_log(i_tradedate    => v_tradedate,
+  /*  THJS.p_write_error_log(i_tradedate    => v_tradedate,
                                 i_exec_func_id => v_exec_func_id,
                                 i_func_own     => v_func_own,
                                 i_func_name    => v_func_name,
                                 i_occur_time   => sysdate,
                                 i_sqlerrm      => v_sqlerrm,
                                 i_sqlcode      => v_sqlcode,
-                                i_sqlerrl      => v_sqlerrl);
+                                i_sqlerrl      => v_sqlerrl);*/
     commit;
     raise;
     -- 预定义异常处理
@@ -463,31 +448,14 @@ when others then
     v_sqlerrm := sqlerrm;
     v_sqlcode := sqlcode;
     v_sqlerrl := dbms_utility.format_error_backtrace();
-    THJS.p_write_error_log(i_tradedate    => v_tradedate,
+    /*THJS.p_write_error_log(i_tradedate    => v_tradedate,
                                 i_exec_func_id => v_exec_func_id,
                                 i_func_own     => v_func_own,
                                 i_func_name    => v_func_name,
                                 i_occur_time   => sysdate,
                                 i_sqlerrm      => v_sqlerrm,
                                 i_sqlcode      => v_sqlcode,
-                                i_sqlerrl      => v_sqlerrl);
+                                i_sqlerrl      => v_sqlerrl);*/
     commit;
     raise;
 END;
-/
-
--- 预期 STATUS = VALID。
-SELECT owner, object_name, object_type, status
-FROM all_objects
-WHERE owner = 'THJS'
-  AND object_name = 'P_TH_CLIENT_INFO_S_LXY'
-  AND object_type = 'PROCEDURE';
-
--- 预期无记录。若有错误，先处理错误再测试保存。
-SELECT line, position, text
-FROM all_errors
-WHERE owner = 'THJS'
-  AND name = 'P_TH_CLIENT_INFO_S_LXY'
-  AND type = 'PROCEDURE'
-ORDER BY sequence;
-

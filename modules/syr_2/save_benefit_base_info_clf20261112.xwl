@@ -1,0 +1,15 @@
+{
+  "title": "保存受益人基础信息",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var clientId = Wb.get('client_id');\nvar companyType = Wb.get('company_type');\nvar fullInfoFlag = Wb.get('full_info_flag');\nvar conn;\nvar rs = { O_RETURN_CODE: 0, O_RETURN_MSG: '', PERSISTED: false, BASE_INFO: null };\n\nfunction baseText(value) {\n  return value == null ? '' : String(value).trim();\n}\n\nclientId = baseText(clientId);\ncompanyType = baseText(companyType);\nfullInfoFlag = baseText(fullInfoFlag);\n\ntry {\n  if (!clientId) { throw new Error('客户号不能为空'); }\n  if (!companyType) { throw new Error('请选择企业性质'); }\n  if (fullInfoFlag !== '' && fullInfoFlag !== '01' && fullInfoFlag !== '02') {\n    throw new Error('客户信息披露情况不正确');\n  }\n\n  var boType = ['1', '2', '3', '4', '5', '6'].indexOf(companyType.charAt(0)) >= 0 ? '1' : '2';\n  var params = {\n    client_id: clientId,\n    company_type: companyType,\n    bo_type: boType,\n    full_info_flag: fullInfoFlag\n  };\n\n  conn = Wb.getConn();\n  var rows = Wb.getRowx({\n    sql: `\nselect company_type, bo_type, full_info_flag\n  from thjs.T_TH_RELAT_INFO\n where client_id = {?client_id?} and related_type = '5'\nunion all\nselect company_type, bo_type, full_info_flag\n  from thjs.T_TH_RELAT_INFO_TMP\n where client_id = {?client_id?} and related_type = '5'\n`,\n    params: { client_id: clientId }\n  }).items;\n\n  if (rows.length > 0) {\n    var needsSupplement = rows.some(function (row) {\n      return !baseText(row.company_type) || !baseText(row.bo_type);\n    });\n    if (!needsSupplement) {\n      throw new Error('基础信息已完整，如需编辑，请先删除当前所有受益人');\n    }\n\n    var changesExisting = rows.some(function (row) {\n      return baseText(row.company_type) && baseText(row.bo_type) &&\n        (baseText(row.company_type) !== companyType ||\n         baseText(row.full_info_flag) !== fullInfoFlag);\n    });\n    if (changesExisting) {\n      throw new Error('补录须沿用已有受益人保存的基础信息，请刷新页面后重试');\n    }\n\n    var updateBody = `\n   set company_type = {?company_type?},\n       bo_type = {?bo_type?},\n       full_info_flag = {?full_info_flag?}\n where client_id = {?client_id?} and related_type = '5'\n`;\n    Wb.sql({\n      sql: 'update thjs.T_TH_RELAT_INFO ' + updateBody,\n      params: params,\n      trans: true,\n      commit: false\n    });\n    Wb.sql({\n      sql: 'update thjs.T_TH_RELAT_INFO_TMP ' + updateBody,\n      params: params,\n      trans: true,\n      commit: false\n    });\n    conn.commit();\n    rs.PERSISTED = true;\n  }\n\n  rs.BASE_INFO = params;\n  rs.O_RETURN_MSG = rs.PERSISTED ? '基础信息保存成功' : '基础信息暂存于页面，随首位受益人提交一起保存';\n} catch (e) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = '基础信息保存失败：' + (e.message || e);\n  if (conn) { conn.rollback(); }\n} finally {\n  if (conn) { conn.close(); }\n  Wb.send(rs);\n}\n"
+  },
+  "_icon": "module",
+  "items": []
+}

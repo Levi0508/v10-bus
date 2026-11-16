@@ -184,15 +184,18 @@ BEGIN
            fp.workno,
            fp.empname,
            fp.ground_time,
-           u.staff_id,
+           nvl(u.staff_id, u1.staff_id) as staff_id,
            d.DEPT_NAME
       from thjs.tb_ib_v_finance_projmember fp
-     inner join basic_th.wb_user u
+      left join basic_thjs.wb_user u
         on u.user_id = fp.workno
+      left join basic_thjs.wb_user_hg u1
+        on u1.user_id = fp.workno
+       and u.user_id is null
      INNER JOIN EHR01.TCL_V_DEPT_INFO_HGFK d
-        ON u.dept_id=d.dept_id
+        ON nvl(u.dept_id, u1.dept_id)=d.dept_id
      where fp.projrole = '项目负责人'
-       and (u.user_name like '%' || i_director || '%' or
+       and (nvl(u.user_name, u1.user_name) like '%' || i_director || '%' or
            fp.empname like '%' || i_director || '%');
   commit;
   

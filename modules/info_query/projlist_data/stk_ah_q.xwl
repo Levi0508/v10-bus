@@ -1,0 +1,14 @@
+{
+  "title": "项目A股对应港股查询",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "Wb.sendRowx(`select distinct s_info_compname as comp_name,\n       h_s_info_name as stk_name,\n       h_s_info_code as stk_code\n  from thjs.vw_wind_stk_ah\n where (a_s_info_windcode = upper(trim({?i_stk_code?}))\n        or a_s_info_code = trim({?i_stk_code?}))\n   and h_s_info_code is not null`);"
+  },
+  "_icon": "module"
+}

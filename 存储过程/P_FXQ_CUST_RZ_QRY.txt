@@ -15,7 +15,8 @@ CREATE OR REPLACE PROCEDURE "THJS"."P_FXQ_CUST_RZ_QRY" (rt_cursor       out sys_
                                                    i_order		   in char,
                                                    o_total_count   out integer,
                                                    o_return_msg    out varchar2,
-                                                   o_return_code   out integer)
+                                                   o_return_code   out integer,
+                                                   i_maintainer_staff_id in varchar2 default null)
 AS
   --版    权：GTJA
   --版    本：1.0.0
@@ -110,6 +111,7 @@ BEGIN
                and (i_is_risk is null or nvl(f.is_riskcust, '否') =
                    decode(i_is_risk, '1', '是', '否'))
                and (i_grade_value is null or cr.grade_value = i_grade_value)
+               and (i_maintainer_staff_id is null or nvl(c.staff_id,c1.staff_id) = i_maintainer_staff_id)
                and (instr(a.NEW_MAINTAINER, i_maintainer) > 0 or instr(nvl(c.display_name,c1.display_name),i_maintainer) > 0
                 or i_maintainer is null));
   
@@ -260,7 +262,7 @@ BEGIN
                             r.data_status as data_type,
                             decode(r.organ_flag, ''机构'', ''1'', ''0'') as organ_flag, --客户类型:0-机构，1-自然人
                             u.user_id as work_no,
-                            u.staff_id,
+                            nvl(u.staff_id,h.staff_id) as staff_id,
                             o.new_maintainer as new_maintainer_id,--维护人
                             nvl(u.display_name,h.display_name) as new_maintainer, --填报人名称
                             nvl(u.user_name,h.user_name) || ''-'' || nvl(u.display_name,h.display_name) as op_user_desc,
@@ -505,7 +507,8 @@ BEGIN
                         and (''' || i_client_status || ''' is null or
                             instr(''' || i_client_status || ''', r.status) > 0)
                			and (instr(o.NEW_MAINTAINER, ''' || i_maintainer || ''') > 0 or instr(nvl(u.display_name,h.display_name),''' || i_maintainer || ''') > 0
-                		 or ''' || i_maintainer || ''' is null)) t
+                		 or ''' || i_maintainer || ''' is null)
+                        and (:maintainer_staff_id is null or nvl(u.staff_id,h.staff_id) = :maintainer_staff_id)) t
             --v101+ end
             ) r
     /*left join thjs.tb_dict_entry d
@@ -527,7 +530,7 @@ BEGIN
         on cu.user_name = r.create_user*/';
   
   --dbms_output.put_line(v_sql);
-  execute immediate v_sql;
+  execute immediate v_sql using i_maintainer_staff_id, i_maintainer_staff_id;
   
   open rt_cursor for
     select r.*,

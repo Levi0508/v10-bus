@@ -150,6 +150,17 @@
                 "placeholder": "请输入维护人"
               },
               "hasDupCid": 0
+            },
+            {
+              "_icon": "text",
+              "text": "MAINTAINER_STAFF_ID",
+              "cls": "Wb.Text",
+              "properties": {
+                "cid": "MAINTAINER_STAFF_ID",
+                "text": "维护人工号",
+                "placeholder": "请输入完整维护人工号",
+                "clearButton": "true"
+              }
             }
           ]
         },
@@ -443,7 +454,7 @@
                     "height": "30px"
                   },
                   "events": {
-                    "click": "app.CLIENT_BELONG.setValue('');\napp.GRADE_VALUE.setValue('');\napp.IF_RISK_LIST.setValue('');\napp.CLIENT_NAME.setValue('');"
+                    "click": "app.CLIENT_BELONG.setValue('');\napp.GRADE_VALUE.setValue('');\napp.IF_RISK_LIST.setValue('');\napp.CLIENT_NAME.setValue('');\napp.MAINTAINER_STAFF_ID.setValue('');"
                   }
                 },
                 {

@@ -88,11 +88,8 @@ BEGIN
                 on f.cust_id = r.client_id
                and f.flow_staus = '1' --流程已结束
                and f.rn = 1
-              left join (select a.*,
-                               row_number() over(partition by a.client_id order by a.update_time desc) as rn
-                          from thjs.T_MAINTAINER_INFO a) a
+              left join thjs.T_MAINTAINER_INFO a
                 on r.client_id = a.client_id
-               and a.rn = 1
               LEFT JOIN basic_thjs.wb_user c
                 on a.new_maintainer = c.user_name
               LEFT JOIN basic_thjs.wb_user_hg c1
@@ -325,7 +322,7 @@ BEGIN
 							ib.projtype,
 							r.industry_name,
 							-- 新字段供分页排序使用，不写入临时表。
-							nvl((select max(a.op_time)
+										nvl((select max(a.op_time)
 							       from thjs.tb_fxq_cust_active_log a
 							      where a.cust_id = r.client_id
 							        and a.status = ''0''
@@ -344,7 +341,7 @@ BEGIN
 							                  from thjs.tb_fxq_interface_log q
 							                 where q.log_key = f.log_key
 							                   and q.log_type = ''0''
-							                   and q.log_time <= f.log_time))) as workroom_submit_time
+							                and q.log_time <= f.log_time))) as workroom_submit_time
                        from thjs.vw_fxq_cust_info r --thjs.vw_fxq_cust_info r
                        left join (select * from (select his.*,
                     row_number() over( 
@@ -353,11 +350,8 @@ BEGIN
                from thjs.t_th_client_info_his his 
               where his.data_status=''0'' ) WHERE rn=1) his
                        		on his.client_id = r.client_id
-                       left join (select o.*,
-                                        row_number() over(partition by o.client_id order by o.update_time desc) as rn
-                                   from thjs.t_maintainer_info o) o  --thjs.Tb_Fxq_Cust_Operator o
+                       left join thjs.t_maintainer_info o  --thjs.Tb_Fxq_Cust_Operator o
                          on o.client_id = r.client_id
-                        and o.rn = 1
                        left join basic_thjs.wb_user u
                          on o.new_maintainer = u.user_name
                        left join basic_thjs.wb_user_hg h
@@ -534,7 +528,7 @@ BEGIN
   
   open rt_cursor for
     select r.*,
-           nvl((select max(a.op_time)
+       nvl((select max(a.op_time)
                   from thjs.tb_fxq_cust_active_log a
                  where a.cust_id = r.client_id
                    and a.status = '0'
@@ -553,7 +547,11 @@ BEGIN
                              from thjs.tb_fxq_interface_log q
                             where q.log_key = f.log_key
                               and q.log_type = '0'
-                              and q.log_time <= f.log_time))) as workroom_submit_time
+                            and q.log_time <= f.log_time))) as workroom_submit_time
+    
+    
+    
+    
       from thjs.t_th_client_info_tmp r
      where r.rn > v_page_num
        and r.rn <= v_page_num + v_page_size

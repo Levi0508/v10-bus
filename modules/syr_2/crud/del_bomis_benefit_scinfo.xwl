@@ -1,0 +1,15 @@
+{
+  "title": "删除bomis受益人信息",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var benefit_scinfo = Wb.getObject('benefit_scinfo') || {};\nvar client_id = Wb.get('client_id') || '';\nvar related_id = benefit_scinfo.related_id || Wb.get('related_id') || '';\n\nvar rs = {\n  O_RETURN_CODE: 0,\n  O_RETURN_MSG: ''\n};\n\nif (!related_id) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = '受益人 related_id 不能为空，请刷新后重试';\n  Wb.send(rs);\n} else if (client_id === '') {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = '客户号不能为空，请重填';\n  Wb.send(rs);\n} else {\n  var delParams = {\n    client_id: client_id,\n    related_id: related_id\n  };\n\n  var delSql = `\ndelete from thjs.T_TH_RELAT_INFO\nwhere client_id = {?client_id?} and related_id = {?related_id?} and related_type = '5'\n`;\n\n  var delTmpSql = `\ndelete from thjs.T_TH_RELAT_INFO_tmp\nwhere client_id = {?client_id?} and related_id = {?related_id?} and related_type = '5'\n`;\n\n  var conn;\n  try {\n    conn = Wb.getConn();\n\n    Wb.sql({ sql: delSql, params: delParams, trans: true, commit: false });\n    Wb.sql({ sql: delTmpSql, params: delParams, trans: true, commit: false });\n\n    conn.commit();\n    rs.O_RETURN_MSG = '执行成功';\n  } catch (e) {\n    rs.O_RETURN_CODE = -1;\n    rs.O_RETURN_MSG = '删除失败：' + e;\n    if (conn) {\n      conn.rollback();\n    }\n  } finally {\n    if (conn) {\n      conn.close();\n    }\n    Wb.send(rs);\n  }\n}"
+  },
+  "_icon": "module",
+  "items": []
+}

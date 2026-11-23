@@ -1,0 +1,14 @@
+{
+  "title": "删除bomis受益人信息",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "false",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "var benefit_scinfo = Wb.getObject('benefit_scinfo') || [];\nvar client_id = Wb.get('client_id') || '';\nlet conn;\n\nvar rs = {\n  O_RETURN_CODE: 0,\n  O_RETURN_MSG: ''\n};\n\nif (benefit_scinfo === {}) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = '受益人数据不能为空，请重填';\n}\nif (client_id === '') {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = '客户号不能为空，请重填';\n}\n\nvar delSql = `\ndelete from thjs.T_TH_RELAT_INFO\nwhere client_id = {?client_id?} and related_id = {?related_id?}\n`;\n\ntry {\n  conn = Wb.getConn();\n\n  Wb.sql({\n    sql: delSql,\n    params: { client_id: client_id, related_id: benefit_scinfo.related_id },\n    trans: true,\n    commit: false\n  });\n\n\n  // conn.commit();\n  rs.O_RETURN_CODE = 0;\n  rs.O_RETURN_MSG = \"执行成功\";\n} catch (e) {\n  rs.O_RETURN_CODE = -1;\n  rs.O_RETURN_MSG = \"保存失败：\" + e;\n  conn.rollback();\n} finally {\n  conn.close();\n  Wb.send(rs);\n\n}\n"
+  },
+  "_icon": "module"
+}

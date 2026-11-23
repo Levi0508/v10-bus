@@ -1,0 +1,14 @@
+{
+  "title": "保存审核意见",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "// [BOMIS核验暂隐] 本次不上线 bomis_check_result、bomis_resp_id、piid 三个字段。\n// 复原：删除下面这段生效的 SQL，并取消最下方完整 SQL 的注释。\nWb.sendRowx(`insert into thjs.t_th_appr_list(\n  client_id,\n  audit_id,\n  remark,\n  create_user,\n  create_time\n) values (\n  {?CLIENT_ID?},\n  {?AUDIT_ID?},\n  {?REMARK?},\n  {?CREATE_USER?},\n  sysdate\n)`);\n\n// Wb.sendRowx(`insert into thjs.t_th_appr_list(\n//   client_id,\n//   audit_id,\n//   remark,\n//   create_user,\n//   create_time,\n//   bomis_check_result,\n//   bomis_resp_id,\n//   piid\n// ) values (\n//   {?CLIENT_ID?},\n//   {?AUDIT_ID?},\n//   {?REMARK?},\n//   {?CREATE_USER?},\n//   sysdate,\n//   {?BOMIS_CHECK_RESULT?},\n//   {?BOMIS_RESP_ID?},\n//   {?PIID?}\n// )`);"
+  },
+  "_icon": "module"
+}

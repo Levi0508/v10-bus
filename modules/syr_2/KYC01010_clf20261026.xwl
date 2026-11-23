@@ -92,7 +92,7 @@
                 "padding": "20"
               },
               "events": {
-                "ok": "if (app.ORGAN_FLAG.value == -1 || app.ORGAN_FLAG.value == null) {\n  Wb.tipError(\"请选择客户类型！\");\n  return;\n}\n\nWb.open({\n  url: 'm?xwl=syr_2/client_add_clf20261026',\n  params: {\n    CLIENT_ID: app.CLIENT_ID.value,\n    CLIENT_NAME: app.CLIENT_NAME.value,\n    ORGAN_FLAG: app.ORGAN_FLAG.value,\n    CLIENT_BELONG: app.CLIENT_BELONG.value,\n    FK_FLAG: app.FK_FLAG.value,\n    CLIENT_STATUS: '0',// 首次添加默认正常\n  },\n  title: '填写客户信息',\n  success() {\n    app.addWin.hide()\n  }\n});"
+                "ok": "if (app.ORGAN_FLAG.value == -1 || app.ORGAN_FLAG.value == null) {\n  Wb.tipError(\"请选择客户类型！\");\n  return;\n}\n\nconst params = {\n  CLIENT_ID: app.CLIENT_ID.value,\n  CLIENT_NAME: app.CLIENT_NAME.value,\n  ORGAN_FLAG: app.ORGAN_FLAG.value,\n  CLIENT_BELONG: app.CLIENT_BELONG.value,\n  FK_FLAG: app.FK_FLAG.value,\n  CLIENT_STATUS: '0',// 首次添加默认正常\n};\nconst query = Object.keys(params)\n  .filter(key => params[key] !== undefined && params[key] !== null)\n  .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))\n  .join('&');\nconst url = 'wb/ks/index.html#/aml/client_add?' + query;\nconst tab = Globals.WbMainTab;\nif (tab) {\n  const card = tab.insertAfter({ icon: 'module', title: '填写客户信息', path: ':', layout: 'fit', ksV10Page: true }, tab.activeCard);\n  card.el.innerHTML = '<iframe class=\"w-iframe\"></iframe>';\n  card.el.firstChild.src = url;\n  card.show();\n} else if (!window.open(url, '_blank')) {\n  return;\n}\napp.addWin.hide();"
               },
               "items": [
                 {

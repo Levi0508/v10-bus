@@ -1,0 +1,15 @@
+{
+  "title": "我填报的反洗钱客户查询（新版）",
+  "icon": "",
+  "img": "",
+  "tags": "",
+  "hideInMenu": "true",
+  "text": "module",
+  "cls": "Wb.Module",
+  "properties": {
+    "cid": "module",
+    "serverScript": "const snapshotSql = `\nwith latest_version as (\n  select v.client_id, v.ver_id, v.dft_status,\n         row_number() over (partition by v.client_id order by v.ver_no desc) as version_rank\n    from thjs.t_th_client_dft_ver v\n), active_draft as (\n  select d.*, v.dft_status\n    from latest_version v\n    join thjs.t_th_client_info_dft d on d.ver_id = v.ver_id\n   where v.version_rank = 1 and v.dft_status in ('0', '1', '2')\n), current_client as (\n  select d.client_id, d.client_name, d.client_belong, d.organ_flag, d.industry_type,\n         d.work_type, d.update_time, d.data_status, f.client_status, d.related_proj,\n         d.ver_id, d.dft_status, case when f.client_id is null then '0' else '1' end as has_formal\n    from active_draft d\n    left join thjs.t_th_client_info f on f.client_id = d.client_id\n  union all\n  select f.client_id, f.client_name, f.client_belong, f.organ_flag, f.industry_type,\n         f.work_type, f.update_time, f.data_status, f.client_status, f.related_proj,\n         cast(null as varchar(32)), cast(null as char(1)), '1'\n    from thjs.t_th_client_info f\n   where not exists (select 1 from active_draft d where d.client_id = f.client_id)\n)`;\n\nconst filters = `\n  from current_client b\n where b.client_belong = '1'\n   and ({?sys.username?} = 'admin' or exists (\n     select 1 from thjs.t_maintainer_info m\n      where m.client_id = b.client_id and m.new_maintainer = {?sys.username?}\n   ))\n   and ({?CLIENT_NAME?} is null or b.client_name like '%' || {?CLIENT_NAME?} || '%')\n   and ({?WORK_TYPE?} is null or b.work_type = {?WORK_TYPE?})\n   and ({?CLIENT_STATUS?} is null or b.client_status = {?CLIENT_STATUS?})`;\n\nconst order = Wb.getOrderSql({ $: 'b' }) || ' order by b.client_id desc';\nWb.sendRowx({\n  sql: `${snapshotSql}\n    select p.* from (\n      select b.*, row_number() over (${order}) as page_row\n      ${filters}\n    ) p\n    where p.page_row > nvl({?bigint|_from?}, 0)\n      and p.page_row <= nvl({?bigint|_to?}, 99) + 1\n    order by p.page_row`,\n  total: `${snapshotSql} select count(1) ${filters}`,\n  paging: false,\n  kv: {\n    client_belong: 'client_belong',\n    organ_flag: 'organ_flag',\n    industry_type: 'industry_type',\n    work_type: 'work_type',\n    client_status: 'client_status'\n  }\n});\n"
+  },
+  "_icon": "module",
+  "_expanded": true
+}

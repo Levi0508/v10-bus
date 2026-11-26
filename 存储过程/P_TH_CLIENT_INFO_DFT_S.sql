@@ -22,6 +22,9 @@ CREATE TABLE "THJS"."T_TH_CLIENT_DFT_VER" (
   "CALLBACK_USER"    VARCHAR(50),
   "CALLBACK_STATUS"  CHAR(1),
   "REMARK"           VARCHAR(1000),
+  "BENEFIT_COMPANY_TYPE" VARCHAR2(20),
+  "BENEFIT_BO_TYPE" VARCHAR2(20),
+  "BENEFIT_FULL_INFO_FLAG" VARCHAR2(20),
   CONSTRAINT "PK_TH_CLIENT_DFT_VER" PRIMARY KEY ("VER_ID")
 ) STORAGE(ON "TS_BASIC_THJS", CLUSTERBTR);
 
@@ -154,15 +157,19 @@ CREATE TABLE "THJS"."T_TH_RELAT_INFO_DFT" (
   "PROFITRATIOVOTESTARTDATE" TIMESTAMP(0),
   "PROFITRATIOVOTEENDDATE" TIMESTAMP(0),
   "SENIORMGR" VARCHAR2(2),
-  "SENIORMGRPOS" VARCHAR2(10),
+  "SENIORMGRPOS" VARCHAR2(32),
   "ACTDAILYMGMTPOSTOTHER" VARCHAR2(48),
   "SENIORMGRCN" VARCHAR2(2),
   "SENIORMGRPOSCN" VARCHAR2(10),
   "OWNERRIGHTMGMTPOSTOTHER" VARCHAR2(48),
-  "BNF_TYPE" VARCHAR2(20),
+  "BNF_TYPE" VARCHAR2(64),
   "BO_TYPE" VARCHAR2(5),
   "COMPANY_TYPE" VARCHAR2(5),
   "FULL_INFO_FLAG" VARCHAR2(5),
+  "BENEFIT_START_DATE" TIMESTAMP(0),
+  "BENEFIT_END_DATE" TIMESTAMP(0),
+  "SENIORMGRCN_START_DATE" TIMESTAMP(0),
+  "SENIORMGRCN_END_DATE" TIMESTAMP(0),
   "VER_ID" VARCHAR(32) NOT NULL,
   CONSTRAINT "PK_TH_RELAT_INFO_DFT" PRIMARY KEY ("VER_ID","RELATED_ID","RELATED_TYPE")
 ) STORAGE(ON "TS_BASIC_THJS", CLUSTERBTR);
@@ -244,7 +251,10 @@ CREATE OR REPLACE PROCEDURE THJS.P_TH_CLIENT_INFO_DFT_S (
     I_BASE_VER_ID IN VARCHAR2,
     I_BATCH_JSON IN CLOB,
     O_RETURN_MSG OUT VARCHAR2,
-    O_RETURN_CODE OUT INTEGER
+    O_RETURN_CODE OUT INTEGER,
+    I_BENEFIT_COMPANY_TYPE IN VARCHAR2 DEFAULT NULL,
+    I_BENEFIT_BO_TYPE IN VARCHAR2 DEFAULT NULL,
+    I_BENEFIT_FULL_INFO_FLAG IN VARCHAR2 DEFAULT NULL
 ) AS
     v_latest_ver   VARCHAR2(32);
     v_latest_no    INT;
@@ -355,12 +365,14 @@ BEGIN
     -- 版本头。提交时同时写提交人和提交时间
     INSERT INTO THJS.T_TH_CLIENT_DFT_VER (
         VER_ID, CLIENT_ID, VER_NO, BASE_VER_ID, DFT_STATUS, SAVE_TYPE,
-        CREATE_USER, CREATE_TIME, SUBMIT_USER, SUBMIT_TIME
+        CREATE_USER, CREATE_TIME, SUBMIT_USER, SUBMIT_TIME,
+        BENEFIT_COMPANY_TYPE, BENEFIT_BO_TYPE, BENEFIT_FULL_INFO_FLAG
     ) VALUES (
         v_ver_id, I_CLIENT_ID, v_ver_no, NULLIF(TRIM(I_BASE_VER_ID), ''), v_status, v_save_type,
         I_UPDATE_USER, SYSDATE,
         CASE WHEN v_save_type = 'submit' THEN I_UPDATE_USER END,
-        CASE WHEN v_save_type = 'submit' THEN SYSDATE END
+        CASE WHEN v_save_type = 'submit' THEN SYSDATE END,
+        I_BENEFIT_COMPANY_TYPE, I_BENEFIT_BO_TYPE, I_BENEFIT_FULL_INFO_FLAG
     );
 
     -- 本版客户基本信息。注册资金空串转成空数字；创建、更新时间用 SYSDATE
@@ -402,7 +414,8 @@ BEGIN
             || 'OWNERRIGHTMGMTPOSTOTHER, BNF_TYPE, BO_TYPE, COMPANY_TYPE, FULL_INFO_FLAG, '
             || 'RELATED_KEY, ACTCTRL, SHARERATIOSTARTDATE, SHARERATIOENDDATE, ACTCTRLCPNY, '
             || 'OBTAINACTDATE, TERMINATIONACTDATE, PRIBENFIT, PROFITRATIOSTARTDATE, PROFITRATIOENDDATE, '
-            || 'PROFITRATIOVOTESTARTDATE, PROFITRATIOVOTEENDDATE, SENIORMGR, SENIORMGRCN, VER_ID) '
+            || 'PROFITRATIOVOTESTARTDATE, PROFITRATIOVOTEENDDATE, SENIORMGR, SENIORMGRCN, '
+            || 'BENEFIT_START_DATE, BENEFIT_END_DATE, SENIORMGRCN_START_DATE, SENIORMGRCN_END_DATE, VER_ID) '
             || 'SELECT ?, CASE WHEN j.related_id IS NULL OR TRIM(j.related_id) = '''' OR j.related_id LIKE ''tmp_%'' THEN SYS_GUID() ELSE SUBSTR(j.related_id, 1, 32) END, '
             || 'SUBSTR(j.related_type, 1, 1), SUBSTR(j.organ_flag, 1, 1), '
             || 'j.related_name, j.nationality, j.id_type, j.id_no, j.id_begindate, j.id_enddate, SUBSTR(j.birthday, 1, 10), '
@@ -413,11 +426,11 @@ BEGIN
             || 'j.actotherforms, j.actconuppermarket, j.actconupperentname, j.actconuniscid, '
             || 'TO_NUMBER(NULLIF(TRIM(j.actownerprofitratio), '''')), '
             || 'TO_NUMBER(NULLIF(TRIM(j.actownerprofitratiovote), '''')), '
-            || 'SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrpos_str, NVL(j.seniormgrpos, '''')), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), 1, 10), '
+            || 'REPLACE(REPLACE(REPLACE(NVL(j.seniormgrpos_str, NVL(j.seniormgrpos, '''')), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), '
             || 'j.actdailymgmtpostother, '
             || 'SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.seniormgrposcn_str, NVL(j.seniormgrposcn, '''')), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), 1, 10), '
             || 'j.ownerrightmgmtpostother, '
-            || 'SUBSTR(REPLACE(REPLACE(REPLACE(NVL(j.bnf_type_str, NVL(j.bnf_type, '''')), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), 1, 20), '
+            || 'REPLACE(REPLACE(REPLACE(NVL(j.bnf_type_str, NVL(j.bnf_type, '''')), CHR(91), ''''), CHR(93), ''''), ''"'', ''''), '
             || 'j.bo_type, j.company_type, j.full_info_flag, '
             || 'j.related_key, j.actctrl, '
             || 'TO_DATE(NULLIF(TRIM(SUBSTR(j.shareratiostartdate, 1, 10)), ''''), ''YYYY-MM-DD''), '
@@ -430,7 +443,11 @@ BEGIN
             || 'TO_DATE(NULLIF(TRIM(SUBSTR(j.profitratioenddate, 1, 10)), ''''), ''YYYY-MM-DD''), '
             || 'TO_DATE(NULLIF(TRIM(SUBSTR(j.profitratiovotestartdate, 1, 10)), ''''), ''YYYY-MM-DD''), '
             || 'TO_DATE(NULLIF(TRIM(SUBSTR(j.profitratiovoteenddate, 1, 10)), ''''), ''YYYY-MM-DD''), '
-            || 'j.seniormgr, j.seniormgrcn, ? '
+            || 'j.seniormgr, j.seniormgrcn, '
+            || 'TO_TIMESTAMP(SUBSTR(j.benefit_start_date, 1, 10), ''YYYY-MM-DD''), '
+            || 'TO_TIMESTAMP(SUBSTR(j.benefit_end_date, 1, 10), ''YYYY-MM-DD''), '
+            || 'TO_TIMESTAMP(SUBSTR(j.seniormgrcn_start_date, 1, 10), ''YYYY-MM-DD''), '
+            || 'TO_TIMESTAMP(SUBSTR(j.seniormgrcn_end_date, 1, 10), ''YYYY-MM-DD''), ? '
             || 'FROM JSON_TABLE(?, ''' || CHR(36) || CHR(91) || CHR(42) || CHR(93) || ''' COLUMNS ('
             || 'related_id VARCHAR2(64) PATH ''$.RELATED_ID'', '
             || 'related_type VARCHAR2(10) PATH ''$.RELATED_TYPE'', '
@@ -483,7 +500,11 @@ BEGIN
             || 'profitratiovotestartdate VARCHAR2(40) PATH ''$.PROFITRATIOVOTESTARTDATE'', '
             || 'profitratiovoteenddate VARCHAR2(40) PATH ''$.PROFITRATIOVOTEENDDATE'', '
             || 'seniormgr VARCHAR2(2) PATH ''$.SENIORMGR'', '
-            || 'seniormgrcn VARCHAR2(2) PATH ''$.SENIORMGRCN'')) j';
+            || 'seniormgrcn VARCHAR2(2) PATH ''$.SENIORMGRCN'', '
+            || 'benefit_start_date VARCHAR2(40) PATH ''$.BENEFIT_START_DATE'', '
+            || 'benefit_end_date VARCHAR2(40) PATH ''$.BENEFIT_END_DATE'', '
+            || 'seniormgrcn_start_date VARCHAR2(40) PATH ''$.SENIORMGRCN_START_DATE'', '
+            || 'seniormgrcn_end_date VARCHAR2(40) PATH ''$.SENIORMGRCN_END_DATE'')) j';
         EXECUTE IMMEDIATE v_sql USING I_CLIENT_ID, I_UPDATE_USER, I_UPDATE_USER, v_ver_id, I_BATCH_JSON;
     END IF;
 
